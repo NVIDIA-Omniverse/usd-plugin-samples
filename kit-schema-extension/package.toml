@@ -1,0 +1,36 @@
+files = []
+
+[omni-example-schema.linux-x86_64.debug]
+files = [
+    ["_install/omni.example.schema/linux-x86_64_debug", "."]
+]
+
+[omni-example-schema.linux-x86_64.release]
+files = [
+    ["_install/omni.example.schema/linux-x86_64_release", "."]
+]
+
+[omni-example-schema.linux-aarch64.debug]
+files = [
+    ["_install/omni.example.schema/linux-aarch64_debug", "."]
+]
+
+[omni-example-schema.linux-aarch64.release]
+files = [
+    ["_install/omni.example.schema/linux-aarch64_release", "."]
+]
+
+[omni-example-schema.windows-x86_64.release]
+files = [
+    ["_install/omni.example.schema/windows-x86_64_release", "."]
+]
+
+[omni-example-schema.windows-x86_64.debug]
+files = [
+    ["_install/omni.example.schema/windows-x86_64_debug", "."]
+]
+
+[omni-example-codeless-schema]
+files = [
+    ["_install/omni.example.codeless.schema", "."]
+]

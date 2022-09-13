@@ -1,0 +1,23 @@
+<project toolsVersion="6.45">
+    <dependency name="repo_man" linkPath="../_repo/deps/repo_man">
+        <package name="repo_man" version="1.4.4" />
+    </dependency>
+    <dependency name="repo_usdgenschema" linkPath="../_repo/deps/repo_usdgenschema">
+        <package name="repo_usdgenschema" version="0.8.0" />
+    </dependency>
+    <dependency name="repo_build" linkPath="../_repo/deps/repo_build">
+        <package name="repo_build" version="0.19.10" />
+    </dependency>
+    <dependency name="repo_test" linkPath="../_repo/deps/repo_test">
+        <package name="repo_test" version="1.4.1" />
+    </dependency>
+    <dependency name="repo_package" linkPath="../_repo/deps/repo_package">
+        <package name="repo_package" version="5.6.1" />
+    </dependency>
+    <dependency name="repo_licensing">
+        <package name="repo_licensing" version="1.9.6" />
+    </dependency>
+    <dependency name="repo_docs" linkPath="../_repo/deps/repo_docs">
+        <package name="repo_docs" version="0.9.17" />
+    </dependency>
+</project>

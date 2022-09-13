@@ -1,0 +1,38 @@
+[core]
+# tells kit that we shouldn't hot reload this extension
+reloadable = false
+
+# Load at the start, load all schemas with order -100 (with order -1000 the USD libs are loaded)
+order = -100
+
+[package]
+# all packages should have this information so it is displayed in the UI properly
+author = "USD Core Team"
+repository = "https://gitlab-master.nvidia.com/omniverse/kit-extensions/kit-sampleschema"
+category = "USD"
+title = "USD Example Codeless Schema"
+version = "1.0.0"
+description="Kit extension illustrating how to package a codeless schema extension for use in kit."
+keywords = ["schema", "usd", "codeless"]
+
+[dependencies]
+# depends on core USD libraries being loaded
+"omni.usd.libs" = {}
+
+# when an extension is requested to be enabled, kit will load the python modules
+# that are specified here in the order they are specified
+# this module will register the plugin with USD so it knows in what module
+# to find our schema types
+[[python.module]]
+name = "omni.example.codeless.schema"
+
+# note that in contrast to codeful schemas, we don't have
+# additional python modules or native libraries that need to be loaded
+
+[[test]]
+# tells kit that this extension has been tested externally
+# this only matters for extensions that are built as part of the kit SDK
+# this is waived due to the schemas being tested in usd-schema-extension
+# if additional tests in the extension are needed, remove this waiver
+# and integrate repo_test in kit-schema-extension as it is done in usd-schema-extension
+waiver = "USD Schema, tested externally"

@@ -1,0 +1,52 @@
+﻿# all folders starting with _ are local
+_*/
+
+# byte-compiled python files
+*.py[cod]
+
+# packman package files
+*@*.7z
+*@*.zip
+
+# binaries
+*.ico
+*.bmp
+*.png
+*.gif
+*.jpg
+*.jpeg
+*.tga
+*.psd
+*.raw
+*.exr
+*.hdr
+*.dds
+*.ktx
+*.spv
+*.dxbc
+*.dxil
+*.gltf
+*.glb
+*.fbx
+*.usd
+*.usdz
+*.obj
+*.mat
+*.suo
+
+# visual studio filfes
+/.vs
+**/.vscode/ipch
+
+# PACKAGE-LICENSES/
+PACKAGE-DEPS.yaml
+
+# temporary files under usd-schema-extension
+usd-schema-extension/_*
+usd-schema-extension/src/omniExampleSchema/_*
+usd-schema-extension/src/omniExampleCodelessSchema/_*
+
+# temporary files under kit-schema-extension
+kit-schema-extension/_*
+kit-schema-extension/src/omni.example.schema/_*
+kit-schema-extension/src/omni.example.codeless.schema/_*

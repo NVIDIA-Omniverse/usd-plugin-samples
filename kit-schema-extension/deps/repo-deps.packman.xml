@@ -1,0 +1,11 @@
+<project toolsVersion="6.45">
+    <dependency name="repo_man" linkPath="../_repo/deps/repo_man">
+        <package name="repo_man" version="1.4.4" />
+    </dependency>
+    <dependency name="repo_package" linkPath="../_repo/deps/repo_package">
+        <package name="repo_package" version="5.6.1" />
+    </dependency>
+    <dependency name="repo_licensing">
+        <package name="repo_licensing" version="1.9.6" />
+    </dependency>
+</project>

@@ -1,0 +1,21 @@
+########################################################################################################################
+# Repo tool base settings
+########################################################################################################################
+[repo]
+logging = "info"
+
+[repo_docs]
+enabled = true
+project = "omni-schema-examples"
+name = "Omni Schema Examples"
+version = "1.0.0"
+copyright_start = 2022
+
+sphinx_exclude_patterns = [
+    "VERSION.md",
+    "CHANGES.md",
+    "_repo",
+    "usd-schema-extension/_repo",
+    "kit-schema-extension/_repo",
+    "usd-schema-extension/_build"
+]

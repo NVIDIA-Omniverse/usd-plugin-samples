@@ -1,0 +1,59 @@
+########################################################################################################################
+# Repo tool base settings
+########################################################################################################################
+[repo]
+logging = "info"
+
+# this lets repo_usdgenschema know about our schemas
+[repo_usdgenschema.schema.omniExampleSchema]
+schema_file = "${root}/src/omniExampleSchema/schema.usda"
+additional_python_files = [
+    "${root}/src/omniExampleSchema/module.cpp"
+]
+plug_info_root = ".."
+plug_info_resource_path = "resources"
+plug_info_library_path = "../../../../lib/${lib_prefix}omniExampleSchema${lib_ext}"
+python_init_file = "${root}/src/omniExampleSchema/__init__.py"
+package_info_file = "${root}/src/omniExampleSchema/PACKAGE-INFO.yaml"
+
+[repo_usdgenschema.schema.omniExampleCodelessSchema]
+schema_file = "${root}/src/omniExampleCodelessSchema/schema.usda"
+codeless = true
+package_info_file = "${root}/src/omniExampleCodelessSchema/PACKAGE-INFO.yaml"
+
+# this lets repo_build know where the premake file repo_usdgenschema generated is
+[repo.folders]
+premake_file = "${root}/_build/usdgenschema/generate/premake5.lua"
+
+# this configures the version of MSVC and the WinSDK for windows builds
+# NOTE: we don't pass winsdkversion because we use the default for
+# repo_usdgenschema since the tool versions we specified in
+# host-deps.packman.xml are compatible
+[repo_build.premake]
+extra_args = [
+    "--winsdkroot=${root}/_build/host-deps/winsdk",
+    "--msvcroot=${root}/_build/host-deps/msvc"
+]
+
+# this lets repo_build know where the solution to build was generated from the premake file
+[repo_build.msbuild]
+sln_file = "${root}/_build/usdgenschema/generate/usdgenschema_workspace.sln"
+
+# this lets repo_package know that we want to customize via package.toml
+[repo_package.packages."omni-example-schema"]
+omniverse_flow_version_scheme = true
+package_per_config = true
+
+# since our codeless schema doesn't generate any code, we don't need a package per config
+[repo_package.packages."omni-example-codeless-schema"]
+omniverse_flow_version_scheme = true
+package_per_config = false
+
+[repo_test.suites.pytest]
+kind = "pytest"
+log_file = "results.xml"
+pythonpath = [
+  "${root}/_repo/deps/repo_usdgenschema/_build/deps/usd_py37_${config}/lib/python",
+  "${root}/_install/omniExampleSchema/${platform}_${config}/lib/python",
+]
+discover_path = "${root}/tests"
