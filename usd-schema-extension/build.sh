@@ -83,31 +83,7 @@ then
     fi
 fi
 
-# Step 4: Gather up license dependencies
-if [[ -v TEAMCITY_VERSION ]]; then
-    echo "##teamcity[blockOpened name='Gather licenses']"
-fi
-
-./repo.sh licensing gather -d src/omniExampleSchema -p _repo/deps/repo_usdgenschema/deps/usd-deps.packman.xml --platform linux-$(arch) --config $CONFIG
-./repo.sh licensing gather -d src/omniExampleCodelessSchema -p _repo/deps/repo_usdgenschema/deps/usd-deps.packman.xml --platform linux-$(arch) --config $CONFIG
-
-# the license file should be generated in a local _build directory under where the PACKAGE-INFO.yaml file is
-# need to copy it to the _install location
-# NOTE - as of now, repo_licensing doesn't seem to gather up the USD license dependencies
-# if this is ever fixed, those should also be copied to _install
-# NOTE - this is a little wasteful because for every configuration we will actually create the codeless schema package 
-# many times, but it's always the same package since there's no code so the configuration doesn't matter
-# we do both debug and release of this thing so that packman configuration doesn't need special cases to only pull one version
-mkdir -p _install/omniExampleSchema/linux-$(arch)_$CONFIG/PACKAGE-LICENSES
-mkdir -p _install/omniExampleCodelessSchema/PACKAGE-LICENSES
-cp src/omniExampleSchema/_build/PACKAGE-LICENSES/omni-example-schema-LICENSE.txt _install/omniExampleSchema/linux-$(arch)_$CONFIG/PACKAGE-LICENSES/omni-example-schema-LICENSE.txt
-cp src/omniExampleCodelessSchema/_build/PACKAGE-LICENSES/omni-example-codeless-schema-LICENSE.txt _install/omniExampleCodelessSchema/PACKAGE-LICENSES/omni-example-codeless-schema-LICENSE.txt
-
-if [[ -v TEAMCITY_VERSION ]]; then
-    echo "##teamcity[blockClosed name='Gather licenses']"
-fi
-
-# Step 5: Create the repo packages
+# Step 4: Create the repo packages
 if [[ "$PACKAGE" == "true" ]]
 then
     if [[ -v TEAMCITY_VERSION ]]; then

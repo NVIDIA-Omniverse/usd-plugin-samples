@@ -55,19 +55,9 @@ echo D | xcopy src\omni.example.codeless.schema\omni _install\omni.example.codel
 echo F | xcopy src\omni.example.codeless.schema\PACKAGE-INFO.yaml _install\omni.example.codeless.schema\PACKAGE-INFO.yaml /Y
 if defined TEAMCITY_VERSION echo ##teamcity[blockClosed name='Copying schema extension with kit extension']
 
-:: Step 3: Run repo licensing to gather up the licenses
-if defined TEAMCITY_VERSION echo ##teamcity[blockOpened name='Gather licenses']
-call repo.bat licensing gather -d src/omni.example.schema -p deps/repo-deps.packman.xml --platform windows-x86_64 --config %CONFIG%
-call repo.bat licensing gather -d src/omni.example.codeless.schema -p deps/repo-deps.packman.xml--platform windows-x86_64 --config %CONFIG%
-if defined TEAMCITY_VERSION echo ##teamcity[blockClosed name='Gather licenses']
-
 if %errorlevel% neq 0 ( goto Error )
 
-:: copy licenses to the root package directory
-echo D | xcopy src\omni.example.schema\_build\PACKAGE-LICENSES _install\omni.example.schema\windows-x86_64_%CONFIG%\PACKAGE-LICENSES /Y /s
-echo D | xcopy src\omni.example.codeless.schema\_build\PACKAGE-LICENSES _install\omni.example.codeless.schema\PACKAGE-LICENSES /Y /s
-
-:: Step 4: Package if the option was set
+:: Step 3: Package if the option was set
 if "%PACKAGE%" == "true" (
     if defined TEAMCITY_VERSION echo ##teamcity[blockOpened name='Create packages']
     call repo.bat package --mode omni-example-schema --platform-target windows-x86_64 --root . --config %CONFIG%

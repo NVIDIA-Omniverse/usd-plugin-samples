@@ -62,21 +62,7 @@ if [[ -v TEAMCITY_VERSION ]]; then
     echo "##teamcity[blockClosed name='Copying schema extension with kit extension']"
 fi
 
-# Step 3: Run repo licensing to gather up the licenses
-if [[ -v TEAMCITY_VERSION ]]; then
-    echo "##teamcity[blockOpened name='Gather licenses']"
-fi
-./repo.sh licensing gather -d src/omni.example.schema -p deps/repo-deps.packman.xml --platform linux-$(arch) --config %CONFIG%
-./repo.sh licensing gather -d src/omni.example.codeless.schema -p deps/repo-deps.packman.xml --platform linux-$(arch) --config %CONFIG%
-if [[ -v TEAMCITY_VERSION ]]; then
-    echo "##teamcity[blockClosed name='Gather licenses']"
-fi
-
-:: copy licenses to the root package directory
-cp -r src/omni.example.schema/_build/PACKAGE-LICENSES _install/omni.example.schema/windows-x86_64_%CONFIG%/PACKAGE-LICENSES
-cp -r src/omni.example.codeless.schema/_build/PACKAGE-LICENSES _install/omni.example.codeless.schema/PACKAGE-LICENSES
-
-# Step 4: Package the extensions if requested
+# Step 3: Package the extensions if requested
 if [[ "$PACKAGE" == "true" ]]
 then
     if [[ -v TEAMCITY_VERSION ]]; then

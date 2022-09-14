@@ -13,3 +13,7 @@ package_per_config = true
 [repo_package.packages."omni-example-codeless-schema"]
 omniverse_flow_version_scheme = true
 package_per_config = false
+
+# removing the need for licensing
+[repo_build.licensing]
+enabled = false

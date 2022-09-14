@@ -66,29 +66,7 @@ if "%SKIPTEST%" EQU "false" (
     if !errorlevel! neq 0 ( goto Error )
 )
 
-:: Step 4: Gather up license dependencies
-if defined TEAMCITY_VERSION echo ##teamcity[blockOpened name='Gather licenses']
-call repo.bat licensing gather -d src/omniExampleSchema -p _repo/deps/repo_usdgenschema/deps/usd-deps.packman.xml --platform windows-x86_64 --config %CONFIG%
-call repo.bat licensing gather -d src/omniExampleCodelessSchema -p _repo/deps/repo_usdgenschema/deps/usd-deps.packman.xml --platform windows-x86_64 --config %CONFIG%
-if defined TEAMCITY_VERSION echo ##teamcity[blockClosed name='Gather licenses']
-
-if !errorlevel! neq 0 ( goto Error )
-
-:: the license file should be generated in a local _build directory under where the PACKAGE-INFO.yaml file is
-:: need to copy it to the _install location
-:: NOTE - as of now, repo_licensing doesn't seem to gather up the USD license dependencies
-:: if this is ever fixed, those should also be copied to _install
-:: NOTE - this is a little wasteful because for every configuration we will actually create the codeless schema package 
-:: many times, but it's always the same package since there's no code so the configuration doesn't matter
-:: we do both debug and release of this thing so that packman configuration doesn't need special cases to only pull one version
-if not exist _install\omniExampleSchema\windows-x86_64_%CONFIG%\PACKAGE-LICENSES mkdir _install\omniExampleSchema\windows-x86_64_%CONFIG%\PACKAGE-LICENSES
-if not exist _install\omniExampleCodelessSchema\PACKAGE-LICENSES mkdir _install\omniExampleCodelessSchema\PACKAGE-LICENSES
-echo F | xcopy src\omniExampleSchema\_build\PACKAGE-LICENSES\omni-example-schema-LICENSE.txt _install\omniExampleSchema\windows-x86_64_%CONFIG%\PACKAGE-LICENSES\omni-example-schema-LICENSE.txt /Y
-echo F | xcopy src\omniExampleCodelessSchema\_build\PACKAGE-LICENSES\omni-example-codeless-schema-LICENSE.txt _install\omniExampleCodelessSchema\PACKAGE-LICENSES\omni-example-codeless-schema-LICENSE.txt /Y
-
-if !errorlevel! neq 0 ( goto Error )
-
-:: Step 5: Create the repo packages
+:: Step 4: Create the repo packages
 if "%PACKAGE%" == "true" (
     if defined TEAMCITY_VERSION echo ##teamcity[blockOpened name='Create packages']
     call repo.bat package --mode omni-example-schema --platform-target windows-x86_64 --root . --config %CONFIG%

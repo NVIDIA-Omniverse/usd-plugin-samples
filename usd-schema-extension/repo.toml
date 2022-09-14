@@ -39,6 +39,10 @@ extra_args = [
 [repo_build.msbuild]
 sln_file = "${root}/_build/usdgenschema/generate/usdgenschema_workspace.sln"
 
+# remove the need for licensing
+[repo_build.licensing]
+enabled = false
+
 # this lets repo_package know that we want to customize via package.toml
 [repo_package.packages."omni-example-schema"]
 omniverse_flow_version_scheme = true

@@ -14,9 +14,6 @@
     <dependency name="repo_package" linkPath="../_repo/deps/repo_package">
         <package name="repo_package" version="5.6.1" />
     </dependency>
-    <dependency name="repo_licensing">
-        <package name="repo_licensing" version="1.9.6" />
-    </dependency>
     <dependency name="repo_docs" linkPath="../_repo/deps/repo_docs">
         <package name="repo_docs" version="0.9.17" />
     </dependency>

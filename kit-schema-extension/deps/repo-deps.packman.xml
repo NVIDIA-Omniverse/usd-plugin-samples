@@ -5,7 +5,4 @@
     <dependency name="repo_package" linkPath="../_repo/deps/repo_package">
         <package name="repo_package" version="5.6.1" />
     </dependency>
-    <dependency name="repo_licensing">
-        <package name="repo_licensing" version="1.9.6" />
-    </dependency>
 </project>
