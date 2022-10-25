@@ -6,7 +6,7 @@
         <package name="python" version="3.7.13+nv1-${platform}" />
     </dependency>
     <dependency name="premake" linkPath="../_build/host-deps/premake" tags="non-redist" >
-        <package name="premake" version="5.0.9-nv-main-68e9a88a-${platform}" platforms="windows-x86_64 linux-x86_64 linux-aarch64" />
+        <package name="premake" version="5.0.0-beta1+nv1-${platform}" platforms="windows-x86_64 linux-x86_64 linux-aarch64" />
     </dependency>
   <dependency name="msvc" linkPath="../_build/host-deps/msvc" tags="non-redist">
         <package name="msvc" version="2017-15.9.17-winsdk-19041" platforms="windows-x86_64" />
