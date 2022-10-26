@@ -67,42 +67,6 @@ The `build.bat` and `build.sh` files provide an example of setting up this stagi
 
 Note that packaging (zipping) isn't always strictly required.  As such, all `build.bat` and `build.sh` files take an optional argument `--package` which controls if packaging takes place or not.  In the absence of the `--package` argument, the default behavior is to not zip the staging location up.
 
-## Integrating Kit Extension Source Into Kit Builds
+## Using the Kit Extension
 
-This `README` has assumed that the kit and USD schema extension are developed within the same repository.  In some cases, this may not be desired:
-
-- The USD schema extension exists in an independent repository that is packaged and uploaded to `packman` and the kit extension needs to be built using that package, but not as part of the `kit` build.
-- The kit extension must be developed as part of the `kit` build, but uses a USD schema extension that exists in an independent repository that is packaged and uploaded to `packman`.
-
-This section describes additional steps that need to be taken in either of the above cases.
-
-### Kit Extension Separate But Not Part of Kit Build
-
-If the USD schema extension does not exist as part of the same repository, the `build.bat` / `build.sh` files need to be modified such that the USD schema extension is first acquired before aggregation takes place.
-
-First, you must specify the package version of the USD schema extension the kit extension is dependent on.  This is usually done as part of a `target-deps.packman.xml` file in the `deps` folder.  For example:
-```
-<project toolsVersion="6.45">
-    <dependency name="omni_example_schema" linkPath="../_build/deps/omni_example_schema">
-        <package name="omni-example-schema" version="0.5.0" />
-    </dependency>
-</project>
-```
-
-Second, you must pull the packages locally by invoking `packman`:
-
-**build.bat**
-```
-if not exist _build\deps\omni_example_schema (
-    call tools\packman\packman pull --platform windows-x86_64 deps\target-deps.packman.xml
-)
-```
-
-**build.sh**
-```
-if [ ! -d "_build/deps/omni_example_schema" ]; then
-    tools/packman/packman pull --platform linux-$(arch) deps/target-deps.packman.xml
-fi
-```
-
-Once the package is pulled down, simply modify the supplied `build.bat` and `build.sh` files to source the USD schema files from `_build/deps` rather than from `../usd-schema-extension`.
+When the kit extension is built, it pulls the appropriate files needed by the extension from the usd-schema portion of the build.  To use the kit extension, add an extension path to kit that points to the `kit-schema-extension/_install/${platform}_${config}` directory (or the directory you copy the extension content to).  Loading the extension should then allow you to use the schema from the python scripting environment via `import OmniExampleSchema`.

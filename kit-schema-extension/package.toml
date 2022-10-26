@@ -2,35 +2,60 @@ files = []
 
 [omni-example-schema.linux-x86_64.debug]
 files = [
-    ["_install/omni.example.schema/linux-x86_64_debug", "."]
+    ["_install/linux-x86_64_debug/omni.example.schema", "."]
 ]
 
 [omni-example-schema.linux-x86_64.release]
 files = [
-    ["_install/omni.example.schema/linux-x86_64_release", "."]
+    ["_install/linux-x86_64_release/omni.example.schema", "."]
 ]
 
 [omni-example-schema.linux-aarch64.debug]
 files = [
-    ["_install/omni.example.schema/linux-aarch64_debug", "."]
+    ["_install/linux-aarch64_debug/omni.example.schema", "."]
 ]
 
 [omni-example-schema.linux-aarch64.release]
 files = [
-    ["_install/omni.example.schema/linux-aarch64_release", "."]
+    ["_install/linux-aarch64_release/omni.example.schema", "."]
 ]
 
 [omni-example-schema.windows-x86_64.release]
 files = [
-    ["_install/omni.example.schema/windows-x86_64_release", "."]
+    ["_install/windows-x86_64_release/omni.example.schema", "."]
 ]
 
 [omni-example-schema.windows-x86_64.debug]
 files = [
-    ["_install/omni.example.schema/windows-x86_64_debug", "."]
+    ["_install/windows-x86_64_debug/omni.example.schema", "."]
 ]
 
-[omni-example-codeless-schema]
+[omni-example-codeless-schema.linux-x86_64.debug]
 files = [
-    ["_install/omni.example.codeless.schema", "."]
+    ["_install/linux-x86_64_debug/omni.example.codeless.schema", "."]
+]
+
+[omni.example.codeless.schema.linux-x86_64.release]
+files = [
+    ["_install/linux-x86_64_release/omni.example.codeless.schema", "."]
+]
+
+[omni.example.codeless.schema.linux-aarch64.debug]
+files = [
+    ["_install/linux-aarch64_debug/omni.example.codeless.schema", "."]
+]
+
+[omni.example.codeless.schemaa.linux-aarch64.release]
+files = [
+    ["_install/linux-aarch64_release/omni.example.codeless.schema", "."]
+]
+
+[omni.example.codeless.schema.windows-x86_64.release]
+files = [
+    ["_install/windows-x86_64_release/omni.example.codeless.schema", "."]
+]
+
+[omni.example.codeless.schema.windows-x86_64.debug]
+files = [
+    ["_install/windows-x86_64_debug/omni.example.codeless.schema", "."]
 ]

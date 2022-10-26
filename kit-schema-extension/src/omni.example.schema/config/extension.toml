@@ -30,7 +30,7 @@ name = "omni.example.schema"
 # the second extension is the schema python module itself
 # this is the module that developers will import to use the schema in Python
 [[python.module]]
-name = "omniExampleSchema.lib.python.OmniExampleSchema"
+name = "OmniExampleSchema"
 
 # this tells kit to load these C++ libraries when the extension loads
 # (kit will also try to unload them when the extension is unloaded)
@@ -40,7 +40,7 @@ name = "omniExampleSchema.lib.python.OmniExampleSchema"
 # should contain the path to your C++ dll otherwise the python module will
 # not load properly!
 [[native.library]]
-path = "omniExampleSchema/lib/${lib_prefix}omniExampleSchema${lib_ext}"
+path = "lib/${lib_prefix}omniExampleSchema${lib_ext}"
 
 [[test]]
 # tells kit that this extension has been tested externally

@@ -10,35 +10,32 @@ import os
 
 from pxr import Plug
 
-# the logic below assumes that the schema libs were built with the standard structure
-# and that the root of the schema package is at the same level as the config directory
-# that is, the structure looks like the following:
+# the logic below assumes that the C++ / Python schema libs were built with the standard structure
+# this structure is slightly modified when creating the kit extension to make it more
+# intuitive for the user to import the Python schema library via kit (the original schema structure
+# can be used independently of the kit-extension as normal - adding to PYTHONPATH and PATH / LD_LIBRARY_PATH
+# appropriately)
+# the kit-extension structure looks like the following:
 # extension-root
+#   PACKAGE-INFO.yaml
+#   PACKAGE-LICENSES
+#   lib
+#     omniExampleSchema.dll
 #   config
 #     extension.toml
+#   OmniExampleSchema
+#     __init__.py
+#     _omniExampleSchema.pyd
 #   omni
 #     example
 #        schema
 #           __init__.py
-#   omniExampleSchema
-#      PACKAGE-INFO.yaml
-#      include
-#         api.h
-#         tokens.h
-#         other headers
-#      lib
-#         python
-#            __init__.py
-#            _omniExampleSchema.pyd
-#         omniExampleSchema.dll
-#         omniExampleSchema.lib
-#      PACKAGE-LICENSES
-#      usd
+#   usd
+#     OmniExampleSchema
+#       resources
+#         plugInfo.json
+#         generatedSchema.usda
 #         OmniExampleSchema
-#            resources
-#               plugInfo.json
-#               generatedSchema.usda
-#               OmniExampleSchema
-#                  schema.usda
-plugin_root = os.path.join(os.path.dirname(__file__), "..", "..", "..", "omniExampleSchema", "usd", "OmniExapmleSchema", "resources")
+#           schema.usda
+plugin_root = os.path.join(os.path.dirname(__file__), "..", "..", "..", "usd", "OmniExampleSchema", "resources")
 Plug.Registry().RegisterPlugins(plugin_root)

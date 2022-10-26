@@ -1,6 +1,6 @@
 Package : omni.example.schema
-Maintainers : Willard Ma, Edward Slavin
+Maintainers : Edward Slavin
 Description : Sample kit extension encapsulating a codeful USD schema extension
 SWIPAT NvBug : 
-Repository : https://gitlab-master.nvidia.com/omniverse/kit-sampleschema
+Repository : https://github.com/NVIDIA-Omniverse/kit-sample-usd-schema
 License Type : NVIDIA

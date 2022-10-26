@@ -9,10 +9,9 @@ logging = "info"
 omniverse_flow_version_scheme = true
 package_per_config = true
 
-# since our codeless schema doesn't generate any code, we don't need a package per config
 [repo_package.packages."omni-example-codeless-schema"]
 omniverse_flow_version_scheme = true
-package_per_config = false
+package_per_config = true
 
 # removing the need for licensing
 [repo_build.licensing]
