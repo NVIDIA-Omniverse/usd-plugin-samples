@@ -59,7 +59,7 @@ if !errorlevel! neq 0 ( goto Error )
 :: Step 3: Test schema 
 if "%SKIPTEST%" EQU "false" (
     if defined TEAMCITY_VERSION echo ##teamcity[blockOpened name='Run tests']
-    set "PATH=%~dp0_install\omniExampleSchema\windows-x86_64_%CONFIG%\lib;%~dp0_repo\deps\repo_usdgenschema\_build\deps\usd_py37_%CONFIG%\lib;%PATH%"
+    set "PATH=%~dp0_install\omniExampleSchema\windows-x86_64_%CONFIG%\lib;%~dp0_build\deps\usd_%CONFIG%\lib;%PATH%"
     call repo.bat test --config %CONFIG%
     if defined TEAMCITY_VERSION echo ##teamcity[blockClosed name='Run tests']
 

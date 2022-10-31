@@ -57,7 +57,7 @@ package_per_config = false
 kind = "pytest"
 log_file = "results.xml"
 pythonpath = [
-  "${root}/_repo/deps/repo_usdgenschema/_build/deps/usd_py37_${config}/lib/python",
+  "${root}/_build/deps/usd_${config}/lib/python",
   "${root}/_install/omniExampleSchema/${platform}_${config}/lib/python",
 ]
 discover_path = "${root}/tests"

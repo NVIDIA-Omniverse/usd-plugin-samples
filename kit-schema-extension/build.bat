@@ -43,16 +43,24 @@ if "%CONFIG%" == "release" (
 :: Step 2: Aggregate everything under the _install directory
 if defined TEAMCITY_VERSION echo ##teamcity[blockOpened name='Copying schema extension with kit extension']
 if not exist _install mkdir _install
-if not exist _install\omni.example.schema mkdir _install\omni.example.schema
-if not exist _install\omni.example.codeless.schema mkdir _install\omni.example.codeless.schema
-echo D | xcopy ..\usd-schema-extension\_install\omniExampleSchema\windows-x86_64_%CONFIG% _install\omni.example.schema\windows-x86_64_%CONFIG%\omniExampleSchema /Y /s
-echo D | xcopy ..\usd-schema-extension\_install\omniExampleCodelessSchema _install\omni.example.codeless.schema\omniExampleCodelessSchema /Y /s
-echo D | xcopy src\omni.example.schema\config _install\omni.example.schema\windows-x86_64_%CONFIG%\config /Y /s
-echo D | xcopy src\omni.example.schema\omni _install\omni.example.schema\windows-x86_64_%CONFIG%\omni /Y /s
-echo F | xcopy src\omni.example.schema\PACKAGE-INFO.yaml _install\omni.example.schema\windows-x86_64_%CONFIG%\PACKAGE-INFO.yaml /Y
-echo D | xcopy src\omni.example.codeless.schema\config _install\omni.example.codeless.schema\config /Y /s
-echo D | xcopy src\omni.example.codeless.schema\omni _install\omni.example.codeless.schema\omni /Y /s
-echo F | xcopy src\omni.example.codeless.schema\PACKAGE-INFO.yaml _install\omni.example.codeless.schema\PACKAGE-INFO.yaml /Y
+if not exist _install\windows-x86_64_%CONFIG% mkdir _install\windows-x86_64_%CONFIG%
+if not exist _install\windows-x86_64_%CONFIG%\omni.example.schema mkdir _install\windows-x86_64_%CONFIG%\omni.example.schema
+if not exist _install\windows-x86_64_%CONFIG%\omni.example.schema\lib mkdir _install\windows-x86_64_%CONFIG%\omni.example.schema\lib
+if not exist _install\windows-x86_64_%CONFIG%\omni.example.schema\OmniExampleSchema mkdir _install\windows-x86_64_%CONFIG%\omni.example.schema\OmniExampleSchema
+echo F | xcopy src\omni.example.schema\PACKAGE-INFO.yaml _install\windows-x86_64_%CONFIG%\omni.example.schema\PACKAGE-INFO.yaml /Y
+echo F | xcopy ..\usd-schema-extension\_install\omniExampleSchema\windows-x86_64_%CONFIG%\lib\omniExampleSchema.dll _install\windows-x86_64_%CONFIG%\omni.example.schema\lib\omniExampleSchema.dll /Y
+echo F | xcopy ..\usd-schema-extension\_install\omniExampleSchema\windows-x86_64_%CONFIG%\lib\python\OmniExampleSchema\__init__.py _install\windows-x86_64_%CONFIG%\omni.example.schema\OmniExampleSchema\__init__.py /Y
+echo F | xcopy ..\usd-schema-extension\_install\omniExampleSchema\windows-x86_64_%CONFIG%\lib\python\OmniExampleSchema\_omniExampleSchema.pyd _install\windows-x86_64_%CONFIG%\omni.example.schema\OmniExampleSchema\_omniExampleSchema.pyd /Y
+echo D | xcopy ..\usd-schema-extension\_install\omniExampleSchema\windows-x86_64_%CONFIG%\usd _install\windows-x86_64_%CONFIG%\omni.example.schema\usd /Y /s
+echo D | xcopy src\omni.example.schema\config _install\windows-x86_64_%CONFIG%\omni.example.schema\config /Y /s
+echo D | xcopy src\omni.example.schema\omni _install\windows-x86_64_%CONFIG%\omni.example.schema\omni /Y /s
+
+if not exist _install\windows-x86_64_%CONFIG%\omni.example.codeless.schema mkdir _install\windows-x86_64_%CONFIG%\omni.example.codeless.schema
+echo F | xcopy src\omni.example.codeless.schema\PACKAGE-INFO.yaml _install\windows-x86_64_%CONFIG%\omni.example.codeless.schema\PACKAGE-INFO.yaml /Y
+echo D | xcopy src\omni.example.codeless.schema\config _install\windows-x86_64_%CONFIG%\omni.example.codeless.schema\config /Y /s
+echo D | xcopy src\omni.example.codeless.schema\omni _install\windows-x86_64_%CONFIG%\omni.example.codeless.schema\omni /Y /s
+echo D | xcopy ..\usd-schema-extension\_install\omniExampleCodelessSchema\usd _install\windows-x86_64_%CONFIG%\omni.example.codeless.schema\usd /Y /s
+
 if defined TEAMCITY_VERSION echo ##teamcity[blockClosed name='Copying schema extension with kit extension']
 
 if %errorlevel% neq 0 ( goto Error )

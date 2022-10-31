@@ -74,7 +74,7 @@ then
         echo "##teamcity[blockOpened name='Run tests']"
     fi
 
-    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$(pwd)/_install/omniExampleSchema/linux-$(arch)_$CONFIG/lib:$(pwd)/_repo/deps/repo_usdgenschema/_build/deps/usd_py37_$CONFIG/lib
+    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$(pwd)/_install/omniExampleSchema/linux-$(arch)_$CONFIG/lib:$(pwd)/_build/deps/usd_$CONFIG/lib
 
     ./repo.sh test --config $CONFIG
 

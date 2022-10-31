@@ -1,10 +1,4 @@
 <project toolsVersion="6.45">
-    <dependency name="packman_common" linkPath="../_build/host-deps/packman_common" tags="non-redist" >
-        <package name="packman-common" version="6.0.3" />
-    </dependency>
-    <dependency name="python37" linkPath="../_build/host-deps/python37" tags="non-redist" >
-        <package name="python" version="3.7.13+nv1-${platform}" />
-    </dependency>
     <dependency name="premake" linkPath="../_build/host-deps/premake" tags="non-redist" >
         <package name="premake" version="5.0.0-beta1+nv1-${platform}" platforms="windows-x86_64 linux-x86_64 linux-aarch64" />
     </dependency>

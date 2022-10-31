@@ -30,5 +30,5 @@ from pxr import Plug
 #               generatedSchema.usda
 #               OmniExampleCodelessSchema
 #                  schema.usda
-plugin_root = os.path.join(os.path.dirname(__file__), "..", "..", "..", "omniExampleCodelessSchema", "usd", "OmniExampleCodelessSchema", "resources")
+plugin_root = os.path.join(os.path.dirname(__file__), "..", "..", "..", "usd", "OmniExampleCodelessSchema", "resources")
 Plug.Registry().RegisterPlugins(plugin_root)
