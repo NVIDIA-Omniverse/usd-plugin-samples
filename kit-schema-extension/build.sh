@@ -10,6 +10,8 @@
 
 set -e
 
+CWD="$( cd "$( dirname "$0" )" && pwd )"
+
 # default config is release
 CONFIG=release
 PACKAGE=false
@@ -76,8 +78,8 @@ then
         echo "##teamcity[blockOpened name='Create packages']"
     fi
 
-    ./repo.sh package --mode omni-example-schema --platform-target linux-$(arch) --root . --config $CONFIG
-    ./repo.sh package --mode omni-example-codeless-schema --platform-target linux-$(arch) --root . --config $CONFIG
+    $CWD/repo.sh package --mode omni-example-schema --platform-target linux-$(arch) --root . --config $CONFIG
+    $CWD/repo.sh package --mode omni-example-codeless-schema --platform-target linux-$(arch) --root . --config $CONFIG
 
     if [[ -v TEAMCITY_VERSION ]]; then
         echo "##teamcity[blockClosed name='Create packages']"

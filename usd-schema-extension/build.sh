@@ -10,6 +10,8 @@
 
 set -e
 
+CWD="$( cd "$( dirname "$0" )" && pwd )"
+
 # default config is release
 CONFIG=release
 PACKAGE=false
@@ -49,7 +51,7 @@ if [[ -v TEAMCITY_VERSION ]]; then
     echo "##teamcity[blockOpened name='Generate schema']"
 fi
 
-./repo.sh usdgenschema
+$CWD/repo.sh usdgenschema
 
 if [[ -v TEAMCITY_VERSION ]]; then
     echo "##teamcity[blockClosed name='Generate schema']"
@@ -61,7 +63,7 @@ if [[ -v TEAMCITY_VERSION ]]; then
     echo "##teamcity[blockOpened name='Build libraries']"
 fi
 
-./repo.sh build --$BUILD_OPTION
+$CWD/repo.sh build --$BUILD_OPTION
 
 if [[ -v TEAMCITY_VERSION ]]; then
     echo "##teamcity[blockClosed name='Build libraries']"
@@ -76,7 +78,7 @@ then
 
     export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$(pwd)/_install/omniExampleSchema/linux-$(arch)_$CONFIG/lib:$(pwd)/_build/deps/usd_$CONFIG/lib
 
-    ./repo.sh test --config $CONFIG
+    $CWD/repo.sh test --config $CONFIG
 
     if [[ -v TEAMCITY_VERSION ]]; then
         echo "##teamcity[blockClosed name='Run tests']"
@@ -90,8 +92,8 @@ then
         echo "##teamcity[blockOpened name='Create packages']"
     fi
 
-    ./repo.sh package --mode omni-example-schema --platform-target linux-$(arch) --root . --config $CONFIG
-    ./repo.sh package --mode omni-example-codeless-schema --platform-target linux-$(arch) --root . --config $CONFIG
+    $CWD/repo.sh package --mode omni-example-schema --platform-target linux-$(arch) --root . --config $CONFIG
+    $CWD/repo.sh package --mode omni-example-codeless-schema --platform-target linux-$(arch) --root . --config $CONFIG
 
     if [[ -v TEAMCITY_VERSION ]]; then
         echo "##teamcity[blockClosed name='Create packages']"
