@@ -76,7 +76,8 @@ then
         echo "##teamcity[blockOpened name='Run tests']"
     fi
 
-    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$(pwd)/_install/omniExampleSchema/linux-$(arch)_$CONFIG/lib:$(pwd)/_build/deps/usd_$CONFIG/lib
+    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$CWD/_install/omniExampleSchema/linux-$(arch)_$CONFIG/lib:$CWD/_build/deps/usd_$CONFIG/lib
+    export CONFIG=$CONFIG
 
     $CWD/repo.sh test --config $CONFIG
 

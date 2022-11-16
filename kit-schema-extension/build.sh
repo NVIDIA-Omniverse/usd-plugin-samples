@@ -51,21 +51,22 @@ if [[ -v TEAMCITY_VERSION ]]; then
     echo "##teamcity[blockOpened name='Copying schema extension with kit extension']"
 fi
 
-mkdir -p _install/linux-$(arch)_$CONFIG/omni.example.schema
-mkdir -p _install/linux-$(arch)_$CONFIG/omni.example.schema/lib
-mkdir -p _install/linux-$(arch)_$CONFIG/omni.example.schema/OmniExampleSchema
-cp src/omni.example.schema/PACKAGE-INFO.yaml _install/linux-$(arch)_$CONFIG/omni.example.schema/PACKAGE-INFO.yaml
-cp ../usd-schema-extension/_install/omniExampleSchema/linux-$(arch)_$CONFIG/lib/libomniExampleSchema.so _install/linux-$(arch)_$CONFIG/omni.example.schema/lib/libomniExampleSchema.so
-cp ../usd-schema-extension/_install/omniExampleSchema/linux-$(arch)_$CONFIG/lib/python/OmniExampleSchema/__init__.py _install/linux-$(arch)_$CONFIG/omni.example.schema/OmniExampleSchema/__init__.py
-cp ../usd-schema-extension/_install/omniExampleSchema/linux-$(arch)_$CONFIG/lib/python/OmniExampleSchema/lib_omniExampleSchema.so _install/linux-$(arch)_$CONFIG/omni.example.schema/OmniExampleSchema/lib_omniExampleSchema.so
-cp -r ../usd-schema-extension/_install/omniExampleSchema/linux-$(arch)_$CONFIG/usd _install/linux-$(arch)_$CONFIG/omni.example.schema/usd
-cp -r src/omni.example.schema/config _install/linux-$(arch)_$CONFIG/omni.example.schema/config
-cp -r src/omni.example.schema/omni _install/linux-$(arch)_$CONFIG/omni.example.schema/omni
+mkdir -p $CWD/_install/linux-$(arch)_$CONFIG/omni.example.schema
+mkdir -p $CWD/_install/linux-$(arch)_$CONFIG/omni.example.schema/lib
+mkdir -p $CWD/_install/linux-$(arch)_$CONFIG/omni.example.schema/OmniExampleSchema
+cp $CWD/src/omni.example.schema/PACKAGE-INFO.yaml $CWD/_install/linux-$(arch)_$CONFIG/omni.example.schema/PACKAGE-INFO.yaml
+cp $CWD/../usd-schema-extension/_install/omniExampleSchema/linux-$(arch)_$CONFIG/lib/libomniExampleSchema.so $CWD/_install/linux-$(arch)_$CONFIG/omni.example.schema/lib/libomniExampleSchema.so
+cp $CWD/../usd-schema-extension/_install/omniExampleSchema/linux-$(arch)_$CONFIG/lib/python/OmniExampleSchema/__init__.py $CWD/_install/linux-$(arch)_$CONFIG/omni.example.schema/OmniExampleSchema/__init__.py
+cp $CWD/../usd-schema-extension/_install/omniExampleSchema/linux-$(arch)_$CONFIG/lib/python/OmniExampleSchema/_omniExampleSchema.so $CWD/_install/linux-$(arch)_$CONFIG/omni.example.schema/OmniExampleSchema/_omniExampleSchema.so
+cp -r $CWD/../usd-schema-extension/_install/omniExampleSchema/linux-$(arch)_$CONFIG/usd $CWD/_install/linux-$(arch)_$CONFIG/omni.example.schema/usd
+cp -r $CWD/src/omni.example.schema/config $CWD/_install/linux-$(arch)_$CONFIG/omni.example.schema/config
+cp -r $CWD/src/omni.example.schema/omni $CWD/_install/linux-$(arch)_$CONFIG/omni.example.schema/omni
 
-mkdir -p _install/linux-$(arch)_$CONFIG/omni.example.codeless.schema
-cp src/omni.example.codeless.schema/PACKAGE-INFO.yaml _install/linux-$(arch)_$CONFIG/omni.example.codeless.schema/PACKAGE-INFO.yaml
-cp -r src/omni.example.codeless.schema/config _install/linux-$(arch)_$CONFIG/omni.example.codeless.schema/config
-cp -r src/omni.example.codeless.schema/omni _install/linux-$(arch)_$CONFIG/omni.example.codeless.schema/omni
+mkdir -p $CWD/_install/linux-$(arch)_$CONFIG/omni.example.codeless.schema
+cp $CWD/src/omni.example.codeless.schema/PACKAGE-INFO.yaml $CWD/_install/linux-$(arch)_$CONFIG/omni.example.codeless.schema/PACKAGE-INFO.yaml
+cp -r $CWD/src/omni.example.codeless.schema/config $CWD/_install/linux-$(arch)_$CONFIG/omni.example.codeless.schema/config
+cp -r $CWD/src/omni.example.codeless.schema/omni $CWD/_install/linux-$(arch)_$CONFIG/omni.example.codeless.schema/omni
+cp -r $CWD/../usd-schema-extension/_install/omniExampleCodelessSchema/usd $CWD/_install/linux-$(arch)_$CONFIG/omni.example.codeless.schema/usd
 
 if [[ -v TEAMCITY_VERSION ]]; then
     echo "##teamcity[blockClosed name='Copying schema extension with kit extension']"

@@ -65,11 +65,11 @@ class OmniMeshLod "OmniMeshLod" (
                   boundable as the display mesh.  If that ratio is falls below 0.5, 
                   display the corresponding referenced boundable as the display mesh
                   and when transitioning between the two do so in a scheme controlled
-                  by the \ref lodTransitionScheme token value."""
+                  by the \\ref lodTransitionScheme token value."""
     )
 
     rel lodMeshes (
-        doc = """ Represents a set of references of the same length as \ref lodLevels
+        doc = """ Represents a set of references of the same length as \\ref lodLevels
                   where each slot corresponds to the mesh to display at the corresponding
                   lodLevels slot.  That is, if the first value in lodLevels is 0.75, the 
                   first reference in this relationship will be used as the display mesh."""
