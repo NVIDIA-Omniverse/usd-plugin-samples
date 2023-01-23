@@ -1,0 +1,10 @@
+<project toolsVersion="5.6">
+  <dependency name="nv-usd" linkPath="../_build/usd-deps/nv-usd/${config}">
+    <package name="nv-usd" version="20.08.nv.1.2.2404.6bf74556-win64_py37_${config}-main" platforms="windows-x86_64" />
+    <package name="nv-usd" version="20.08.nv.1.2.2404.6bf74556-linux64_py37-centos_${config}-main" platforms="linux-x86_64" />
+    <package name="nv-usd" version="20.08.nv.1.2.2404.6bf74556-linux-aarch64_py37_${config}-main" platforms="linux-aarch64" />
+  </dependency>
+  <dependency name="python" linkPath="../_build/usd-deps/python">
+    <package name="python" version="3.7.12+nv1-${platform}" />
+  </dependency>
+</project>

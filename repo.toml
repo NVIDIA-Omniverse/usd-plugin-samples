@@ -1,0 +1,30 @@
+[repo]
+logging = "warn"
+
+# common settings for repo_usd for all USD plug-ins
+[repo_usd]
+usd_debug_root = "${root}/_build/usd-deps/nv-usd/debug"
+usd_release_root = "${root}/_build/usd-deps/nv-usd/release"
+usd_python_root = "${root}/_build/usd-deps/python"
+generate_schema_makefiles = true
+generate_root_makefile = true
+schema_makefile_format = "cmake"
+
+# this tells repo_usd about our codeful schema extension
+[repo_usd.schema.omniExampleSchema]
+schema_file = "${root}/src/usd-plugins/schema/omniExampleSchema/schema.usda"
+generate_dir = "${root}/src/usd-plugins/schema/omniExampleSchema/generated"
+library_prefix = "OmniExample"
+usd_lib_dependencies = [
+    "arch",
+    "tf",
+    "vt",
+    "sdf",
+    "usd"
+]
+
+# this tells repo_usd about our codeless schema extension
+[repo_usd.schema.omniExampleCodelessSchema]
+schema_file = "${root}/src/usd-plugins/schema/omniExampleCodelessSchema/schema.usda"
+generate_dir = "${root}/src/usd-plugins/schema/omniExampleCodelessSchema/generated"
+is_codeless = true

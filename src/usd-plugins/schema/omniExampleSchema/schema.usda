@@ -1,0 +1,203 @@
+#usda 1.0
+(
+    subLayers = [
+        # To refer to schema types defined in schema.usda files from other
+        # libraries, simply add comma-separated lines of the form
+        # @<library name>/schema.usda@. In this example, we're referring
+        # to schema types from 'usd'. If you were adding sub-classes of
+        # UsdGeom schema types, you would use usdGeom/schema.usda instead.
+        @usd/schema.usda@
+    ]
+)
+
+over "GLOBAL" (
+    customData = {
+        string libraryName   = "omniExampleSchema"
+        string libraryPath   = "./"
+        string libraryPrefix = "OmniExample"
+    }
+) {
+}
+
+# Concrete IsA schema, has both name and typeName defined
+# can be instantiated in the scene hierarchy as a typed prim
+class OmniMeshLod "OmniMeshLod" (
+    # Note this is just an example, you probably wouldn't model LOD support this way ;)
+
+    # IsA schemas must inherit from </Typed> deined in the sublayer usd/schema.usda 
+    inherits = </Typed>
+    doc = """Defines a simple prim that contains information used to switch
+             between different child meshes, each of which represents a different
+             level of detail.  Contains references to a fixed set of LODs available
+             at x% where x represents the ratio between the screen space height
+             of a boundable to the total screen height.
+          """
+
+    # we could alternatively define a custom C++ / Python class name
+    # for this prim by specifying the customData below.  In this case
+    # the name works well so we don't change it
+    # customData = {
+    #   string className = "OmniMeshLodAltName"
+    # }
+)
+{
+    # Note we do not "namespace" any of the properties defined here as it is clear
+    # they belong to the typed prim "OmniMeshLod"
+    uniform token lodTransitionScheme = "blend" (
+        # the allowedTokens array here restricts the valid values of the token
+        allowedTokens = ["blend", "pop"]
+        doc = """Controls the way that two levels of detail transition between each
+                 other when a switch is needed.  Blend indicates that the runtime
+                 should render a linear interpolation of the two LODs, pop indicates
+                 that an immediate transition from one to the other should take place."""
+    )
+
+    float[] lodLevels (
+        doc = """ Represents a set of percentages defining the LOD values at which
+                  to make the LOD transition.  Each should be a float value between
+                  0 and 1 representing a percentage defining the threshold ratio
+                  between screen space height of the boundable to total screen height
+                  at which an lod transition should take place.
+                  
+                  For example, if the array has four values, 0.75, 0.5, 0.25, and 0.0
+                  this means that when the ratio of the screen height of the boundable
+                  to total screen height is >= 75%, use the corresponding referenced
+                  boundable as the display mesh.  If that ratio is falls below 0.5, 
+                  display the corresponding referenced boundable as the display mesh
+                  and when transitioning between the two do so in a scheme controlled
+                  by the \\ref lodTransitionScheme token value."""
+    )
+
+    rel lodMeshes (
+        doc = """ Represents a set of references of the same length as \\ref lodLevels
+                  where each slot corresponds to the mesh to display at the corresponding
+                  lodLevels slot.  That is, if the first value in lodLevels is 0.75, the 
+                  first reference in this relationship will be used as the display mesh."""
+    )
+
+}
+
+# Single Applied API Codeful Schema
+class "OmniExternalDataSourceAPI" (
+    # Again, just an illustrative example, this kind of thing can be done in many different ways
+    
+    # whereas typed schemas inherit </Typed>, api schemas always inherit </APISchemaBase>
+    # API schemas cannot have an inheritance chain past </APISchemaBase>
+    inherits = </APISchemaBase>
+    customData = {
+        # this tells USD we want the API schema to be single apply
+        # meaning that information is recorded on the prim if the API
+        # has been applied to the prim and the prim can be interrogated
+        # to see if has the API applied or not
+        token apiSchemaType = "singleApply"
+    }
+
+    doc = """Defines a source of data external to USD storage that will be used to acquire
+             data dyanmically to fill the prim via applied API methods. """
+)
+{
+    # Note that we namespace these properties since the schema is not a typed schema
+    # this makes it clear that this attribute is coming from a source that namespaces
+    # within the "omni" namespace - also we give it a default empty value here
+    string omni:example:externalDataSource:uri = "" (
+        customData = {
+            # this tells USD that the generated Get / Set pair
+            # should use this name rather than the full namespaced name
+            # e.g. GetUriAttr rather than GetOmniExampleExternalDataSourceUriAttr
+            string apiName = "uri"
+        }
+
+        doc = """Defines a URI pointing to a data source external to USD storage
+                 from where data can be acquired dynamically."""
+    )
+
+    # The uniform keyword is a hint to USD that this property is not 
+    # time-varying and will never have any time samples associated with it
+    uniform token omni:example:externalDataSource:dataType = "tabular" (
+        customData = {
+            string apiName = "dataType"
+        }
+
+        allowedTokens = ["tabular", "graph", "timeseries", "unstructured"]
+        doc = """Gives a hint to the runtime of the type of data to expect
+                 when accessing data from the uri."""
+    )
+}
+
+# Single Applied API Codeful Schema that relies on an additional codeful schema
+# being present to fulfill its functionality
+class "OmniTemperatureDataAPI" (
+    # Illustrative, you get the idea :)
+
+    # since we are stuck on 20.08 for now, we can't declare
+    # a built-in here, we have to inherit from OmniExternalDataSourceAPI
+    # once we move to a later USD version this will be removed
+    # and the bits down below will be uncommented
+    inherits = </OmniExternalDataSourceAPI>
+
+    # API schemas can no longer inherit each other as of USD 21.08
+    # so we still inherit </APISchemaBase> but we can apply "built-ins"
+    # to the schema type such that that schema type will also be applied
+    # to the prim when this one is applied
+    # inherits = </APISchemaBase>
+    # prepend apiSchemas = ["OmniExternalDataSourceAPI"]
+    customData = {
+        token apiSchemaType = "singleApply"
+    }
+)
+{
+    string omni:example:temperatureData:timeseriesName = "temperature" (
+        customData = {
+            string apiName = "timeseriesName"
+        }
+
+        doc = """Defines the name of the timeseries that wil be asked
+                 for from the external data source to acquire the temperature
+                 data."""
+    )
+
+    uniform token omni:example:temperatureData:units = "celsius" (
+        customData = {
+            string apiName = "units"
+        }
+
+        allowedTokens = ["celsius", "farenheit", "kelvin"]
+        doc = """Informs the consumer what units the temperature values are in."""
+    )
+
+    float[] omni:example:temperatureData:temperatureValues (
+        customData = {
+            string apiName = "temperatureValues"
+        }
+
+        doc = """Defines the array of temperature values corresponding to the time series."""
+    )
+
+    # Note that we are explicitly telling the user what unit this value is in (ticks)
+    int omni:example:temperatureData:startTime (
+        customData = {
+            string apiName = "startTime"
+        }
+
+        doc = """Defines the time in ticks corresponding to the time the value series began."""
+    )
+
+    int omni:example:temperatureData:endTime (
+        customData = {
+            string apiName = "endTime"
+        }
+
+        # Note that we are explicitly telling the user what unit this value is in (ticks)
+        doc = """Defines the time in ticks corresponding to the time the value series ended."""
+    )
+
+    float omni:example:temperatureData:frequency (
+        customData = {
+            string apiName = "frequency"
+        }
+        
+        # Note that we are explicitly telling the user what unit this value is in (seconds)
+        doc = """Defines the uniform time frequency of the data in seconds.  This informs the runtime
+                 of the amount of time that has passed between two values in the temperatureValues array."""
+    )
+}
