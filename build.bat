@@ -19,6 +19,7 @@ pushd %~dp0
 
 REM options defining what the script runs
 set GENERATE=false
+set BUILD=false
 set CLEAN=false
 set CONFIGURE=false
 set STAGE=false
@@ -32,6 +33,9 @@ REM on the generated files
 if not "%1"=="" (
     if "%1" == "--generate" (
         set GENERATE=true
+    )
+    if "%1" == "--build" (
+        set BUILD=true
     )
     if "%1" == "--clean" (
         set CLEAN=true
@@ -69,6 +73,7 @@ if "%CLEAN%" == "true" (
 
 REM should we generate the schema code?
 if "%GENERATE%" == "true" (
+
     REM pull down NVIDIA USD libraries
     REM NOTE: If you have your own local build, you can comment out these steps
     call "%~dp0tools\packman\packman.cmd" pull deps/usd-deps.packman.xml -p windows-x86_64 -t config=debug
@@ -78,12 +83,18 @@ if "%GENERATE%" == "true" (
 
     REM generate the schema code and plug-in information
     REM NOTE: this will pull the NVIDIA repo_usd package to do this work
-    call "%~dp0tools\packman\python.bat" bootstrap.py usd %*
+
+    call "%~dp0tools\packman\python.bat" bootstrap.py usd
 
     if !errorlevel! neq 0 ( goto Error )
 )
 
 REM NOTE: this is where you can integrate your own build step if using premake
+REM Below is an example of using CMake to build the generated files
+if "%BUILD%" == "true" (
+    cmake -B ./_build/cmake141 -T v141
+    cmake --build ./_build/cmake141 --config=release --target install
+)
 
 REM do we need to stage?
 if "%STAGE%" == "true" (
@@ -96,13 +107,17 @@ if "%STAGE%" == "true" (
     REM one structure that can be referenced as a complete kit extension
     echo D | xcopy "%~dp0src\kit-extension\exts\omni.example.schema" "%~dp0_install\windows-x86_64\omni.example.schema" /s /Y
     if not exist "%~dp0_install\windows-x86_64\omni.example.schema\OmniExampleSchema" mkdir "%~dp0_install\windows-x86_64\omni.example.schema\OmniExampleSchema"
-    move /y "%~dp0_install\windows-x86_64\omniExampleSchema" "%~dp0_install\windows-x86_64\omni.example.schema\OmniExampleSchema"
+    echo D | xcopy "%~dp0_install\windows-x86_64\omniExampleSchema\include" "%~dp0_install\windows-x86_64\omni.example.schema\OmniExampleSchema\include" /s /Y
+    echo D | xcopy "%~dp0_install\windows-x86_64\omniExampleSchema\lib" "%~dp0_install\windows-x86_64\omni.example.schema\OmniExampleSchema\lib" /s /Y
+    echo D | xcopy "%~dp0_install\windows-x86_64\omniExampleSchema\resources" "%~dp0_install\windows-x86_64\omni.example.schema\OmniExampleSchema\resources" /s /Y
     if not exist "%~dp0_install\windows-x86_64\omni.example.schema\OmniExampleCodelessSchema" mkdir "%~dp0_install\windows-x86_64\omni.example.schema\OmniExampleCodelessSchema"
-    move /y "%~dp0_install\windows-x86_64\omniExampleCodelessSchema" "%~dp0_install\windows-x86_64\omni.example.schema\OmniExampleCodelessSchema"
+    echo D | xcopy "%~dp0_install\windows-x86_64\omniExampleCodelessSchema\resources" "%~dp0_install\windows-x86_64\omni.example.schema\OmniExampleCodelessSchema\resources" /s /Y
 
-    REM reparent the lib/python directory so we don't have to use [[lib.python.OmniExampleSchema]] in the extension.toml file
+    :: reparent the lib/python directory so we don't have to use [[lib.python.OmniExampleSchema]] in the extension.toml file
     move /y "%~dp0_install\windows-x86_64\omni.example.schema\OmniExampleSchema\lib\python\*.*" "%~dp0_install\windows-x86_64\omni.example.schema\OmniExampleSchema"
-    rmdir "%~dp0_install\windows-x86_64\omni.example.schema\OmniExampleSchema\lib\python"
+    rmdir /s /q "%~dp0_install\windows-x86_64\omni.example.schema\OmniExampleSchema\lib\python"
+    rmdir /s /q "%~dp0_install\windows-x86_64\omniExampleSchema"
+    rmdir /s /q "%~dp0_install\windows-x86_64\omniExampleCodelessSchema"
 
     if !errorlevel! neq 0 ( goto Error )
 )
@@ -123,4 +138,4 @@ if "%CONFIGURE%" == "true" (
 exit /b 0
 
 :Error
-exit /b %errorlevel%
+exit /b !errorlevel!

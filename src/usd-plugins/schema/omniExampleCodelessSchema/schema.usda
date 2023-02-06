@@ -13,7 +13,7 @@
 
 over "GLOBAL" (
     customData = {
-        string libraryName   = "omniExampleSchema"
+        string libraryName   = "omniExampleCodelessSchema"
         string libraryPath   = "./"
         string libraryPrefix = "OmniExample"
 
@@ -52,30 +52,15 @@ class "OmniSourceFormatMetadataAPI" (
     # this makes it clear that this attribute is coming from a source that namespaces
     # within the "omni" namespace - also we give it a default empty value here
     string omni:example:codeless:sourceFormatMetadata:partId = "" (
-        customData = {
-            # this tells USD that the generated Get / Set pair
-            # should use this name rather than the full namespaced name
-            # e.g. GetPartIdAttr rather than GetOmniExampleCodelessSourceFormatMetadataPartIdAttr()
-            string apiName = "partId"
-        }
-
         doc = """Defines the id of the part inside the given item representing
                  the source CAD mesh."""
     )
 
     string omni:example:codeless:sourceFormatMetadata:itemId = "" (
-        customData = {
-            string apiName = "itemId"
-        }
-
         doc = """Defines the id of the item holding the part in the PLM system."""
     )
 
     string omni:example:codeless:sourceFormatMetdata:sourceUri = "" (
-        customData = {
-            string apiName = "sourceUri"
-        }
-
         doc = """Defines the URI of the source system the item id resides in."""
     )
 }
