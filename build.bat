@@ -24,6 +24,7 @@ set CLEAN=false
 set CONFIGURE=false
 set STAGE=false
 set HELP=false
+set CONFIG=release
 
 REM default arguments for script - note this script does not actually perform
 REM any build step so that you can integrate the generated code into your build
@@ -49,22 +50,28 @@ if not "%1"=="" (
     if "%1" == "--help" (
         set HELP=true
     )
+    if "%1" == "--debug" (
+        set CONFIG=debug
+    )
     shift
     goto :parseargs
 )
 
 REM requesting how to run the script
 if "%HELP%" == "true" (
-    echo "build.bat [--generate] [--clean] [--configure] [--stage]"
+    echo "build.bat [--generate] [--clean] [--configure] [--stage] [--debug]"
     echo "--clean: Removes _install directory (customize as needed)"
     echo "--generate: Perform generation of schema libraries"
     echo "--stage: Copies the sample kit-extension to the _install directory and stages the built schema libraries in the appropriate sub-structure"
     echo "--configure: Performs a configuration step when using premake after you have built and staged the schema libraries to ensure the plugInfo.json has the right information"
+    echo "--debug: Performs the steps with a debug configuration instead of release (default = release)"
 )
 
 REM should we clean the target directory?
 if "%CLEAN%" == "true" (
-    rmdir "%~dp0_install"
+    rmdir /s /q "%~dp0_install"
+    rmdir /s /q "%~dp0_build"
+    rmdir /s /q "%~dp0_repo"
 
     if !errorlevel! neq 0 (goto Error)
 
@@ -93,7 +100,7 @@ REM NOTE: this is where you can integrate your own build step if using premake
 REM Below is an example of using CMake to build the generated files
 if "%BUILD%" == "true" (
     cmake -B ./_build/cmake141 -T v141
-    cmake --build ./_build/cmake141 --config=release --target install
+    cmake --build ./_build/cmake141 --config=%CONFIG% --target install
 )
 
 REM do we need to stage?
@@ -105,20 +112,15 @@ if "%STAGE%" == "true" (
     REM Because we are illustrating that you can build the C++ schemas and distribute them
     REM independent of anything kit related.  All the copy is doing is putting everything in 
     REM one structure that can be referenced as a complete kit extension
-    echo D | xcopy "%~dp0src\kit-extension\exts\omni.example.schema" "%~dp0_install\windows-x86_64\omni.example.schema" /s /Y
-    if not exist "%~dp0_install\windows-x86_64\omni.example.schema\OmniExampleSchema" mkdir "%~dp0_install\windows-x86_64\omni.example.schema\OmniExampleSchema"
-    echo D | xcopy "%~dp0_install\windows-x86_64\omniExampleSchema\include" "%~dp0_install\windows-x86_64\omni.example.schema\OmniExampleSchema\include" /s /Y
-    echo D | xcopy "%~dp0_install\windows-x86_64\omniExampleSchema\lib" "%~dp0_install\windows-x86_64\omni.example.schema\OmniExampleSchema\lib" /s /Y
-    echo D | xcopy "%~dp0_install\windows-x86_64\omniExampleSchema\resources" "%~dp0_install\windows-x86_64\omni.example.schema\OmniExampleSchema\resources" /s /Y
-    if not exist "%~dp0_install\windows-x86_64\omni.example.schema\OmniExampleCodelessSchema" mkdir "%~dp0_install\windows-x86_64\omni.example.schema\OmniExampleCodelessSchema"
-    echo D | xcopy "%~dp0_install\windows-x86_64\omniExampleCodelessSchema\resources" "%~dp0_install\windows-x86_64\omni.example.schema\OmniExampleCodelessSchema\resources" /s /Y
-
-    :: reparent the lib/python directory so we don't have to use [[lib.python.OmniExampleSchema]] in the extension.toml file
-    move /y "%~dp0_install\windows-x86_64\omni.example.schema\OmniExampleSchema\lib\python\*.*" "%~dp0_install\windows-x86_64\omni.example.schema\OmniExampleSchema"
-    rmdir /s /q "%~dp0_install\windows-x86_64\omni.example.schema\OmniExampleSchema\lib\python"
-    rmdir /s /q "%~dp0_install\windows-x86_64\omniExampleSchema"
-    rmdir /s /q "%~dp0_install\windows-x86_64\omniExampleCodelessSchema"
-
+    echo D | xcopy "%~dp0src\kit-extension\exts\omni.example.schema" "%~dp0_install\windows-x86_64\%CONFIG%\omni.example.schema" /s /Y
+    if not exist "%~dp0_install\windows-x86_64\%CONFIG%\omni.example.schema\OmniExampleSchema" mkdir "%~dp0_install\windows-x86_64\%CONFIG%\omni.example.schema\OmniExampleSchema"
+    echo F | xcopy "%~dp0_install\windows-x86_64\omniExampleSchema\OmniExampleSchema\*.*" "%~dp0_install\windows-x86_64\%CONFIG%\omni.example.schema\OmniExampleSchema" /Y
+    echo D | xcopy "%~dp0_install\windows-x86_64\omniExampleSchema\include" "%~dp0_install\windows-x86_64\%CONFIG%\omni.example.schema\OmniExampleSchema\include" /s /Y
+    echo D | xcopy "%~dp0_install\windows-x86_64\omniExampleSchema\lib" "%~dp0_install\windows-x86_64\%CONFIG%\omni.example.schema\OmniExampleSchema\lib" /s /Y
+    echo D | xcopy "%~dp0_install\windows-x86_64\omniExampleSchema\resources" "%~dp0_install\windows-x86_64\%CONFIG%\omni.example.schema\OmniExampleSchema\resources" /s /Y
+    if not exist "%~dp0_install\windows-x86_64\%CONFIG%\omni.example.schema\OmniExampleCodelessSchema" mkdir "%~dp0_install\windows-x86_64\%CONFIG%\omni.example.schema\OmniExampleCodelessSchema"
+    echo D | xcopy "%~dp0_install\windows-x86_64\omniExampleCodelessSchema\resources" "%~dp0_install\windows-x86_64\%CONFIG%\omni.example.schema\OmniExampleCodelessSchema\resources" /s /Y
+    
     if !errorlevel! neq 0 ( goto Error )
 )
 

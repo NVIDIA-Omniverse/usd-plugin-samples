@@ -18,7 +18,7 @@ from pxr import Plug
 # this extension is responsible for loading both plug-ins that represent the
 # example codeful and codeless schema extensions
 plugin_root = os.path.join(os.path.dirname(__file__), "..", "..",
-    "..", "omniExampleSchema", "resources")
+    "..", "OmniExampleSchema", "resources")
 Plug.Registry().RegisterPlugins(plugin_root)
 plugin_root = os.path.join(os.path.dirname(__file__), "..", "..",
     "..", "OmniExampleCodelessSchema", "resources")
