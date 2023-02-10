@@ -14,6 +14,7 @@ schema_makefile_format = "cmake"
 [repo_usd.schema.omniExampleSchema]
 schema_file = "${root}/src/usd-plugins/schema/omniExampleSchema/schema.usda"
 generate_dir = "${root}/src/usd-plugins/schema/omniExampleSchema/generated"
+install_root = "${root}/_install/${platform}/${env:CONFIG}/omniExampleSchema"
 library_prefix = "OmniExample"
 usd_lib_dependencies = [
     "arch",
@@ -27,4 +28,5 @@ usd_lib_dependencies = [
 [repo_usd.schema.omniExampleCodelessSchema]
 schema_file = "${root}/src/usd-plugins/schema/omniExampleCodelessSchema/schema.usda"
 generate_dir = "${root}/src/usd-plugins/schema/omniExampleCodelessSchema/generated"
+install_root = "${root}/_install/${platform}/${env:CONFIG}/omniExampleCodelessSchema"
 is_codeless = true

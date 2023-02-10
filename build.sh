@@ -17,9 +17,11 @@ CWD="$( cd "$( dirname "$0" )" && pwd )"
 
 # default config is release
 CLEAN=false
+BUILD=false
 GENERATE=false
 STAGE=false
 CONFIGURE=false
+CONFIG=release
 
 while [ $# -gt 0 ]
 do
@@ -31,6 +33,10 @@ do
     then
         GENERATE=true
     fi
+    if [[ "$1" == "--build" ]]
+    then
+        BUILD=true
+    fi
     if [[ "$1" == "--stage" ]]
     then
         STAGE=true
@@ -38,6 +44,10 @@ do
     if [[ "$1" == "--configure" ]]
     then
         CONFIGURE=true
+    fi
+    if [[ "$1" == "--debug" ]]
+    then
+        CONFIG=debug
     fi
     shift
 done
@@ -58,24 +68,27 @@ then
 
     # generate the schema code and plug-in information
     # NOTE: this will pull the NVIDIA repo_usd package to do this work
+    export CONFIG=$CONFIG
     $CWD/tools/packman/python.sh bootstrap.py usd "$@"
 fi
 
-# NOTE: this is where you would integrate your build step
+# do we need to build?
+if [[ "$BUILD" == "true" ]]
+then
+    # invoke cmake to build the plugins
+    cmake -B ./_build/cmake -DCMAKE_BUILD_TYPE=$CONFIG
+    cmake --build ./_build/cmake --config $CONFIG --target install
+fi
 
 # do we need to stage?
 if [[ "$STAGE" == "true" ]]
 then
-    cp -r $CWD/src/kit-extension/exts/omni.example.schema $CWD/_install/linux-$(arch)/omni.example.schema/
-    mv -f $CWD/_install/linux-$(arch)/omniExampleSchema $CWD/_install/linux-$(arch)/omni.example.schema/OmniExampleSchema
-    mv -f $CWD/_install/linux-$(arch)/omniExampleCodelessSchema $CWD/_install/linux-$(arch)/omni.example.schema/OmniExampleCodelessSchema
-
-    # reparent the lib/python directory so we don't have to use [[lib.python.OmniExampleSchema]] in the extension.toml file
-    mv -f $CWD/_install/linux-$(arch)/omni.example.schema/omniExampleSchema/lib/python/*.* $CWD/_install/linux-$(arch)/omni.example.schema/OmniExampleSchema
-    rm -d $CWD/_install/linux-$(arch)/omni.example.schema/OmniExampleSchema/lib/python
-
-    # under premake, a shared library will get generated without any content, we can remove this
-    rm -rf $CWD/_install/linux-$(arch)/omni.example.schema/OmniExampleCodelessSchema/lib
+    mkdir -p $CWD/_install/linux-$(arch)/$CONFIG
+    cp -rf $CWD/src/kit-extension/exts/omni.example.schema $CWD/_install/linux-$(arch)/$CONFIG/
+    mkdir -p $CWD/_install/linux-$(arch)/$CONFIG/omni.example.schema/OmniExampleSchema
+    mkdir -p $CWD/_install/linux-$(arch)/$CONFIG/omni.example.schema/OmniExampleCodelessSchema
+    cp -rf $CWD/_install/linux-$(arch)/$CONFIG/omniExampleSchema/* $CWD/_install/linux-$(arch)/$CONFIG/omni.example.schema/OmniExampleSchema/
+    cp -rf $CWD/_install/linux-$(arch)/$CONFIG/omniExampleCodelessSchema/* $CWD/_install/linux-$(arch)/$CONFIG/omni.example.schema/OmniExampleCodelessSchema/
 fi
 
 # do we need to configure?
