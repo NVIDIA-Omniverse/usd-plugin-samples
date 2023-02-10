@@ -114,12 +114,12 @@ if "%STAGE%" == "true" (
     REM one structure that can be referenced as a complete kit extension
     echo D | xcopy "%~dp0src\kit-extension\exts\omni.example.schema" "%~dp0_install\windows-x86_64\%CONFIG%\omni.example.schema" /s /Y
     if not exist "%~dp0_install\windows-x86_64\%CONFIG%\omni.example.schema\OmniExampleSchema" mkdir "%~dp0_install\windows-x86_64\%CONFIG%\omni.example.schema\OmniExampleSchema"
-    echo F | xcopy "%~dp0_install\windows-x86_64\omniExampleSchema\OmniExampleSchema\*.*" "%~dp0_install\windows-x86_64\%CONFIG%\omni.example.schema\OmniExampleSchema" /Y
-    echo D | xcopy "%~dp0_install\windows-x86_64\omniExampleSchema\include" "%~dp0_install\windows-x86_64\%CONFIG%\omni.example.schema\OmniExampleSchema\include" /s /Y
-    echo D | xcopy "%~dp0_install\windows-x86_64\omniExampleSchema\lib" "%~dp0_install\windows-x86_64\%CONFIG%\omni.example.schema\OmniExampleSchema\lib" /s /Y
-    echo D | xcopy "%~dp0_install\windows-x86_64\omniExampleSchema\resources" "%~dp0_install\windows-x86_64\%CONFIG%\omni.example.schema\OmniExampleSchema\resources" /s /Y
+    echo F | xcopy "%~dp0_install\windows-x86_64\%CONFIG%\omniExampleSchema\OmniExampleSchema\*.*" "%~dp0_install\windows-x86_64\%CONFIG%\omni.example.schema\OmniExampleSchema" /Y
+    echo D | xcopy "%~dp0_install\windows-x86_64\%CONFIG%\omniExampleSchema\include" "%~dp0_install\windows-x86_64\%CONFIG%\omni.example.schema\OmniExampleSchema\include" /s /Y
+    echo D | xcopy "%~dp0_install\windows-x86_64\%CONFIG%\omniExampleSchema\lib" "%~dp0_install\windows-x86_64\%CONFIG%\omni.example.schema\OmniExampleSchema\lib" /s /Y
+    echo D | xcopy "%~dp0_install\windows-x86_64\%CONFIG%\omniExampleSchema\resources" "%~dp0_install\windows-x86_64\%CONFIG%\omni.example.schema\OmniExampleSchema\resources" /s /Y
     if not exist "%~dp0_install\windows-x86_64\%CONFIG%\omni.example.schema\OmniExampleCodelessSchema" mkdir "%~dp0_install\windows-x86_64\%CONFIG%\omni.example.schema\OmniExampleCodelessSchema"
-    echo D | xcopy "%~dp0_install\windows-x86_64\omniExampleCodelessSchema\resources" "%~dp0_install\windows-x86_64\%CONFIG%\omni.example.schema\OmniExampleCodelessSchema\resources" /s /Y
+    echo D | xcopy "%~dp0_install\windows-x86_64\%CONFIG%\omniExampleCodelessSchema\resources" "%~dp0_install\windows-x86_64\%CONFIG%\omni.example.schema\OmniExampleCodelessSchema\resources" /s /Y
     
     if !errorlevel! neq 0 ( goto Error )
 )
