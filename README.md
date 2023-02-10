@@ -1,6 +1,6 @@
 ## Introduction
 
-This repository contains a set of samples that illustrate authoring of different kinds of plug-ins for USD.  In particular, this repository contains plug-in samples for:
+This repository is intended to contain a set of samples that illustrate authoring of different kinds of plug-ins for USD.  In particular, this repository is intended to illustrate samples for:
 
 - USD schemas (both codeful and codeless)
 - AR 2.0 resolvers
@@ -8,7 +8,7 @@ This repository contains a set of samples that illustrate authoring of different
 - File Format Plugins
 - Dynamic Payloads
 
-Additionally, this repository contains a set of tools that can be used to generate schema code and templates that can be used for both CMake and Premake to build the plug-ins using compiler / linker settings consistent with those used when building USD libraries.  The sections below introduce these samples with the hope of helping you get started on your USD plug-in journey.  Feel free to fork this repository, delete the portions you don't need, and customize the remaining in whatever way suits your USD environment.
+Currently, the repository hosts example USD schemas along with a set of tools that can be used to generate schema code and templates that can be used for both CMake and Premake to build the plug-ins using compiler / linker settings consistent with those used when building USD libraries.  As more samples become available, they will be added to this repository.  Feel free to fork this repository, delete the portions you don't need, and customize the remaining in whatever way suits your USD environment.
 
 ## General Project Structure
 
@@ -17,11 +17,9 @@ The repository is structured as follows:
 ```
 deps
 src
-  ar1-resolver
-  ar2-resolver
-  file-format
-  dynamic-payload
-  schema
+    kit-extension
+    usd-plugins
+        schema
 tools
 bootstrap.py
 build.bat
@@ -29,10 +27,10 @@ build.sh
 repo.toml
 ```
 
-All example source code is kept in the `src` diretory, with each sub folder demonstrating a different type of USD plug-in.  The remaining files are there to support the schema generation and build infrastructure necessary to create the plug-in libraries.  This infrastructure uses an NVIDIA tool called `packman` to pull packages required for schema and makefile generation.  These include the following:
+All example source code is kept in the `src` diretory, with each sub folder in the `usd-plugins` directory demonstrating a different type of USD plug-in.  The remaining files are there to support the schema generation and build infrastructure necessary to create the plug-in libraries.  This infrastructure uses an NVIDIA tool called `packman` to pull packages required for schema and makefile generation.  These include the following:
 
 - USD builds compatible with NVIDIA Omniverse 104.x kit-based applications (USD 20.08)
-- A python distribution used to build the above USD packages
+- A python distribution used to build the above USD packages (Python 3.7)
 - A tool (`repo_usd`) used to generate schema code and makefiles in the desired format (Cmake / Premake)
 - The jinja python package (3.1.2) and its dependencies to support `usdGenSchema` (installed to a local folder via `repo_usd`)
 
@@ -43,6 +41,8 @@ By convention, all folders starting with `_` are derived artifacts and can be sa
 - _install (default location for built and staged plug-ins)
 
 These folders are used or not depending on various configuration options you provide to the `repo_usd` tool via the `repo.toml` file.  Options that can be provided, as well as command line options that can be passed to the `build.bat` / `build.sh` scripts are described in the section `Tool Options` below.
+
+Additionally, the repository contains a sample NVIDIA OMniverse kit extension based off of the template found here: https://github.com/NVIDIA-Omniverse/kit-extension-template.  This example shows the wrapping of the built schema libraries such that they can be loaded into and used from NVIDIA Omniverse based applications.
 
 ## USD Schemas
 
@@ -60,12 +60,12 @@ More information on schemas can be found here: https://graphics.pixar.com/usd/re
 
 Schema extensions are created by defining the schema using USD syntax, typically in a file called `schema.usda`.  Before defining your schema classes, you must determine the name of your schema library.  Since the entire USD community can add schema extensions, it is important to be able to recognize from which organization / application a schema extension originates and to name them uniquely enough such that naming collisions do not occur across applications.  For example, across the NVIDIA organization, we want that our schema extensions are easily recognizeable by the community so it is clear what Omniverse will support and what 3rd party applications may not have support for.  In general, you can expect the following:
 
-- `Omni` is be used as the recognizeable prefix used for our schema extensions. If `Omni` is not appropriate, other prefixes may be used as long as they are distinct enough to recognize that they came from NVIDIA (e.g., `PhysX`).
+- `Omni` is used as the recognizeable prefix used for our schema extensions. If `Omni` is not appropriate, other prefixes may be used as long as they are distinct enough to recognize that they came from NVIDIA (e.g., `PhysX`)
 - All applied API schemas will end with the `API` suffix (as well as adhering to the prefix rule above)
 - All properties added by an API schema will start with a recognizeable namespacing prefix (e.g., `omni`) and be namespaced appropriately (e.g., `omni:graph:attrname`, etc.)
 - Properties within an IsA schema may have namespace prefixes if derived from core USD schema types.
 
-The samples provide examples for two types of schemas, codeful and codeless.  The former will have C++ / Python code generated for it, the latter will only have USD plug-in information generated.  These are provided in the `src/omniExampleSchema` and `src/omniExampleCodelessSchema` in their respective `schema.usda` files.  
+The samples provide examples for two types of schemas, codeful and codeless.  The former will have C++ / Python code generated for it, the latter will only have USD plug-in information generated.  These are provided in the `src/usd-plugins/schema/omniExampleSchema` and `src/usd-plugins/schema/omniExampleCodelessSchema` in their respective `schema.usda` files.  
 
 ### Configuring Schema Generation
 
@@ -90,7 +90,7 @@ A couple of things to note here:
 - The paths here reference the `linkPath` property that is defined in the `deps/usd-deps.packman.xml` file.  When `packman` pulls these packages down, it will place them in these locations.
 - To change the USD build you are referencing, simply change the path specified here (relative to `${root}`).  Make sure that the python environment you use is consistent with that which was used to build the USD libraries being referenced (e.g. if you built USD with Python 3.10, make sure your `usd_python_root` points to an environment containing Python 3.10).
 
-Next, we need to configure the options for our two schemas.  `src/schema/omniExampleSchema` defines a sample _codeful_ schema and `src/schema/omniExampleCodelessSchema` defines a sample _codeless_ schema.  In both cases, the schema definition conforms to that expected by USD v20.08, since that is the version currently being used for Omniverse kit-based applications.  Comments were added to these schema files to indicate where these definitions will change with later USD versions.  Each schema is configured independently in the `repo.toml` file and at minimum requires the following:
+Next, we need to configure the options for our two schemas.  `src/usd-plugins/schema/omniExampleSchema` defines a sample _codeful_ schema and `src/usd-plugins/schema/omniExampleCodelessSchema` defines a sample _codeless_ schema.  In both cases, the schema definition conforms to that expected by USD v20.08, since that is the version currently being used for Omniverse kit-based applications.  Comments were added to these schema files to indicate where these definitions will change with later USD versions.  Each schema is configured independently in the `repo.toml` file and at minimum requires the following:
 
 - The path to the `schema.usda` file defining the schema classes
 - The path to a directory to generate the code / plug-in information into
@@ -98,7 +98,7 @@ Next, we need to configure the options for our two schemas.  `src/schema/omniExa
 - The set of USD libraries that the schema depends on.  Typically at minimum this consists of `arch`, `tf`, `vt`, `sdf`, and `usd` (and only necessary for codeful schemas)
 - Whether or not the schema is codeless (by default, the schema is codeful, so this is only necessary if you have a codeless schema)
 
-These optoins can be configured as follows in the `repo.toml` file:
+These options can be configured as follows in the `repo.toml` file:
 
 ```
 [repo_usd]
@@ -157,6 +157,12 @@ This should be enough to generate the schema C++ and Python source code (if code
 
 If you choose to generate against a local USD build, you may remove the lines from these files that pull down the packages.
 
+To generate the schema code, simply run:
+```
+./build.bat --generate  (Windows)
+./build.sh --generate   (Linux)
+```
+
 ### Generating Makefiles
 
 `repo_usd` can also generate makefiles in either `cmake` or `premake` format (`cmake` is the default).  If you would like to take advantage of this functionality, there are a few more options in the `repo.toml` file that are required:
@@ -209,6 +215,8 @@ For premake generation, you may also specify:
 With these options, only makefiles specific for each schema are generated in their respective `generate_dir` locations and it is your responsibility to use these makefiles in whatever way fits your own local build infrastructure.  For a more turnkey type setup, you can also instruct `repo_usd` to generate _root makefiles_ which are CMake or Premake files that are generated at the root of the repository (`CMakeLists.txt` and `premake5.lua`, respectively).  These files ensure that the appropriate included makefiles can be found as well as includes each makefile from each schema such that a single build will build everything that was generated.
 
 __NOTE: Ensure that you do not have a CMakeLists.txt or premake5.lua file already at your repository root or setting this option will overwrite it!__
+
+Note that the makefiles generated will include macros provided by `repo_usd` that set compiler and linker switches, take care of copying public headers and resource files, etc.  Interested parties can examine these files in `_repo/repo_usd/templates`.
 
 To turn this option on, set the `generate_root_makefile` option to `true` in the `repo.toml` file:
 
@@ -268,4 +276,34 @@ require("_repo/repo_usd/templates/premake/premake5-usdplugin")
 -- they do not declare their own
 require("src/schema/omniExampleSchema/generated/premake5")
 require("src/schema/omniExampleCodelessSchema/generated/premake5")
+```
+
+### Additional Configuration Options
+
+The `repo_usd` tool supports some additional advanced options via the `repo.toml` file if required in your build environment.
+
+- `additional_include_dirs`: A list of additional directories that should be used to find include files the plug-in may depend on
+- `additional_library_dirs`: A list of additional directories that should be used to find library files the plug-in may depend on
+- `additional_libs`: A list of additional libs that need to be linked to the plug-in to build
+- `additional_cpp_files`: A list of additional `.h` / `.cpp` files to include as part of the plug-in build
+- `additional_module_files`: A list of additonal `.py` files to include as part of the python module distribution for the plug-in
+
+### Using the Build Files
+
+The provided build files (`build.bat` / `build.sh`) provide a very smiple integration of the steps required to generate, build, and stage everything in such a way that the sample kit extension properly integrates the built USD schema and loads into kit (when setting the extension path to the build location, by default `_install/${platform}/${env:CONFIG}`).
+
+These files provide a number of options to use to run each of the steps independently or together as required:
+
+- `--generate`: runs the schema generation step for the included schemas in the `repo.toml` file
+- `--build`: runs the usd-plugin build step by invoking `cmake` 
+- `--stage`: copies the built schema libraries and kit extension into the install directory such that it can be added to kit from there
+- `--clean`: removes the `_build` and `_install` directories (but leaves the generated code, as `usdGenSchema` will detect changes here)
+- `--debug`: indicates that a debug build should be made rather than a release build (the default)
+
+To run all steps to generate, build, and stage:
+```
+./build.bat --generate --build --stage          (Windows, release)
+./build.bat --generate --build --stage --debug  (Windows, debug)
+./build.sh --generate --build --stage           (Linux, release)
+./build.sh --generate --build --stage --debug   (Linux, debug)
 ```
