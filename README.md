@@ -10,6 +10,14 @@ This repository is intended to contain a set of samples that illustrate authorin
 
 Currently, the repository hosts example USD schemas along with a set of tools that can be used to generate schema code and templates that can be used for both CMake and Premake to build the plug-ins using compiler / linker settings consistent with those used when building USD libraries.  As more samples become available, they will be added to this repository.  Feel free to fork this repository, delete the portions you don't need, and customize the remaining in whatever way suits your USD environment.
 
+## Prerequisites
+
+To build the sample as is contained in this repository, a few things are required:
+
+- Standard C++ build tools for your platform (e.g. Visual Studio, g++)
+- `cmake` (to create makefiles and invoke the build tools)
+- `curl` (to use the NVIDIA tool `packman` to pull down dependency packages - see below
+
 ## General Project Structure
 
 The repository is structured as follows:
@@ -43,6 +51,28 @@ By convention, all folders starting with `_` are derived artifacts and can be sa
 These folders are used or not depending on various configuration options you provide to the `repo_usd` tool via the `repo.toml` file.  Options that can be provided, as well as command line options that can be passed to the `build.bat` / `build.sh` scripts are described in the section `Tool Options` below.
 
 Additionally, the repository contains a sample NVIDIA OMniverse kit extension based off of the template found here: https://github.com/NVIDIA-Omniverse/kit-extension-template.  This example shows the wrapping of the built schema libraries such that they can be loaded into and used from NVIDIA Omniverse based applications.
+
+## Quick Start
+
+The provided build files (`build.bat` / `build.sh`) provide a very smiple integration of the steps required to generate, build, and stage everything in such a way that the sample kit extension properly integrates the built USD schema and loads into kit (when setting the extension path to the build location, by default `_install/${platform}/${env:CONFIG}`).
+
+These files provide a number of options to use to run each of the steps independently or together as required:
+
+- `--generate`: runs the schema generation step for the included schemas in the `repo.toml` file
+- `--build`: runs the usd-plugin build step by invoking `cmake` 
+- `--stage`: copies the built schema libraries and kit extension into the install directory such that it can be added to kit from there
+- `--clean`: removes the `_build` and `_install` directories (but leaves the generated code, as `usdGenSchema` will detect changes here)
+- `--debug`: indicates that a debug build should be made rather than a release build (the default)
+
+To run all steps to generate, build, and stage:
+```
+build.bat --generate --build --stage          (Windows, release)
+build.bat --generate --build --stage --debug  (Windows, debug)
+./build.sh --generate --build --stage           (Linux, release)
+./build.sh --generate --build --stage --debug   (Linux, debug)
+```
+
+The options you can specify to the tool are described in further detail below.
 
 ## USD Schemas
 
@@ -134,6 +164,7 @@ usd_lib_prefix = "lib_"
 [repo_usd.schema.omniExampleSchema]
 schema_file = "${root}/src/schema/omniExampleSchema/schema.usda"
 generate_dir = "${root}/src/schema/omniExampleSchema/generated"
+library_prefix = "OmniExample"
 usd_lib_dependencies = [
     "arch",
     "tf",
@@ -149,6 +180,8 @@ is_codeless = true
 ```
 
 Note that specifying the USD library dependencies is required for codeful schemas regardless of if you wish to generate makefiles for the schema plug-ins or not.  This is because one of the generated files (`moduleDeps.cpp`) declares the dependencies in the source and must have knowledge of them to generate the right boilerplate code.
+
+__Be aware there are two settings, `library_prefix` and `usd_lib_prefix` that sound similar but are used differently.  `library_prefix` specifies the the value of the same entry in the `schema.usda` file and is usedto ensure the python wrapper code is generated correctly.  `usd_lib_prefix` is used when you need to tell the tool that the USD libraries you are linking to were built with a specific prefix that needs to be prepended to the base USD library name to ensure the proper library is found.__
 
 This should be enough to generate the schema C++ and Python source code (if codeful) and, in all cases, the `plugInfo.json` and `generatedSchema.usda` files that need to be distributed with your plug-in so that the USD Schema Registry understands your schema types.  The provided scripts (`build.bat` / `build.sh`) perform the steps necessary to:
 
@@ -232,6 +265,7 @@ schema_makefile_format = "cmake"
 [repo_usd.schema.omniExampleSchema]
 schema_file = "${root}/src/schema/omniExampleSchema/schema.usda"
 generate_dir = "${root}/src/schema/omniExampleSchema/generated"
+library_prefix = "OmniExample"
 usd_lib_dependencies = [
     "arch",
     "tf",
@@ -287,23 +321,3 @@ The `repo_usd` tool supports some additional advanced options via the `repo.toml
 - `additional_libs`: A list of additional libs that need to be linked to the plug-in to build
 - `additional_cpp_files`: A list of additional `.h` / `.cpp` files to include as part of the plug-in build
 - `additional_module_files`: A list of additonal `.py` files to include as part of the python module distribution for the plug-in
-
-### Using the Build Files
-
-The provided build files (`build.bat` / `build.sh`) provide a very smiple integration of the steps required to generate, build, and stage everything in such a way that the sample kit extension properly integrates the built USD schema and loads into kit (when setting the extension path to the build location, by default `_install/${platform}/${env:CONFIG}`).
-
-These files provide a number of options to use to run each of the steps independently or together as required:
-
-- `--generate`: runs the schema generation step for the included schemas in the `repo.toml` file
-- `--build`: runs the usd-plugin build step by invoking `cmake` 
-- `--stage`: copies the built schema libraries and kit extension into the install directory such that it can be added to kit from there
-- `--clean`: removes the `_build` and `_install` directories (but leaves the generated code, as `usdGenSchema` will detect changes here)
-- `--debug`: indicates that a debug build should be made rather than a release build (the default)
-
-To run all steps to generate, build, and stage:
-```
-./build.bat --generate --build --stage          (Windows, release)
-./build.bat --generate --build --stage --debug  (Windows, debug)
-./build.sh --generate --build --stage           (Linux, release)
-./build.sh --generate --build --stage --debug   (Linux, debug)
-```

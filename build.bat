@@ -98,9 +98,11 @@ if "%GENERATE%" == "true" (
 
 REM NOTE: this is where you can integrate your own build step if using premake
 REM Below is an example of using CMake to build the generated files
+REM You may also want to explicitly specify the toolset depending on which
+REM version of Visual Studio you are using (e.g. -T v141)
 if "%BUILD%" == "true" (
-    cmake -B ./_build/cmake141 -T v141
-    cmake --build ./_build/cmake141 --config=%CONFIG% --target install
+    cmake -B ./_build/cmake
+    cmake --build ./_build/cmake --config=%CONFIG% --target install
 )
 
 REM do we need to stage?

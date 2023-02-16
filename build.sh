@@ -22,10 +22,11 @@ GENERATE=false
 STAGE=false
 CONFIGURE=false
 CONFIG=release
+HELP=false
 
 while [ $# -gt 0 ]
 do
-    if [[ "$1" == "clean" ]]
+    if [[ "$1" == "--clean" ]]
     then
         CLEAN=true
     fi
@@ -49,8 +50,23 @@ do
     then
         CONFIG=debug
     fi
+    if [[ "$1" == "--help" ]]
+    then
+        HELP=true
+    fi
     shift
 done
+
+# requesting how to run the script
+if [[ "$HELP" == "true" ]]
+then
+    echo "build.bat [--generate] [--clean] [--configure] [--stage] [--debug]"
+    echo "--clean: Removes _install directory (customize as needed)"
+    echo "--generate: Perform generation of schema libraries"
+    echo "--stage: Copies the sample kit-extension to the _install directory and stages the built schema libraries in the appropriate sub-structure"
+    echo "--configure: Performs a configuration step when using premake after you have built and staged the schema libraries to ensure the plugInfo.json has the right information"
+    echo "--debug: Performs the steps with a debug configuration instead of release (default = release)"
+fi
 
 # do we need to clean?
 if [[ "$CLEAN" == "true" ]]
@@ -69,7 +85,7 @@ then
     # generate the schema code and plug-in information
     # NOTE: this will pull the NVIDIA repo_usd package to do this work
     export CONFIG=$CONFIG
-    $CWD/tools/packman/python.sh bootstrap.py usd "$@"
+    $CWD/tools/packman/python.sh bootstrap.py usd
 fi
 
 # do we need to build?
@@ -87,7 +103,10 @@ then
     cp -rf $CWD/src/kit-extension/exts/omni.example.schema $CWD/_install/linux-$(arch)/$CONFIG/
     mkdir -p $CWD/_install/linux-$(arch)/$CONFIG/omni.example.schema/OmniExampleSchema
     mkdir -p $CWD/_install/linux-$(arch)/$CONFIG/omni.example.schema/OmniExampleCodelessSchema
-    cp -rf $CWD/_install/linux-$(arch)/$CONFIG/omniExampleSchema/* $CWD/_install/linux-$(arch)/$CONFIG/omni.example.schema/OmniExampleSchema/
+    cp -rf $CWD/_install/linux-$(arch)/$CONFIG/omniExampleSchema/OmniExampleSchema/*.* $CWD/_install/linux-$(arch)/$CONFIG/omni.example.schema/OmniExampleSchema/
+    cp -rf $CWD/_install/linux-$(arch)/$CONFIG/omniExampleSchema/OmniExampleSchema/include $CWD/_install/linux-$(arch)/$CONFIG/omni.example.schema/OmniExampleSchema/
+    cp -rf $CWD/_install/linux-$(arch)/$CONFIG/omniExampleSchema/OmniExampleSchema/lib $CWD/_install/linux-$(arch)/$CONFIG/omni.example.schema/OmniExampleSchema/
+    cp -rf $CWD/_install/linux-$(arch)/$CONFIG/omniExampleSchema/OmniExampleSchema/resources $CWD/_install/linux-$(arch)/$CONFIG/omni.example.schema/OmniExampleSchema/    
     cp -rf $CWD/_install/linux-$(arch)/$CONFIG/omniExampleCodelessSchema/* $CWD/_install/linux-$(arch)/$CONFIG/omni.example.schema/OmniExampleCodelessSchema/
 fi
 
