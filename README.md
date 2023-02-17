@@ -16,7 +16,7 @@ To build the sample as is contained in this repository, a few things are require
 
 - Standard C++ build tools for your platform (e.g. Visual Studio, g++)
 - `cmake` (to create makefiles and invoke the build tools)
-- `curl` (to use the NVIDIA tool `packman` to pull down dependency packages - see below
+- `curl` (only necessary on linux to use the NVIDIA tool `packman` to pull down dependency packages - see below)
 
 ## General Project Structure
 
