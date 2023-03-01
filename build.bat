@@ -121,11 +121,13 @@ if "%GENERATE%" == "true" (
     if !errorlevel! neq 0 ( goto Error )
 )
 
-REM NOTE: this is where you can integrate your own build step if using premake
-REM Below is an example of using CMake to build the generated files
-REM You may also want to explicitly specify the toolset depending on which
-REM version of Visual Studio you are using (e.g. -T v141)
+REM should we build the USD schema?
+
+REM NOTE: Modify this build step if using a build system other than cmake (ie, premake)
 if "%BUILD%" == "true" (
+    REM Below is an example of using CMake to build the generated files
+    REM You may also want to explicitly specify the toolset depending on which
+    REM version of Visual Studio you are using (e.g. -T v141)
     cmake -B ./_build/cmake
     cmake --build ./_build/cmake --config=%CONFIG% --target install
 )

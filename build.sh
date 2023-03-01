@@ -114,9 +114,11 @@ then
 fi
 
 # do we need to build?
+
+# NOTE: Modify this build step if using a build system other than cmake (ie, premake)
 if [[ "$BUILD" == "true" ]]
 then
-    # invoke cmake to build the plugins
+    # Below is an example of using CMake to build the generated files
     cmake -B ./_build/cmake -DCMAKE_BUILD_TYPE=$CONFIG
     cmake --build ./_build/cmake --config $CONFIG --target install
 fi
