@@ -21,8 +21,8 @@ BUILD=false
 GENERATE=false
 STAGE=false
 CONFIGURE=false
-CONFIG=release
 HELP=false
+CONFIG=release
 
 while [ $# -gt 0 ]
 do
@@ -60,12 +60,17 @@ done
 # requesting how to run the script
 if [[ "$HELP" == "true" ]]
 then
-    echo "build.bat [--generate] [--clean] [--configure] [--stage] [--debug]"
-    echo "--clean: Removes _install directory (customize as needed)"
-    echo "--generate: Perform generation of schema libraries"
-    echo "--stage: Copies the sample kit-extension to the _install directory and stages the built schema libraries in the appropriate sub-structure"
-    echo "--configure: Performs a configuration step when using premake after you have built and staged the schema libraries to ensure the plugInfo.json has the right information"
-    echo "--debug: Performs the steps with a debug configuration instead of release (default = release)"
+    echo "build.sh [--clean] [--generate] [--build] [--stage] [--configure] [--debug] [--help]"
+    echo "--clean: Removes _install/_build/_repo directory (customize as needed)"
+    echo "--generate: Perform code generation of schema libraries"
+    echo "--build: Perform compilation and installation of USD schema libraries"
+    echo "--stage: Preps the kit-extension by copying it to the _install directory and stages the"
+    echo "      built USD schema libraries in the appropriate sub-structure"
+    echo "--configure: Performs a configuration step when using premake after you have built and"
+    echo "      staged the schema libraries to ensure the plugInfo.json has the right information"
+    echo "--debug: Performs the steps with a debug configuration instead of release"
+    echo "      (default = release)"
+    echo "--help: Display this help message"
 fi
 
 # do we need to clean?
