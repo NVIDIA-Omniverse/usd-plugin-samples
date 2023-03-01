@@ -25,6 +25,7 @@ set CONFIGURE=false
 set STAGE=false
 set HELP=false
 set CONFIG=release
+set HELP_EXIT_CODE=0
 
 REM default arguments for script - note this script does not actually perform
 REM any build step so that you can integrate the generated code into your build
@@ -57,6 +58,24 @@ if not "%1"=="" (
     goto :parseargs
 )
 
+if not "%CLEAN%" == "true" (
+    if not "%GENERATE%" == "true" (
+        if not "%BUILD%" == "true" (
+            if not "%STAGE%" == "true" (
+                if not "%CONFIGURE%" == "true" (
+                    if not "%HELP%" == "true" (
+                        set HELP=true
+                        set HELP_EXIT_CODE=1
+                        echo No actions selected - specify at least one of:
+                        echo   --clean --generate --build --stage --configure --help
+                        echo.
+                    )
+                )
+            )
+        )
+    )
+)
+
 REM requesting how to run the script
 if "%HELP%" == "true" (
     echo build.bat [--clean] [--generate] [--build] [--stage] [--configure] [--debug] [--help]
@@ -70,6 +89,7 @@ if "%HELP%" == "true" (
     echo --debug: Performs the steps with a debug configuration instead of release
     echo       ^(default = release^)
     echo --help: Display this help message
+    exit %HELP_EXIT_CODE%
 )
 
 REM should we clean the target directory?

@@ -23,6 +23,7 @@ STAGE=false
 CONFIGURE=false
 HELP=false
 CONFIG=release
+HELP_EXIT_CODE=0
 
 while [ $# -gt 0 ]
 do
@@ -57,6 +58,22 @@ do
     shift
 done
 
+if [[
+        "$CLEAN" != "true"
+        && "$GENERATE" != "true"
+        && "$BUILD" != "true"
+        && "$STAGE" != "true"
+        && "$CONFIGURE" != "true"
+        && "$HELP" != "true"
+    ]]
+then
+    HELP=true
+    HELP_EXIT_CODE=1
+    echo "No actions selected - specify at least one of:"
+    echo "  --clean --generate --build --stage --configure --help"
+    echo ""
+fi
+
 # requesting how to run the script
 if [[ "$HELP" == "true" ]]
 then
@@ -71,6 +88,7 @@ then
     echo "--debug: Performs the steps with a debug configuration instead of release"
     echo "      (default = release)"
     echo "--help: Display this help message"
+    exit $HELP_EXIT_CODE
 fi
 
 # do we need to clean?
