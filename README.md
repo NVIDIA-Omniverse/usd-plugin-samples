@@ -280,7 +280,7 @@ generate_dir = "${root}/src/schema/omniExampleCodelessSchema/generated"
 is_codeless = true
 ```
 
-Note that this option is turned off (the default) in the sample repository because there are other plug-ins that are included from the root.  If you want to integrate the schema plug-in makefiles with your own infrastructure, be aware that the generated makefile uses functions provided by the templates.  For both CMake and Premake you will need to add the templates to set everything up appropriately.  At a minimum, for CMake this means the following:
+Note that this option is turned on (not the default) in the sample repository.  If you want to integrate the schema plug-in makefiles with your own infrastructure, be aware that the generated makefile uses functions provided by the templates.  For both CMake and Premake you will need to add the templates to set everything up appropriately.  At a minimum, for CMake this means the following:
 
 ```
 # declare your minimum version of cmake e.g.:
