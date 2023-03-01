@@ -72,6 +72,8 @@ fi
 if [[ "$CLEAN" == "true" ]]
 then
     rm -rf $CWD/_install
+    rm -rf $CWD/_build
+    rm -rf $CWD/_repo
 fi
 
 # do we need to generate?
@@ -116,5 +118,5 @@ fi
 # does not have this functionality built in like cmake
 if [[ "$CONFIGURE" == "true" ]]
 then
-    $CWD/tools/packman/python.sh boostrap.py usd --configure-plugInfo
+    $CWD/tools/packman/python.sh bootstrap.py usd --configure-plugInfo
 fi
