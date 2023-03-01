@@ -124,7 +124,7 @@ Next, we need to configure the options for our two schemas.  `src/usd-plugins/sc
 
 - The path to the `schema.usda` file defining the schema classes
 - The path to a directory to generate the code / plug-in information into
-- The library prefix that is set in the `schema.usda` file (necessary for generating the python wrapper code, only necessary for codeful schemas)
+- The `library_prefix` that is set to the same value as `libraryPrefix` in the `schema.usda` file (necessary for generating the python wrapper code, only necessary for codeful schemas)
 - The set of USD libraries that the schema depends on.  Typically at minimum this consists of `arch`, `tf`, `vt`, `sdf`, and `usd` (and only necessary for codeful schemas)
 - Whether or not the schema is codeless (by default, the schema is codeful, so this is only necessary if you have a codeless schema)
 
@@ -181,7 +181,7 @@ is_codeless = true
 
 Note that specifying the USD library dependencies is required for codeful schemas regardless of if you wish to generate makefiles for the schema plug-ins or not.  This is because one of the generated files (`moduleDeps.cpp`) declares the dependencies in the source and must have knowledge of them to generate the right boilerplate code.
 
-__Be aware there are two settings, `library_prefix` and `usd_lib_prefix` that sound similar but are used differently.  `library_prefix` specifies the the value of the same entry in the `schema.usda` file and is usedto ensure the python wrapper code is generated correctly.  `usd_lib_prefix` is used when you need to tell the tool that the USD libraries you are linking to were built with a specific prefix that needs to be prepended to the base USD library name to ensure the proper library is found.__
+__Be aware there are two settings, `library_prefix` and `usd_lib_prefix` that sound similar but are used differently.  `library_prefix` matches the the value of `libraryPrefix` in the `schema.usda` file and is used to ensure the python wrapper code is generated correctly.  `usd_lib_prefix` is used when you need to tell the tool that the USD libraries you are linking to were built with a specific prefix that needs to be prepended to the base USD library name to ensure the proper library is found.__
 
 This should be enough to generate the schema C++ and Python source code (if codeful) and, in all cases, the `plugInfo.json` and `generatedSchema.usda` files that need to be distributed with your plug-in so that the USD Schema Registry understands your schema types.  The provided scripts (`build.bat` / `build.sh`) perform the steps necessary to:
 
