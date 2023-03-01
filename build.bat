@@ -27,6 +27,8 @@ set HELP=false
 set CONFIG=release
 set HELP_EXIT_CODE=0
 
+set DIRECTORIES_TO_CLEAN=_install _build _repo src\usd-plugins\schema\omniExampleSchema\generated src\usd-plugins\schema\omniExampleCodelessSchema\generated
+
 REM default arguments for script - note this script does not actually perform
 REM any build step so that you can integrate the generated code into your build
 REM system - an option can be added here to run your build step (e.g. cmake)
@@ -79,7 +81,10 @@ if not "%CLEAN%" == "true" (
 REM requesting how to run the script
 if "%HELP%" == "true" (
     echo build.bat [--clean] [--generate] [--build] [--stage] [--configure] [--debug] [--help]
-    echo --clean: Removes _install/_build/_repo directory ^(customize as needed^)
+    echo --clean: Removes the following directories ^(customize as needed^):
+    for %%a in (%DIRECTORIES_TO_CLEAN%) DO (
+        echo       %%a
+    )
     echo --generate: Perform code generation of schema libraries
     echo --build: Perform compilation and installation of USD schema libraries
     echo --stage: Preps the kit-extension by copying it to the _install directory and stages the
@@ -94,9 +99,11 @@ if "%HELP%" == "true" (
 
 REM should we clean the target directory?
 if "%CLEAN%" == "true" (
-    rmdir /s /q "%~dp0_install"
-    rmdir /s /q "%~dp0_build"
-    rmdir /s /q "%~dp0_repo"
+    for %%a in (%DIRECTORIES_TO_CLEAN%) DO (
+        if exist "%~dp0%%a/" (
+            rmdir /s /q "%~dp0%%a"
+        )
+    )
 
     if !errorlevel! neq 0 (goto Error)
 

@@ -25,6 +25,14 @@ HELP=false
 CONFIG=release
 HELP_EXIT_CODE=0
 
+DIRECTORIES_TO_CLEAN=(
+    _install
+    _build
+    _repo
+    src/usd-plugins/schema/omniExampleCodelessSchema/generated
+    src/usd-plugins/schema/omniExampleSchema/generated
+)
+
 while [ $# -gt 0 ]
 do
     if [[ "$1" == "--clean" ]]
@@ -78,7 +86,10 @@ fi
 if [[ "$HELP" == "true" ]]
 then
     echo "build.sh [--clean] [--generate] [--build] [--stage] [--configure] [--debug] [--help]"
-    echo "--clean: Removes _install/_build/_repo directory (customize as needed)"
+    echo "--clean: Removes the following directories (customize as needed):"
+    for dir_to_clean in "${DIRECTORIES_TO_CLEAN[@]}" ; do
+        echo "      $dir_to_clean"
+    done
     echo "--generate: Perform code generation of schema libraries"
     echo "--build: Perform compilation and installation of USD schema libraries"
     echo "--stage: Preps the kit-extension by copying it to the _install directory and stages the"
@@ -94,9 +105,9 @@ fi
 # do we need to clean?
 if [[ "$CLEAN" == "true" ]]
 then
-    rm -rf $CWD/_install
-    rm -rf $CWD/_build
-    rm -rf $CWD/_repo
+    for dir_to_clean in "${DIRECTORIES_TO_CLEAN[@]}" ; do
+        rm -rf "$CWD/$dir_to_clean"
+    done
 fi
 
 # do we need to generate?
