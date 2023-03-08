@@ -25,6 +25,9 @@ set CONFIGURE=false
 set STAGE=false
 set HELP=false
 set CONFIG=release
+set HELP_EXIT_CODE=0
+
+set DIRECTORIES_TO_CLEAN=_install _build _repo src\usd-plugins\schema\omniExampleSchema\generated src\usd-plugins\schema\omniExampleCodelessSchema\generated
 
 REM default arguments for script - note this script does not actually perform
 REM any build step so that you can integrate the generated code into your build
@@ -32,46 +35,75 @@ REM system - an option can be added here to run your build step (e.g. cmake)
 REM on the generated files
 :parseargs
 if not "%1"=="" (
+    if "%1" == "--clean" (
+        set CLEAN=true
+    )
     if "%1" == "--generate" (
         set GENERATE=true
     )
     if "%1" == "--build" (
         set BUILD=true
     )
-    if "%1" == "--clean" (
-        set CLEAN=true
+    if "%1" == "--stage" (
+        set STAGE=true
     )
     if "%1" == "--configure" (
         set CONFIGURE=true
     )
-    if "%1" == "--stage" (
-        set STAGE=true
+    if "%1" == "--debug" (
+        set CONFIG=debug
     )
     if "%1" == "--help" (
         set HELP=true
-    )
-    if "%1" == "--debug" (
-        set CONFIG=debug
     )
     shift
     goto :parseargs
 )
 
+if not "%CLEAN%" == "true" (
+    if not "%GENERATE%" == "true" (
+        if not "%BUILD%" == "true" (
+            if not "%STAGE%" == "true" (
+                if not "%CONFIGURE%" == "true" (
+                    if not "%HELP%" == "true" (
+                        set HELP=true
+                        set HELP_EXIT_CODE=1
+                        echo No actions selected - specify at least one of:
+                        echo   --clean --generate --build --stage --configure --help
+                        echo.
+                    )
+                )
+            )
+        )
+    )
+)
+
 REM requesting how to run the script
 if "%HELP%" == "true" (
-    echo "build.bat [--generate] [--clean] [--configure] [--stage] [--debug]"
-    echo "--clean: Removes _install directory (customize as needed)"
-    echo "--generate: Perform generation of schema libraries"
-    echo "--stage: Copies the sample kit-extension to the _install directory and stages the built schema libraries in the appropriate sub-structure"
-    echo "--configure: Performs a configuration step when using premake after you have built and staged the schema libraries to ensure the plugInfo.json has the right information"
-    echo "--debug: Performs the steps with a debug configuration instead of release (default = release)"
+    echo build.bat [--clean] [--generate] [--build] [--stage] [--configure] [--debug] [--help]
+    echo --clean: Removes the following directories ^(customize as needed^):
+    for %%a in (%DIRECTORIES_TO_CLEAN%) DO (
+        echo       %%a
+    )
+    echo --generate: Perform code generation of schema libraries
+    echo --build: Perform compilation and installation of USD schema libraries
+    echo --stage: Preps the kit-extension by copying it to the _install directory and stages the
+    echo       built USD schema libraries in the appropriate sub-structure
+    echo --configure: Performs a configuration step when using premake after you have built and
+    echo       staged the schema libraries to ensure the plugInfo.json has the right information
+    echo --debug: Performs the steps with a debug configuration instead of release
+    echo       ^(default = release^)
+    echo --help: Display this help message
+    exit %HELP_EXIT_CODE%
 )
 
 REM should we clean the target directory?
 if "%CLEAN%" == "true" (
-    rmdir /s /q "%~dp0_install"
-    rmdir /s /q "%~dp0_build"
-    rmdir /s /q "%~dp0_repo"
+    for %%a in (%DIRECTORIES_TO_CLEAN%) DO (
+        if exist "%~dp0%%a/" (
+            rmdir /s /q "%~dp0%%a"
+        )
+    )
 
     if !errorlevel! neq 0 (goto Error)
 
@@ -96,11 +128,13 @@ if "%GENERATE%" == "true" (
     if !errorlevel! neq 0 ( goto Error )
 )
 
-REM NOTE: this is where you can integrate your own build step if using premake
-REM Below is an example of using CMake to build the generated files
-REM You may also want to explicitly specify the toolset depending on which
-REM version of Visual Studio you are using (e.g. -T v141)
+REM should we build the USD schema?
+
+REM NOTE: Modify this build step if using a build system other than cmake (ie, premake)
 if "%BUILD%" == "true" (
+    REM Below is an example of using CMake to build the generated files
+    REM You may also want to explicitly specify the toolset depending on which
+    REM version of Visual Studio you are using (e.g. -T v141)
     cmake -B ./_build/cmake
     cmake --build ./_build/cmake --config=%CONFIG% --target install
 )

@@ -21,8 +21,17 @@ BUILD=false
 GENERATE=false
 STAGE=false
 CONFIGURE=false
-CONFIG=release
 HELP=false
+CONFIG=release
+HELP_EXIT_CODE=0
+
+DIRECTORIES_TO_CLEAN=(
+    _install
+    _build
+    _repo
+    src/usd-plugins/schema/omniExampleCodelessSchema/generated
+    src/usd-plugins/schema/omniExampleSchema/generated
+)
 
 while [ $# -gt 0 ]
 do
@@ -57,21 +66,48 @@ do
     shift
 done
 
+if [[
+        "$CLEAN" != "true"
+        && "$GENERATE" != "true"
+        && "$BUILD" != "true"
+        && "$STAGE" != "true"
+        && "$CONFIGURE" != "true"
+        && "$HELP" != "true"
+    ]]
+then
+    HELP=true
+    HELP_EXIT_CODE=1
+    echo "No actions selected - specify at least one of:"
+    echo "  --clean --generate --build --stage --configure --help"
+    echo ""
+fi
+
 # requesting how to run the script
 if [[ "$HELP" == "true" ]]
 then
-    echo "build.bat [--generate] [--clean] [--configure] [--stage] [--debug]"
-    echo "--clean: Removes _install directory (customize as needed)"
-    echo "--generate: Perform generation of schema libraries"
-    echo "--stage: Copies the sample kit-extension to the _install directory and stages the built schema libraries in the appropriate sub-structure"
-    echo "--configure: Performs a configuration step when using premake after you have built and staged the schema libraries to ensure the plugInfo.json has the right information"
-    echo "--debug: Performs the steps with a debug configuration instead of release (default = release)"
+    echo "build.sh [--clean] [--generate] [--build] [--stage] [--configure] [--debug] [--help]"
+    echo "--clean: Removes the following directories (customize as needed):"
+    for dir_to_clean in "${DIRECTORIES_TO_CLEAN[@]}" ; do
+        echo "      $dir_to_clean"
+    done
+    echo "--generate: Perform code generation of schema libraries"
+    echo "--build: Perform compilation and installation of USD schema libraries"
+    echo "--stage: Preps the kit-extension by copying it to the _install directory and stages the"
+    echo "      built USD schema libraries in the appropriate sub-structure"
+    echo "--configure: Performs a configuration step when using premake after you have built and"
+    echo "      staged the schema libraries to ensure the plugInfo.json has the right information"
+    echo "--debug: Performs the steps with a debug configuration instead of release"
+    echo "      (default = release)"
+    echo "--help: Display this help message"
+    exit $HELP_EXIT_CODE
 fi
 
 # do we need to clean?
 if [[ "$CLEAN" == "true" ]]
 then
-    rm -rf $CWD/_install
+    for dir_to_clean in "${DIRECTORIES_TO_CLEAN[@]}" ; do
+        rm -rf "$CWD/$dir_to_clean"
+    done
 fi
 
 # do we need to generate?
@@ -89,9 +125,11 @@ then
 fi
 
 # do we need to build?
+
+# NOTE: Modify this build step if using a build system other than cmake (ie, premake)
 if [[ "$BUILD" == "true" ]]
 then
-    # invoke cmake to build the plugins
+    # Below is an example of using CMake to build the generated files
     cmake -B ./_build/cmake -DCMAKE_BUILD_TYPE=$CONFIG
     cmake --build ./_build/cmake --config $CONFIG --target install
 fi
@@ -116,5 +154,5 @@ fi
 # does not have this functionality built in like cmake
 if [[ "$CONFIGURE" == "true" ]]
 then
-    $CWD/tools/packman/python.sh boostrap.py usd --configure-plugInfo
+    $CWD/tools/packman/python.sh bootstrap.py usd --configure-plugInfo
 fi
