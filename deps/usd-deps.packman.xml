@@ -5,6 +5,6 @@
     <package name="nv-usd" version="20.08.nv.1.2.2404.6bf74556-linux-aarch64_py37_${config}-main" platforms="linux-aarch64" />
   </dependency>
   <dependency name="python" linkPath="../_build/usd-deps/python">
-    <package name="python" version="3.7.12+nv1-${platform}" />
+    <package name="python" version="3.7.16+nv1-${platform}" />
   </dependency>
 </project>
