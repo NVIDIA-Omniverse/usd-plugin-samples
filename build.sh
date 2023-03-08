@@ -142,9 +142,9 @@ then
     mkdir -p $CWD/_install/linux-$(arch)/$CONFIG/omni.example.schema/OmniExampleSchema
     mkdir -p $CWD/_install/linux-$(arch)/$CONFIG/omni.example.schema/OmniExampleCodelessSchema
     cp -rf $CWD/_install/linux-$(arch)/$CONFIG/omniExampleSchema/OmniExampleSchema/*.* $CWD/_install/linux-$(arch)/$CONFIG/omni.example.schema/OmniExampleSchema/
-    cp -rf $CWD/_install/linux-$(arch)/$CONFIG/omniExampleSchema/OmniExampleSchema/include $CWD/_install/linux-$(arch)/$CONFIG/omni.example.schema/OmniExampleSchema/
-    cp -rf $CWD/_install/linux-$(arch)/$CONFIG/omniExampleSchema/OmniExampleSchema/lib $CWD/_install/linux-$(arch)/$CONFIG/omni.example.schema/OmniExampleSchema/
-    cp -rf $CWD/_install/linux-$(arch)/$CONFIG/omniExampleSchema/OmniExampleSchema/resources $CWD/_install/linux-$(arch)/$CONFIG/omni.example.schema/OmniExampleSchema/    
+    cp -rf $CWD/_install/linux-$(arch)/$CONFIG/omniExampleSchema/include $CWD/_install/linux-$(arch)/$CONFIG/omni.example.schema/OmniExampleSchema/
+    cp -rf $CWD/_install/linux-$(arch)/$CONFIG/omniExampleSchema/lib $CWD/_install/linux-$(arch)/$CONFIG/omni.example.schema/OmniExampleSchema/
+    cp -rf $CWD/_install/linux-$(arch)/$CONFIG/omniExampleSchema/resources $CWD/_install/linux-$(arch)/$CONFIG/omni.example.schema/OmniExampleSchema/    
     cp -rf $CWD/_install/linux-$(arch)/$CONFIG/omniExampleCodelessSchema/* $CWD/_install/linux-$(arch)/$CONFIG/omni.example.schema/OmniExampleCodelessSchema/
 fi
 
