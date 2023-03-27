@@ -31,6 +31,7 @@ DIRECTORIES_TO_CLEAN=(
     _repo
     src/usd-plugins/schema/omniExampleCodelessSchema/generated
     src/usd-plugins/schema/omniExampleSchema/generated
+    src/usd-plugins/schema/omniMetSchema/generated
 )
 
 while [ $# -gt 0 ]
@@ -129,6 +130,10 @@ fi
 # NOTE: Modify this build step if using a build system other than cmake (ie, premake)
 if [[ "$BUILD" == "true" ]]
 then
+    # pull down target-deps to build dynamic payload which relies on CURL
+    $CWD/tools/packman/packman pull deps/target-deps.packman.xml -p linux-$(arch) -t config=debug
+    $CWD/tools/packman/packman pull deps/target-deps.packman.xml -p linux-$(arch) -t config=release
+
     # Below is an example of using CMake to build the generated files
     cmake -B ./_build/cmake -DCMAKE_BUILD_TYPE=$CONFIG
     cmake --build ./_build/cmake --config $CONFIG --target install

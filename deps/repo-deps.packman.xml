@@ -1,5 +1,6 @@
 <project toolsVersion="5.6">
     <dependency name="repo_usd" linkPath="../_repo/repo_usd">
-        <package name="repo_usd" version="1.0.17" />
+        <source path="../../../../upgrade/repo_usdgenschema" />
+        <!--<package name="repo_usd" version="2.0.0" />-->
     </dependency>
 </project>

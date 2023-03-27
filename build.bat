@@ -27,7 +27,7 @@ set HELP=false
 set CONFIG=release
 set HELP_EXIT_CODE=0
 
-set DIRECTORIES_TO_CLEAN=_install _build _repo src\usd-plugins\schema\omniExampleSchema\generated src\usd-plugins\schema\omniExampleCodelessSchema\generated
+set DIRECTORIES_TO_CLEAN=_install _build _repo src\usd-plugins\schema\omniExampleSchema\generated src\usd-plugins\schema\omniExampleCodelessSchema\generated src\usd-plugins\schema\omniMetSchema\generated
 
 REM default arguments for script - note this script does not actually perform
 REM any build step so that you can integrate the generated code into your build
@@ -132,10 +132,16 @@ REM should we build the USD schema?
 
 REM NOTE: Modify this build step if using a build system other than cmake (ie, premake)
 if "%BUILD%" == "true" (
+    REM pull down target-deps to build dynamic payload which relies on CURL
+    call "%~dp0tools\packman\packman.cmd" pull deps/target-deps.packman.xml -p windows-x86_64 -t config=debug
+    call "%~dp0tools\packman\packman.cmd" pull deps/target-deps.packman.xml -p windows-x86_64 -t config=release
+
     REM Below is an example of using CMake to build the generated files
     REM You may also want to explicitly specify the toolset depending on which
     REM version of Visual Studio you are using (e.g. -T v141)
-    cmake -B ./_build/cmake
+    REM NVIDIA USD 22.11 was built with the v142 toolset, so we set that here
+    REM Note that NVIDIA USD 20.08 was build with the v141 toolset
+    cmake -B ./_build/cmake -T v142
     cmake --build ./_build/cmake --config=%CONFIG% --target install
 )
 

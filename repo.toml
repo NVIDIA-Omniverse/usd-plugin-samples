@@ -1,14 +1,11 @@
-[repo]
-logging = "warn"
-
 # common settings for repo_usd for all USD plug-ins
 [repo_usd]
 usd_debug_root = "${root}/_build/usd-deps/nv-usd/debug"
 usd_release_root = "${root}/_build/usd-deps/nv-usd/release"
 usd_python_root = "${root}/_build/usd-deps/python"
-generate_schema_makefiles = true
-generate_root_makefile = true
-schema_makefile_format = "cmake"
+generate_plugin_buildfiles = true
+plugin_buildfile_format = "cmake"
+generate_root_buildfile = true
 
 # this tells repo_usd about our codeful schema extension
 [repo_usd.schema.omniExampleSchema]
@@ -30,3 +27,131 @@ schema_file = "${root}/src/usd-plugins/schema/omniExampleCodelessSchema/schema.u
 generate_dir = "${root}/src/usd-plugins/schema/omniExampleCodelessSchema/generated"
 install_root = "${root}/_install/${platform}/${env:CONFIG}/omniExampleCodelessSchema"
 is_codeless = true
+
+# this tells repo_usd about the codeless schema for use by
+# our file format / dynamic payload infrastructure
+[repo_usd.schema.omniMetSchema]
+schema_file = "${root}/src/usd-plugins/schema/omniMetSchema/schema.usda"
+generate_dir = "${root}/src/usd-plugins/schema/omniMetSchema/generated"
+install_root = "${root}/_install/${platform}/${env:CONFIG}/omniMetSchema"
+is_codeless = true
+
+# this tells repo_usd about our file format plugin
+[repo_usd.plugin.edfFileFormat]
+plugin_dir = "${root}/src/usd-plugins/fileFormat/edfFileFormat"
+install_root = "${root}/_install/${platform}/${env:CONFIG}/edfFileFormat"
+include_dir = "include/edfFileFormat"
+additional_include_dirs = [
+    "${root}/_build/usd-deps/nv_usd/${env:CONFIG}/include/tbb"
+]
+public_headers = [
+    "api.h",
+    "iEdfDataProvider.h",
+    "edfDataProviderFactory.h"
+]
+private_headers = [
+    "edfData.h",
+    "edfPluginManager.h",
+    "edfFileFormat.h"
+]
+cpp_files = [
+    "edfData.cpp",
+    "edfDataProviderFactory.cpp",
+    "edfPluginManager.cpp",
+    "edfFileFormat.cpp",
+    "iEdfDataProvider.cpp"
+]
+resource_files = [
+    "plugInfo.json"
+]
+usd_lib_dependencies = [
+    "arch",
+    "tf",
+    "plug",
+    "vt",
+    "gf",
+    "sdf",
+    "js",
+    "pcp"
+]
+
+[repo_usd.plugin.edfFileFormat."configuration:debug"]
+preprocessor_defines = [
+    "TBB_USE_DEBUG=1"
+]
+
+# this tells repo_usd about our EDF provider implementing the back-end
+# functionality to fulfill the dynamic payload
+[repo_usd.plugin.omniMetProvider]
+plugin_dir = "${root}/src/usd-plugins/dynamicPayload/omniMetProvider"
+install_root = "${root}/_install/${platform}/${env:CONFIG}/omniMetProvider"
+include_dir = "include/omniMetProvider"
+additional_include_dirs = [
+    "${root}/src/usd-plugins/fileFormat/edfFileFormat",
+    "${root}/_build/target-deps/libcurl/include"
+]
+preprocessor_defines = [
+    "CURL_STATICLIB"
+]
+depends_on = [
+    "edfFileFormat"
+]
+private_headers = [
+    "api.h",
+    "omniMetProvider.h"
+]
+cpp_files = [
+    "omniMetProvider.cpp"
+]
+resource_files = [
+    "plugInfo.json"
+]
+usd_lib_dependencies = [
+    "arch",
+    "tf",
+    "plug",
+    "vt",
+    "gf",
+    "sdf",
+    "js",
+    "pcp",
+    "usd"
+]
+
+[repo_usd.plugin.omniMetProvider."platform:windows-x86_64"]
+additional_libs = [
+    "edfFileFormat",
+    "libcurl",
+    "zlib",
+    "ws2_32",
+    "crypt32"
+]
+additional_library_dirs = [
+    "${root}/_install/${platform}/${env:CONFIG}/edfFileFormat/lib",
+    "${root}/_build/target-deps/libcurl/lib/rt_dynamic/release",
+    "${root}/_build/target-deps/zlib/lib/rt_dynamic/release"
+]
+
+[repo_usd.plugin.omniMetProvider."platform:linux-x86_64"]
+additional_libs = [
+    "edfFileFormat",
+    "curl",
+    "z"
+]
+additional_library_dirs = [
+    "${root}/_install/${platform}/${env:CONFIG}/edfFileFormat/lib",
+    "${root}/_build/target-deps/libcurl/lib/release",
+    "${root}/_build/target-deps/zlib/lib"
+]
+
+[repo_usd.plugin.omniMetProvider."platform:linux-aarch64"]
+additional_libs = [
+    "edfFileFormat",
+    "curl",
+    "z"
+]
+additional_library_dirs = [
+    "${root}/_install/${platform}/${env:CONFIG}/edfFileFormat/lib",
+    "${root}/_build/target-deps/libcurl/lib/release",
+    "${root}/_build/target-deps/zlib/lib"
+]

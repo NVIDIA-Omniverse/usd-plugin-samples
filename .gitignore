@@ -11,7 +11,6 @@ _*/
 # binaries
 *.ico
 *.bmp
-*.png
 *.gif
 *.jpg
 *.jpeg
@@ -44,3 +43,4 @@ PACKAGE-DEPS.yaml
 # generated files under usd-plugins/schema
 src/usd-plugins/schema/omniExampleSchema/generated
 src/usd-plugins/schema/omniExampleCodelessSchema/generated
+src/usd-plugins/schema/omniMetSchema/generated

@@ -1,0 +1,36 @@
+{
+    "Plugins": [
+      {
+        "Info": {
+          "SdfMetadata": {
+            "EdfDataParameters": {
+              "type": "dictionary",
+              "displayGroup": "Core",
+              "appliesTo": [ "prims" ],
+              "documentation:": "Used to annotate a prim with metdata necessary to dynamically generate dependent layer content"
+            }
+          },
+  
+          "Types": {
+            "EdfFileFormat": {
+              "bases": [
+                "SdfFileFormat"
+              ],
+              "displayName": "EDF Dynamic File Format",
+              "extensions": [
+                "edf"
+              ],
+              "formatId": "edfFileFormat",
+              "primary": true,
+              "target": "usd"
+            }
+          }
+        },
+        "LibraryPath": "@PLUG_INFO_LIBRARY_PATH@",
+        "Name": "edfFileFormat",
+        "ResourcePath": "@PLUG_INFO_RESOURCE_PATH@",
+        "Root": "@PLUG_INFO_ROOT@",
+        "Type": "library"
+      }
+    ]
+}

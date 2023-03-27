@@ -129,18 +129,17 @@ class "OmniExternalDataSourceAPI" (
 class "OmniTemperatureDataAPI" (
     # Illustrative, you get the idea :)
 
-    # since we are stuck on 20.08 for now, we can't declare
-    # a built-in here, we have to inherit from OmniExternalDataSourceAPI
-    # once we move to a later USD version this will be removed
-    # and the bits down below will be uncommented
-    inherits = </OmniExternalDataSourceAPI>
+    # if you were still on 20.08, you could directly inherit
+    # OmniExternalDataSourceAPI, but from 21.02 on we have
+    # to use built-ins
+    # inherits = </OmniExternalDataSourceAPI>
 
     # API schemas can no longer inherit each other as of USD 21.08
     # so we still inherit </APISchemaBase> but we can apply "built-ins"
     # to the schema type such that that schema type will also be applied
     # to the prim when this one is applied
-    # inherits = </APISchemaBase>
-    # prepend apiSchemas = ["OmniExternalDataSourceAPI"]
+    inherits = </APISchemaBase>
+    prepend apiSchemas = ["OmniExternalDataSourceAPI"]
     customData = {
         token apiSchemaType = "singleApply"
     }

@@ -1,0 +1,35 @@
+# Copyright 2023 NVIDIA CORPORATION
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#  http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+CONFIG=release
+if [ $# == 1 ]; then
+    if [ "$1" == "debug" ]; then
+        CONFIG=debug
+    fi
+fi
+
+echo "Setting environment for $CONFIG configuration..."
+
+if [ ! -d _dpvenv ]; then
+    $PWD/_build/usd-deps/python/python.exe -m venv _dpvenv
+    source $PWD/_dpvenv/Scripts/activate
+    pip install PySide2
+    pip install PyOpenGL
+else
+    source $PWD/_dpvenv/Scripts/activate
+fi
+
+export PYTHONPATH=$PWD/_build/usd-deps/nv-usd/$CONFIG/lib/python
+export PATH=$PATH:$PWD/_build/usd-deps/python:$PWD/_build/usd-deps/nv-usd/$CONFIG/bin:$PWD/_build/usd-deps/nv-usd/$CONFIG/lib:$PWD/_build/target-deps/zlib/lib/rt_dynamic/release:$PWD/_install/windows-x86_64/$CONFIG/edfFileFormat/lib:$PWD/_install/windows-x86_64/$CONFIG/omniMetProvider/lib
+export PXR_PLUGINPATH_NAME=$PWD/_install/windows-x86_64/$CONFIG/omniMetSchema/resources:$PWD/_install/windows-x86_64/$CONFIG/edfFileFormat/resources:$PWD/_install/windows-x86_64/$CONFIG/omniMetProvider/resources
