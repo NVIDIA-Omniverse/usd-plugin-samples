@@ -1,0 +1,66 @@
+#usda 1.0
+(
+    subLayers = [
+        # To refer to schema types defined in schema.usda files from other
+        # libraries, simply add comma-separated lines of the form
+        # @<library name>/schema.usda@. In this example, we're referring
+        # to schema types from 'usd'. If you were adding sub-classes of
+        # UsdGeom schema types, you would use usdGeom/schema.usda instead.
+        @usd/schema.usda@,
+        @usdGeom/schema.usda@
+    ]
+)
+
+over "GLOBAL" (
+    customData = {
+        string libraryName   = "omniExampleCodelessSchema"
+        string libraryPath   = "./"
+        string libraryPrefix = "OmniExample"
+
+        # this tells usdgenschema not to generate code for the schema
+        # everything in this definition will be considered codeless
+        # and will generate no APIs (this is why it is separated
+        # from omniExampleSchema)
+        bool skipCodeGeneration = true
+    }
+) {
+}
+
+# Single Applied API Codeless Schema
+class "OmniSourceFormatMetadataAPI" (
+    # Just an example of how to apply properties to specific prims
+
+    # API schema types always inherit from </APISchemaBase>
+    inherits = </APISchemaBase>
+    customData = {
+        token apiSchemaType = "singleApply"
+
+        # this tells USD that we only can apply this API type
+        # to prims of type UsdGeomMesh - in this example we 
+        # convert one mesh in a source format to a USD mesh
+        # and want to annotate the USD mesh we create with
+        # metadata that maps it back to the source mesh
+        token[] apiSchemaCanOnlyApplyTo = ["UsdGeomMesh"]
+    }
+
+    doc = """Defines a set of metadata that can be applied to meshes
+             to capture metadata about an object(s) that were converted
+             into this USD mesh from a certain CAD source format."""
+)
+{
+    # Note that we namespace these properties since the schema is not a typed schema
+    # this makes it clear that this attribute is coming from a source that namespaces
+    # within the "omni" namespace - also we give it a default empty value here
+    string omni:example:codeless:sourceFormatMetadata:partId = "" (
+        doc = """Defines the id of the part inside the given item representing
+                 the source CAD mesh."""
+    )
+
+    string omni:example:codeless:sourceFormatMetadata:itemId = "" (
+        doc = """Defines the id of the item holding the part in the PLM system."""
+    )
+
+    string omni:example:codeless:sourceFormatMetdata:sourceUri = "" (
+        doc = """Defines the URI of the source system the item id resides in."""
+    )
+}
