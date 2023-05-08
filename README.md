@@ -3,12 +3,10 @@
 This repository is intended to contain a set of samples that illustrate authoring of different kinds of plug-ins for USD.  In particular, this repository is intended to illustrate samples for:
 
 - USD schemas (both codeful and codeless)
-- AR 2.0 resolvers
-- AR 1.0 resolvers (for 104.x Kit-based applications)
-- File Format Plugins
-- Dynamic Payloads
 
 Currently, the repository hosts example USD schemas along with a set of tools that can be used to generate schema code and templates that can be used for both CMake and Premake to build the plug-ins using compiler / linker settings consistent with those used when building USD libraries.  As more samples become available, they will be added to this repository.  Feel free to fork this repository, delete the portions you don't need, and customize the remaining in whatever way suits your USD environment.
+
+These samples are intended to work with any USD distrubtions.  Use of certain USD versions may necessitate changes to the `schema.usda` files in accordance with changes made in USD from v20.08 to v21.02.  The repository is set up to use NVIDIA's USD v20.08 build for your convenience, but you may change it using the options provided below.
 
 ## Prerequisites
 
@@ -321,3 +319,7 @@ The `repo_usd` tool supports some additional advanced options via the `repo.toml
 - `additional_libs`: A list of additional libs that need to be linked to the plug-in to build
 - `additional_cpp_files`: A list of additional `.h` / `.cpp` files to include as part of the plug-in build
 - `additional_module_files`: A list of additonal `.py` files to include as part of the python module distribution for the plug-in
+
+## Contributing
+
+The source code for this repository is provided as-is and we are not accepting outside contributions at this time.
