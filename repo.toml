@@ -10,6 +10,7 @@ generate_root_buildfile = true
 # this tells repo_usd about our codeful schema extension
 [repo_usd.schema.omniExampleSchema]
 schema_file = "${root}/src/usd-plugins/schema/omniExampleSchema/schema.usda"
+plugin_dir = "${root}/src/usd-plugins/schema/omniExampleSchema"
 generate_dir = "${root}/src/usd-plugins/schema/omniExampleSchema/generated"
 install_root = "${root}/_install/${platform}/${env:CONFIG}/omniExampleSchema"
 library_prefix = "OmniExample"
@@ -24,6 +25,7 @@ usd_lib_dependencies = [
 # this tells repo_usd about our codeless schema extension
 [repo_usd.schema.omniExampleCodelessSchema]
 schema_file = "${root}/src/usd-plugins/schema/omniExampleCodelessSchema/schema.usda"
+plugin_dir = "${root}/src/usd-plugins/schema/omniExampleCodelessSchema"
 generate_dir = "${root}/src/usd-plugins/schema/omniExampleCodelessSchema/generated"
 install_root = "${root}/_install/${platform}/${env:CONFIG}/omniExampleCodelessSchema"
 is_codeless = true
@@ -32,6 +34,7 @@ is_codeless = true
 # our file format / dynamic payload infrastructure
 [repo_usd.schema.omniMetSchema]
 schema_file = "${root}/src/usd-plugins/schema/omniMetSchema/schema.usda"
+plugin_dir = "${root}/src/usd-plugins/schema/omniMetSchema"
 generate_dir = "${root}/src/usd-plugins/schema/omniMetSchema/generated"
 install_root = "${root}/_install/${platform}/${env:CONFIG}/omniMetSchema"
 is_codeless = true
@@ -42,7 +45,7 @@ plugin_dir = "${root}/src/usd-plugins/fileFormat/edfFileFormat"
 install_root = "${root}/_install/${platform}/${env:CONFIG}/edfFileFormat"
 include_dir = "include/edfFileFormat"
 additional_include_dirs = [
-    "${root}/_build/usd-deps/nv_usd/${env:CONFIG}/include/tbb"
+    "../../../../_build/usd-deps/nv_usd/${env:CONFIG}/include/tbb"
 ]
 public_headers = [
     "api.h",
@@ -87,8 +90,8 @@ plugin_dir = "${root}/src/usd-plugins/dynamicPayload/omniMetProvider"
 install_root = "${root}/_install/${platform}/${env:CONFIG}/omniMetProvider"
 include_dir = "include/omniMetProvider"
 additional_include_dirs = [
-    "${root}/src/usd-plugins/fileFormat/edfFileFormat",
-    "${root}/_build/target-deps/libcurl/include"
+    "../../../../src/usd-plugins/fileFormat/edfFileFormat",
+    "../../../../_build/target-deps/libcurl/include"
 ]
 preprocessor_defines = [
     "CURL_STATICLIB"
@@ -127,9 +130,9 @@ additional_libs = [
     "crypt32"
 ]
 additional_library_dirs = [
-    "${root}/_install/${platform}/${env:CONFIG}/edfFileFormat/lib",
-    "${root}/_build/target-deps/libcurl/lib/rt_dynamic/release",
-    "${root}/_build/target-deps/zlib/lib/rt_dynamic/release"
+    "../../../../_install/${platform}/${env:CONFIG}/edfFileFormat/lib",
+    "../../../../_build/target-deps/libcurl/lib/rt_dynamic/release",
+    "../../../../_build/target-deps/zlib/lib/rt_dynamic/release"
 ]
 
 [repo_usd.plugin.omniMetProvider."platform:linux-x86_64"]
@@ -139,9 +142,9 @@ additional_libs = [
     "z"
 ]
 additional_library_dirs = [
-    "${root}/_install/${platform}/${env:CONFIG}/edfFileFormat/lib",
-    "${root}/_build/target-deps/libcurl/lib/release",
-    "${root}/_build/target-deps/zlib/lib"
+    "../../../../_install/${platform}/${env:CONFIG}/edfFileFormat/lib",
+    "../../../../_build/target-deps/libcurl/lib/release",
+    "../../../../_build/target-deps/zlib/lib"
 ]
 
 [repo_usd.plugin.omniMetProvider."platform:linux-aarch64"]
@@ -151,7 +154,7 @@ additional_libs = [
     "z"
 ]
 additional_library_dirs = [
-    "${root}/_install/${platform}/${env:CONFIG}/edfFileFormat/lib",
-    "${root}/_build/target-deps/libcurl/lib/release",
-    "${root}/_build/target-deps/zlib/lib"
+    "../../../../_install/${platform}/${env:CONFIG}/edfFileFormat/lib",
+    "../../../../_build/target-deps/libcurl/lib/release",
+    "../../../../_build/target-deps/zlib/lib"
 ]
