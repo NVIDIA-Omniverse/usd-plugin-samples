@@ -3,6 +3,6 @@
     <package name="libcurl" version="7.80.0+nv1-${platform}"/>
   </dependency>
   <dependency name="zlib" linkPath="../_build/target-deps/zlib">
-    <package name="zlib" version="1.2.11+nv1-${platform}" />
+    <package name="zlib" version="1.2.13+nv1-${platform}" />
   </dependency>
 </project>
