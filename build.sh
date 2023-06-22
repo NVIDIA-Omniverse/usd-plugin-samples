@@ -95,7 +95,7 @@ then
     echo "--build: Perform compilation and installation of USD schema libraries"
     echo "--stage: Preps the kit-extension by copying it to the _install directory and stages the"
     echo "      built USD schema libraries in the appropriate sub-structure"
-    echo "--configure: Performs a configuration step when using premake after you have built and"
+    echo "--configure: Performs a configuration step after you have built and"
     echo "      staged the schema libraries to ensure the plugInfo.json has the right information"
     echo "--debug: Performs the steps with a debug configuration instead of release"
     echo "      (default = release)"
@@ -159,5 +159,5 @@ fi
 # does not have this functionality built in like cmake
 if [[ "$CONFIGURE" == "true" ]]
 then
-    $CWD/tools/packman/python.sh bootstrap.py usd --configure-plugInfo
+    $CWD/tools/packman/python.sh bootstrap.py usd --configure-pluginfo
 fi
