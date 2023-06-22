@@ -25,7 +25,7 @@
 #include <pxr/usd/pcp/dynamicFileFormatContext.h>
 
 #include "api.h"
-#include "iedfdataprovider.h"
+#include "iEdfDataProvider.h"
 
 PXR_NAMESPACE_OPEN_SCOPE
 
