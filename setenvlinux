@@ -31,5 +31,6 @@ else
 fi
 
 export PYTHONPATH=$PWD/_build/usd-deps/nv-usd/$CONFIG/lib/python
+export PATH=$PATH:$PWD/_build/usd-deps/python:$PWD/_build/usd-deps/nv-usd/$CONFIG/bin
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PWD/_build/usd-deps/python:$PWD/_build/usd-deps/nv-usd/$CONFIG/bin:$PWD/_build/usd-deps/nv-usd/$CONFIG/lib:$PWD/_build/target-deps/zlib/lib:$PWD/_install/linux-$(arch)/$CONFIG/edfFileFormat/lib:$PWD/_install/linux-$(arch)/$CONFIG/omniMetProvider/lib
 export PXR_PLUGINPATH_NAME=$PWD/_install/linux-$(arch)/$CONFIG/omniMetSchema/resources:$PWD/_install/linux-$(arch)/$CONFIG/edfFileFormat/resources:$PWD/_install/linux-$(arch)/$CONFIG/omniMetProvider/resources
