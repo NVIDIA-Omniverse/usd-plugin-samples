@@ -131,13 +131,13 @@ additional_library_dirs = [
 
 [repo_usd.plugin.omniMetProvider."platform:linux-x86_64"]
 additional_libs = [
-    "edfFileFormat",
-    "z"
+    "edfFileFormat"
 ]
 additional_static_libs = [
     "curl",
     "ssl",
-    "crypto"
+    "crypto",
+    "z"
 ]
 additional_library_dirs = [
     "../../../../_install/%{platform}/%{config}/edfFileFormat/lib",
@@ -148,13 +148,13 @@ additional_library_dirs = [
 
 [repo_usd.plugin.omniMetProvider."platform:linux-aarch64"]
 additional_libs = [
-    "edfFileFormat",
-    "z"
+    "edfFileFormat"
 ]
 additional_static_libs = [
     "curl",
     "ssl",
-    "crypto"
+    "crypto",
+    "z"
 ]
 additional_library_dirs = [
     "../../../../_install/%{platform}/%{config}/edfFileFormat/lib",
