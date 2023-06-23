@@ -5,4 +5,7 @@
   <dependency name="zlib" linkPath="../_build/target-deps/zlib">
     <package name="zlib" version="1.2.13+nv1-${platform}" />
   </dependency>
+  <dependency name="openssl" linkPath="../_build/target-deps/openssl">
+    <package name="openssl" version="1.1.1m+nv2-${platform}" ?>
+  </dependency>
 </project>
