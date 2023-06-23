@@ -10,11 +10,14 @@ Additionally, this repository contains a set of tools that can be used to genera
 
 ## Quick Start
 
+**Prerequisite: You must have CMake 3.20+ installed on your system and available through the `PATH`**
+
 If you want to directly build and try out the dynamic payload sample in `usdview`, you can build the samples and set the environment using the sample tools, and load the payload in `usdview`.  The commands below assume either a Linux environment or `git-bash` on Windows.
 
 ```
-./build.bat         # builds the release build of the samples into _install\${platform}\release (Windows)
-./build.sh          # builds the release build of the samples into _install/${platform}/releaes (Linux)
+./build.bat --generate --build --configure --stage  # builds the release build of the samples into _install\windows-x86_64\release (Windows)
+./build.sh --generate --build --configure --stage   # builds the release build of the samples into _install/linux-x86_64/release (Linux X86)
+                                                    # or into _install/linux-aarch64/release (Linux ARM)
 
 source setenvwindows      # sets up a python virtual environment (_dpvenv), installs PySide and PyOpenGL, and sets the PATH / PYTHONPATH
                           # to the built sample libraries and NVIDIA USD 22.11 distribution, sets the PXR_PLUGINPATH_NAME to include 
@@ -199,33 +202,38 @@ These samples use a tool called `repo_usd` to generate the schema code and plug-
 A `toml` file is just a set key / value pairs.  Related settings are grouped by heading keys defined in the `[]` pair and individual options are defined using `x=y` notation.  Underneath, these turn into dictionaries that are processed by the `repo_usd` tool to interpret the options into a set of generation instructions that process your USD plugins to generate source code and build files.  These options include:
 
 - General configuration options that apply across all plugins
-- Configuration options specific to an individual schema type plugin
 - Configuration options specific to an individual plugin of all types (including schema types)
+- Configuration options specific to an individual schema type plugin
 
 ### General Setup
 
-Different organizations may be working with different versions of USD at any given time.  Plugins, however, must be built separately for each individual USD distribution that you want to work with.  As such, first we must tell `repo_usd` where the USD dependencies are so that it knows where to find the include / lib files required for build file generation, and well as where to find `usdGenSchema` for generating code from schema definition files.  `repo_usd` needs three locations to function properly:
+Different organizations may be working with different versions of USD at any given time.  Plugins, however, must be built separately for each individual USD distribution that you want to work with.  As such, first we must tell `repo_usd` where the USD dependencies are so that it knows where to find the include / lib files required for build file generation, and well as where to find `usdGenSchema` for generating code from schema definition files.  `repo_usd` needs two locations to function properly:
 
-- The path to the release USD build that will be used (referred to as `usd_release_root`)
-- The path to the debug USD build that will be used (referred to as `usd_debug_root`)
+- The path to the USD build that will be used (referred to as `usd_root`)
 - The path to a Python environment consistent with that which built the referenced USD libraries (referred to as `usd_python_root`)
 
 For example, when building against NVIDIA's USD libraries pulled by `packman`, the `repo.toml` file might be configured as follows:
 
 ```
 [repo_usd]
-usd_release_root = "${root}/_build/usd-deps/nv-usd/release"
-usd_debug_root = "${root}/_build/usd-deps/nv-usd/debug"
+usd_root = "${root}/_build/usd-deps/nv-usd/%{config}"
 usd_python_root = "${root}/_build/usd-deps/python"
 ```
 
 A couple of things to note here:
 
-- `${root}` is a special token that `repo_usd` will replace with the path to the root of the repository.  All paths defined in `repo.toml` should be specified relative to `${root}` unless noted otherwise.
+- `${root}` is a special token that `repo_usd` will replace with the path to the root of the repository.  Several paths declared in `repo.toml` must be declared relative to `${root}`.  These include:
+    - The path to the USD installation (`usd_root`)
+    - The path to the Python installation (`usd_python_root`)
+    - The path to a schema file for a schema plugin (`schema_file`)
+    - The path to the root of a plugin (`plugin_dir`)
+    - The path to the directory to generate code / build files into for a plugin (`generate_dir`)
+    - The path to the root directory on which the built artifacts will be deployed for a plugin (`install_root`)
 - The paths here reference the `linkPath` property that is defined in the `packman` deps file you have configured to pull the appropriate USD and python packages.  When `packman` pulls these packages down, it will place them in these locations.
 - To change the USD build you are referencing, simply change the path specified here (relative to `${root}`).  Make sure that the python environment you use is consistent with that which was used to build the USD libraries being referenced (e.g. if you built USD with Python 3.10, make sure your `usd_python_root` points to an environment containing Python 3.10).
 
-The use of `packman` has been enabled in this repository to pull the relevant USD and python packages (22.11 and 3.10 respectively) for a turnkey type solution that builds plugins compatible with NVIDIA Omniverse (105+).  If you want to use a different version of USD simply change the paths that are specified in `usd_release_root`, `usd_debug_root`, and `usd_python_root`.  
+
+The use of `packman` has been enabled in this repository to pull the relevant USD and python packages (22.11 and 3.10 respectively) for a turnkey type solution that builds plugins compatible with NVIDIA Omniverse (105+).  If you want to use a different version of USD simply change the paths that are specified in `usd_root` and `usd_python_root`.  
 
 `repo_usd` can also generate build files in either `cmake` or `premake` format (`cmake` is the default).  If you would like to take advantage of this functionality, there are a few more options in the `repo.toml` file that are required:
 
@@ -236,8 +244,7 @@ These options can be set in the `repo.toml` file as follows:
 
 ```
 [repo_usd]
-usd_debug_root = "${root}/_build/usd-deps/nv-usd/debug"
-usd_release_root = "${root}/_build/usd-deps/nv-usd/release"
+usd_root = "${root}/_build/usd-deps/nv-usd/%{config}"
 usd_python_root = "${root}/_build/usd-deps/python"
 generate_plugin_buildfiles = true
 ```
@@ -246,8 +253,7 @@ To use `premake`, add the `plugin_buildfile_format` option:
 
 ```
 [repo_usd]
-usd_debug_root = "${root}/_build/usd-deps/nv-usd/debug"
-usd_release_root = "${root}/_build/usd-deps/nv-usd/release"
+usd_root = "${root}/_build/usd-deps/nv-usd/%{config}"
 usd_python_root = "${root}/_build/usd-deps/python"
 generate_plugin_buildfiles = true
 plugin_buildfile_format = "premake"
@@ -255,10 +261,20 @@ plugin_buildfile_format = "premake"
 
 When the `generate_plugin_buildfiles` option is on, a build file in the specified format will be generated for each configured plugin to the following locations:
 
-- the configured `plugin_dir` for non-schema plugins
-- the configured `generate_dir` for schema plugins
+- the configured `generate_dir` for the plugin (or `plugin_dir` if no separate `generate_dir` is specified)
 
 These are required options for each plugin / schema defined and discussed in further detail below.  The remainder of this section assumes that the build file format will be the default (`cmake`).  When additional options are required for `premake` this will be noted specifically.
+
+### A Note on Tokens in `repo.toml`
+
+Paths declared in `repo.toml` may include _tokens_ - strings that will be replaced based on the current value of something in the build process.  In most cases, you will want to take advantage of tokens that represent the `platform` the build is occurring on and the `config` being built.  The presence of these tokens is a generic way to specify cross-platform / cross-configuration paths that can be evaluated either at `repo_usd` load time or at build time.  `repo_usd` supports two types of token strings:
+
+- Tokens that are prefixed with the `$` character (e.g., `${platform}`, `${config}`)
+- Tokens that are prefixed with the `%` character (e.g., `%{platform}`, `%{config}`)
+
+The first type of tokens are evaluated when the `repo.toml` configuration is loaded by `repo.usd`.  The second type of tokens are used to inform `repo_usd` to emit paths that are generic for the target build system.  For example, `%{config}` will be replaced by `%{cfg.buildcfg}` for `premake` and `PXR_PLUGIN_CONFIGURATION` for `cmake`.  These tokens are then evaluated by the build system at build time depending on your build configuration.  Using tokens generically allows a single `premake5.lua` or `CMakeLists.txt` file to be emitted that can be used on multiple platforms with multiple configurations (i.e., this allows you to generate these files once and commit them to your source control system, if desired).
+
+In addition, the special token `${root}` is used to generically designate the root directory of the repository.  The use of the above tokens are restricted to paths that are based on `${root}`.  That is, paths like `include_dir`, which are specified relative to `install_root`, do not support the use of these tokens.
 
 ### Specifying Plugin Specific Options
 
@@ -266,8 +282,7 @@ Each USD plugin in the repository can be configured with a number of options.  A
 
 ```
 [repo_usd]
-usd_debug_root = "${root}/_build/usd-deps/nv-usd/debug"
-usd_release_root = "${root}/_build/usd-deps/nv-usd/release"
+usd_root = "${root}/_build/usd-deps/nv-usd/%{config}"
 usd_python_root = "${root}/_build/usd-deps/python"
 generate_plugin_buildfiles = true
 
@@ -279,8 +294,7 @@ Each plugin must also define the USD libraries that it is dependent on.  These a
 
 ```
 [repo_usd]
-usd_debug_root = "${root}/_build/usd-deps/nv-usd/debug"
-usd_release_root = "${root}/_build/usd-deps/nv-usd/release"
+usd_root = "${root}/_build/usd-deps/nv-usd/%{config}"
 usd_python_root = "${root}/_build/usd-deps/python"
 generate_plugin_buildfiles = true
 
@@ -299,8 +313,7 @@ If using a USD build with a custom prefix, you may specify this prefix in the `r
 
 ```
 [repo_usd]
-usd_debug_root = "${root}/_build/usd-deps/nv-usd/debug"
-usd_release_root = "${root}/_build/usd-deps/nv-usd/release"
+usd_root = "${root}/_build/usd-deps/nv-usd/%{config}"
 usd_python_root = "${root}/_build/usd-deps/python"
 generate_plugin_buildfiles = true
 usd_lib_prefix = "lib_"
@@ -316,11 +329,13 @@ usd_lib_dependencies = [
 ]
 ```
 
+Plugins may specify a separate `generate_dir` path (relative to `${root}`).  If specified, this is the directory all generated files will be output to (including schema code and build files).  If not specified, `repo_usd` will use `plugin_dir` as the directory.
+
 Specifying the USD library dependencies is required for all USD plugins, and each may depend upon a different set.  It is also necessary when defining codeful schemas, whether you wish to generate build files for the schema plugin or not (see below).
 
 `repo_usd` exposes a number of options that allow you to control the target directory structure for your plugin.  These include:
 
-- `install_root`: path at which to root the plugin output files (default = `"${root}/_install/${platform}/${plugin_name}`)
+- `install_root`: path at which to root the plugin output files (default = `"${root}/_install/${platform}/${plugin_name}`).  This must be specified relative to `${root}`
 - `include_dir`: path relative to `install_root` where public headers for the plugin will be copied
 - `lib_dir`: path relative to `install_root` where the plugin C++ library will be built to
 - `resources_dir`: path relative to `install_root` where resource files (such as `plugInfo.json`, `generatedSchema.usda`, etc.) will be copied
@@ -338,12 +353,19 @@ When using `premake`, you may also specify the directory to which the output of 
 
 - `build_dir`: path relative to the repository root where you would like the projects created by premake to be generated.  The premake file itself (`premake5.lua`) is generated to the same directory as the source (`plugin_dir` for generic plugins, `generate_dir` for schema plugins), but the artifacts of the premake file will be generated to this location.  By default, this location is `${root}/_build/${schema_name}`.  Note that this option is only valid for `premake` - CMake artifacts are generated in the directory specified when running CMake configure and mirrors the source tree.
 
-Finally, additional configuration options are provided for you to specify include and library directories that are additional to the built-in USD and python ones derived from your `usd_release_root`, `usd_debug_root`, and `usd_python_root` settings.  As part of this, additional libraries may be specified that the target build will be linked to.  Custom preprocessor definitions (in addition to those already added for USD plugin libraries) can also be added to each plugin.  These are specified via the following options:
+Finally, additional configuration options are provided for you to specify include and library directories that are additional to the built-in USD and python ones derived from your `usd_root` and `usd_python_root` settings.  As part of this, additional libraries may be specified that the target build will be linked to.  Custom preprocessor definitions (in addition to those already added for USD plugin libraries) can also be added to each plugin.  These are specified via the following options:
 
 - `additional_include_dirs`: A list of additional directories that should be used to find include files the plugin may depend on
 - `additional_library_dirs`: A list of additional directories that should be used to find library files the plugin may depend on
 - `additional_libs`: A list of additional libs that need to be linked to the plugin to build
+- `additional_static_libs`: A list of additional libs that need to be statically linked to the plugin to build
 - `preprocessor_defines`: A list of preprocessor definitions to add to the project buildfile
+
+All paths above should be specified relative to the `generate_dir` of the plugin (or `plugin_dir` if `generate_dir` is not specified).
+
+Finally, you can customize dependencies among plug-ins by using the `depends_on` option:
+
+- `depends_on`: A list of strings, each which refers to the name of a plugin that must be built prior to the one this option is attached to.  The string used here is the same string you use in your definition of the root key (i.e., the `x` in `[repo_usd.plugin.x]`)
 
 The above options are valid for all types of plugins, including schema plugins.  The following section denotes the options that are additionally valid only for schema type plugins.
 
@@ -355,8 +377,7 @@ Schemas are special types of plugins because they are defined via schema definit
 
 ```
 [repo_usd]
-usd_debug_root = "${root}/_build/usd-deps/nv-usd/debug"
-usd_release_root = "${root}/_build/usd-deps/nv-usd/release"
+usd_root = "${root}/_build/usd-deps/nv-usd/%{config}"
 usd_python_root = "${root}/_build/usd-deps/python"
 generate_plugin_buildfiles = true
 
@@ -365,8 +386,7 @@ generate_plugin_buildfiles = true
 
 All options that are valid for plugins are also valid for schemas.  But schemas have a few additional options that are explored in this section.  Each schema at minimum requires definition of the following options:
 
-- `schema_file`: The path to the `schema.usda` file defining the schema classes
-- `generate_dir`: The path to a directory to generate the code / plugin information into
+- `schema_file`: The path to the `schema.usda` file defining the schema classes.  This must be specified relative to `${root}`.
 - `library_prefix`: The library prefix that is set in the `schema.usda` file (necessary for generating the python wrapper code, only necessary for codeful schemas)
 - `is_codeless`: Whether or not the schema is codeless (by default, the schema is codeful, so this is only necessary if you have a codeless schema)
 - `usd_lib_dependencies`: Defined above; the base names of the USD libraries the schema requires as dependencies
@@ -381,8 +401,7 @@ A sample configuration for a codeless schema using these options is given below.
 
 ```
 [repo_usd]
-usd_debug_root = "${root}/_build/usd-deps/nv-usd/debug"
-usd_release_root = "${root}/_build/usd-deps/nv-usd/release"
+usd_root = "${root}/_build/usd-deps/nv-usd/%{config}"
 usd_python_root = "${root}/_build/usd-deps/python"
 generate_plugin_buildfiles = true
 
@@ -395,16 +414,14 @@ is_codeless = true
 Since schemas always expose a Python module as well as a C++ library, there are a few additional options that can be set for a schema plugin:
 
 - `module_dir`: Path relative to `install_root` where the schema Python library will be built to and python module files copied
-- `additional_cpp_files`: A list of C++ file paths that will be compiled into the C++ schema library in addition to those generated by `usdGenSchema`
-- `additional_pymodule_cpp_files`: A list of C++ file paths that will be compiled into the Python module library in addition to those generated by `usdGenSchema`
-- `additional_module_files`: A list of additional python files to include in the Python module distribution.  These files will be copied to the target `module_dir`.
+- `pymodule_cpp_files`: A list of C++ file paths that will be compiled into the Python module library in addition to those generated by `usdGenSchema`
+- `pymodule_files`: A list of python files to include in the Python module distribution.  These files will be copied to the target `module_dir` with relative paths retained.
 
 Typical configuration of a plugin will define `install_root`, `include_dir`, `lib_dir`, `resource_dir`, and `module_dir` (in the case of schemas) rather than leaving them to the defaults.  For example:
 
 ```
 [repo_usd]
-usd_debug_root = "${root}/_build/usd-deps/nv-usd/debug"
-usd_release_root = "${root}/_build/usd-deps/nv-usd/release"
+usd_root = "${root}/_build/usd-deps/nv-usd/%{config}"
 usd_python_root = "${root}/_build/usd-deps/python"
 generate_plugin_buildfiles = true
 plugin_buildfile_format = "premake"
@@ -413,7 +430,7 @@ plugin_buildfile_format = "premake"
 schema_file = "${root}/src/schema/mySchema/schema.usda"
 generate_dir = "${root}/src/schema/mySchema/generated"
 library_prefix = "MySchema"
-install_root = "${root}/_install/windows-x86_64/${env:CONFIG}/mySchema"
+install_root = "${root}/_install/%{platform}/%{config}/mySchema"
 include_dir = "include/mySchema"
 lib_dir = "bin"
 resource_dir = "resources"
@@ -441,13 +458,9 @@ In almost all cases this code is boilerplate and as such generation of these fil
 
 If you set these options to `false`, make sure you have the right content in those files such that USD will load your schema.
 
-The options above are enough to generate schema code and (optionally) build files.  Even if your schema is codeless, build files will be generated in order to configure the `plugInfo.json` file and get the resources (`plugInfo.json` and `generatedSchema.usda`) in the right target directory.
-
-When using `premake`, an additional step is required to configure the `plugInfo.json` file with the right paths such that USD can load the plugin and find the library and resources associated with it.  The next section describes this process.
+The options above are enough to generate schema code and (optionally) build files.  Even if your schema is codeless, build files will be generated in order to configure the `plugInfo.json` file and get the resources (`plugInfo.json` and `generatedSchema.usda`) in the right target directory.  Once the code and build files have been generated, it is up to the user to build the files using their chosen build system (e.g., `repo_build`, `cmake`, etc.).  After everything has been built, a second run of `repo_usd` is required to get the `plugInfo.json` file configured properly in the target directory.  The next section describes this process.
 
 ### Configuring the plugInfo.json File
-
-__THIS STEP IS NOT REQUIRED FOR CMAKE BASED BUILDS__
 
 USD plugins are loaded into the USD runtime via the `plugInfo.json` file and a call to `RegisterPlugins` somewhere in the responsible loading code.  The `plugInfo.json` file has three properties (in addition to other definitions) that help USD root the plugin and find the library containing its functionality:
 
@@ -457,7 +470,7 @@ USD plugins are loaded into the USD runtime via the `plugInfo.json` file and a c
 
 When `usdGenSchema` generates the code for a schema, it also generates the `plugInfo.json` file, but this file contains three placeholder tokens that must be replaced with real values before your plugin can be distributed.  The replacement of these placeholder tokens with the proper paths is done as part of the _Configure_ step.
 
-When using `cmake` as the build format, these placeholder tokens are replaced as part of the build process itself, since `CMake` has direct support for doing this.  For `premake`, this must be done as a separate step after the library has been built using your build tools.  Thus, typical generation workflows that involve schemas work in three steps:
+In all cases, this must be done as a separate step after the library has been built using your build tools.  Thus, typical generation workflows that involve schemas work in three steps:
 
 1. Run `repo_usd` to generate schema code and build files associated with plugins and schemas
 2. Run your build tools to build the plugin libraries
@@ -514,8 +527,6 @@ The samples provided in this repository have this option turned off (the default
 
 If your schema definitions do not change often, you may choose to not run `repo_usd` with every build.  In this case, `repo_usd` is run once (both steps, generate and configure) and the files are generated.  If you choose to place the files in the `generate_dir` under source control, ensure that the `plugInfo.json` you place in source control is the one that was configured after the configure step and not the one prior (otherwise it will have the placeholder information generated by `usdGenSchema`).  This likely means as part of your one-time run of `repo_usd` you will also need a copy step to copy the configured `plugInfo.json` file back into the `generate_dir` location to overwrite the template with the correct values.
 
-Furthermore, the `premake5.lua` file generated for the plugin when using `premake` is not a cross-platform one - it's specifically targeted to the host platform of the build.  Currently this limitation requires that multiple `premake5.lua` files be generated and the use of a `require` statement for those files in the main `premake5.lua` should be placed under the appropriate `system` filter.  Future versions of `repo_usd` will address this.
-
 ### Migrating from 1.0.x to 2.0
 
 From 2.0 onward, there was a breaking change to the naming of the options used to generate the build files.  When migrating from 1.0.x to 2.0, you must change these options in the `repo.toml` file if you are using them.  Specifically, the following old options (and their new equivalents) are replaced:
@@ -533,3 +544,15 @@ local private_headers = {
 
 add_plugin("yourPluginName", options, public_headers, private_headers, cpp_files, python_module_cpp_files, python_module_files, resource_files)
 ```
+
+### Migrating from 2.x to 3.0
+
+Starting in 3.0, `premake` and `cmake` have been better aligned and configuration has been consolidated.  In general, most configuration settings for `repo.toml` are the same, except the `$$` style token has been replaced with the `%` style token.  Any paths that currently have `$${platform}` or `$${config}` must be changed to use the new style tokens `%{platform}` and `%{config}`.
+
+Additionally, the rules are now clear where these tokens can be used.  They will be evaluated only for the following paths:
+
+- `usd_root`
+- `usd_python_root`
+- `plugin_dir`
+- `generate_dir`
+- `install_root`
