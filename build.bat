@@ -44,7 +44,7 @@ if not "%1"=="" (
     if "%1" == "--build" (
         set BUILD=true
     )
-    if "%1" == "--stage" (
+    if "%1" == "--prep-ov-install" (
         set STAGE=true
     )
     if "%1" == "--configure" (
@@ -66,11 +66,11 @@ if not "%CLEAN%" == "true" (
             if not "%STAGE%" == "true" (
                 if not "%CONFIGURE%" == "true" (
                     if not "%HELP%" == "true" (
-                        set HELP=true
-                        set HELP_EXIT_CODE=1
-                        echo No actions selected - specify at least one of:
-                        echo   --clean --generate --build --stage --configure --help
-                        echo.
+                        REM default action when no arguments are passed is to do everything
+                        set GENERATE=true
+                        set BUILD=true
+                        set STAGE=true
+                        set CONFIGURE=true
                     )
                 )
             )
@@ -87,7 +87,7 @@ if "%HELP%" == "true" (
     )
     echo --generate: Perform code generation of schema libraries
     echo --build: Perform compilation and installation of USD schema libraries
-    echo --stage: Preps the kit-extension by copying it to the _install directory and stages the
+    echo --prep-ov-install: Preps the kit-extension by copying it to the _install directory and stages the
     echo       built USD schema libraries in the appropriate sub-structure
     echo --configure: Performs a configuration step after you have built and
     echo       staged the schema libraries to ensure the plugInfo.json has the right information
@@ -145,6 +145,15 @@ if "%BUILD%" == "true" (
     cmake --build ./_build/cmake --config=%CONFIG% --target install
 )
 
+REM is this a configure only?  This will configure the plugInfo.json files
+if "%CONFIGURE%" == "true" (
+    call "%~dp0tools\packman\python.bat" bootstrap.py usd --configure-pluginfo
+
+    if !errorlevel! neq 0 (goto Error)
+
+    goto Success
+)
+
 REM do we need to stage?
 if "%STAGE%" == "true" (
     REM Copy the kit-extension into the _install directory
@@ -164,18 +173,6 @@ if "%STAGE%" == "true" (
     echo D | xcopy "%~dp0_install\windows-x86_64\%CONFIG%\omniExampleCodelessSchema\resources" "%~dp0_install\windows-x86_64\%CONFIG%\omni.example.schema\OmniExampleCodelessSchema\resources" /s /Y
     
     if !errorlevel! neq 0 ( goto Error )
-)
-
-REM is this a configure only?
-REM When using premake, the plugInfo.json files
-REM do not get their tokens replaced as premake
-REM does not have this functionality built in like cmake
-if "%CONFIGURE%" == "true" (
-    call "%~dp0tools\packman\python.bat" bootstrap.py usd --configure-pluginfo
-
-    if !errorlevel! neq 0 (goto Error)
-
-    goto Success
 )
 
 :Success

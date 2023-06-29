@@ -415,8 +415,6 @@ void OmniMetProvider::_ParseObject(const std::string& objectData, const std::str
             SdfValueTypeNames->String, SdfVariability::SdfVariabilityUniform,
             VtValue(rootObject[OmniMetProviderFieldKeys->primaryImageSmall.GetString()].GetString()));
 
-        // TODO: additional images, constituents
-
         sourceData->CreateAttribute(parentPrim, OmniMetProviderFieldKeys->department.GetString(),
             SdfValueTypeNames->String, SdfVariability::SdfVariabilityUniform,
             VtValue(rootObject[OmniMetProviderFieldKeys->department.GetString()].GetString()));
@@ -512,7 +510,9 @@ void OmniMetProvider::_ParseObject(const std::string& objectData, const std::str
                 VtValue(rootObject[OmniMetProviderFieldKeys->artistULAN_URL.GetString()].GetString()));
         }
 
-        // TODO: measurements, creditLine, etc.
+        // note that there are quite a few additional properties that could be pulled, the above
+        // represents only a sample of the data that is there - if you'd like to try the rest as an
+        // exercise, you can enhance the schema attributes and read the remaining ones here
     }
     else
     {

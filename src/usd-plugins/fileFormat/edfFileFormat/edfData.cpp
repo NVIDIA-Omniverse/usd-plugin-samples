@@ -429,15 +429,11 @@ void EdfData::EraseTimeSample(const SdfPath& path, double time)
 
 void EdfData::_VisitSpecs(SdfAbstractDataSpecVisitor* visitor) const
 {
-	std::cout << "VISIT: " << std::endl;
-	// TODO:
+	// not supported in this POC
 }
 
 bool EdfData::Read()
 {
-	// TODO: need to look at what happens on layer reload
-	// is a new data object created or should this one be cleared out?
-
 	// on first read, create the specs for the absolute root path and
 	// for the /Data path where the provider will root their data
 	SpecData::accessor accessor;
@@ -645,7 +641,7 @@ bool EdfData::_GetFieldValue(const SdfPath& path,
 
 void EdfData::_SetFieldValue(const SdfPath& path, const TfToken& fieldName, const VtValue& value)
 {
-	// TODO: if we ever wanted to add support for querying whether
+	// NOTE: if we ever wanted to add support for querying whether
 	// the backend data provider could support writes, we should
 	// query that here and ask them to write to their backing data store
 	SpecData::accessor accessor;
@@ -679,7 +675,7 @@ void EdfData::_SetFieldValue(const SdfPath& path, const TfToken& fieldName, cons
 
 void EdfData::_SetFieldValue(const SdfPath& path, const TfToken& fieldName, const VtValue& value) const
 {
-    // TODO: if we ever wanted to add support for querying whether
+    // NOTE: if we ever wanted to add support for querying whether
     // the backend data provider could support writes, we should
     // query that here and ask them to write to their backing data store
     SpecData::accessor accessor;

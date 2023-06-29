@@ -48,7 +48,7 @@ do
     then
         BUILD=true
     fi
-    if [[ "$1" == "--stage" ]]
+    if [[ "$1" == "--prep-ov-install" ]]
     then
         STAGE=true
     fi
@@ -76,11 +76,11 @@ if [[
         && "$HELP" != "true"
     ]]
 then
-    HELP=true
-    HELP_EXIT_CODE=1
-    echo "No actions selected - specify at least one of:"
-    echo "  --clean --generate --build --stage --configure --help"
-    echo ""
+    # default action when no arguments are passed is to do everything
+    GENERATE=true
+    BUILD=true
+    STAGE=true
+    CONFIGURE=true
 fi
 
 # requesting how to run the script
@@ -93,7 +93,7 @@ then
     done
     echo "--generate: Perform code generation of schema libraries"
     echo "--build: Perform compilation and installation of USD schema libraries"
-    echo "--stage: Preps the kit-extension by copying it to the _install directory and stages the"
+    echo "--prep-ov-install: Preps the kit-extension by copying it to the _install directory and stages the"
     echo "      built USD schema libraries in the appropriate sub-structure"
     echo "--configure: Performs a configuration step after you have built and"
     echo "      staged the schema libraries to ensure the plugInfo.json has the right information"
@@ -139,6 +139,12 @@ then
     cmake --build ./_build/cmake --config $CONFIG --target install
 fi
 
+# do we need to configure? This will configure the plugInfo.json files
+if [[ "$CONFIGURE" == "true" ]]
+then
+    $CWD/tools/packman/python.sh bootstrap.py usd --configure-pluginfo
+fi
+
 # do we need to stage?
 if [[ "$STAGE" == "true" ]]
 then
@@ -151,13 +157,4 @@ then
     cp -rf $CWD/_install/linux-$(arch)/$CONFIG/omniExampleSchema/lib $CWD/_install/linux-$(arch)/$CONFIG/omni.example.schema/OmniExampleSchema/
     cp -rf $CWD/_install/linux-$(arch)/$CONFIG/omniExampleSchema/resources $CWD/_install/linux-$(arch)/$CONFIG/omni.example.schema/OmniExampleSchema/    
     cp -rf $CWD/_install/linux-$(arch)/$CONFIG/omniExampleCodelessSchema/* $CWD/_install/linux-$(arch)/$CONFIG/omni.example.schema/OmniExampleCodelessSchema/
-fi
-
-# do we need to configure?
-# When using premake, the plugInfo.json files
-# do not get their tokens replaced as premake
-# does not have this functionality built in like cmake
-if [[ "$CONFIGURE" == "true" ]]
-then
-    $CWD/tools/packman/python.sh bootstrap.py usd --configure-pluginfo
 fi

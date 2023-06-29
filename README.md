@@ -15,9 +15,9 @@ Additionally, this repository contains a set of tools that can be used to genera
 If you want to directly build and try out the dynamic payload sample in `usdview`, you can build the samples and set the environment using the sample tools, and load the payload in `usdview`.  The commands below assume either a Linux environment or `git-bash` on Windows.
 
 ```
-./build.bat --generate --build --configure --stage  # builds the release build of the samples into _install\windows-x86_64\release (Windows)
-./build.sh --generate --build --configure --stage   # builds the release build of the samples into _install/linux-x86_64/release (Linux X86)
-                                                    # or into _install/linux-aarch64/release (Linux ARM)
+./build.bat # builds the release build of the samples into _install\windows-x86_64\release (Windows)
+./build.sh  # builds the release build of the samples into _install/linux-x86_64/release (Linux X86)
+            # or into _install/linux-aarch64/release (Linux ARM)
 
 source setenvwindows      # sets up a python virtual environment (_dpvenv), installs PySide and PyOpenGL, and sets the PATH / PYTHONPATH
                           # to the built sample libraries and NVIDIA USD 22.11 distribution, sets the PXR_PLUGINPATH_NAME to include 
