@@ -21,13 +21,13 @@ fi
 
 echo "Setting environment for $CONFIG configuration..."
 
-if [ ! -d _dpvenv ]; then
-    $PWD/_build/usd-deps/python/python -m venv _dpvenv
-    source $PWD/_dpvenv/bin/activate
+if [ ! -d _venv ]; then
+    $PWD/_build/usd-deps/python/python -m venv _venv
+    source $PWD/_venv/bin/activate
     pip install PySide2
     pip install PyOpenGL
 else
-    source $PWD/_dpvenv/bin/activate
+    source $PWD/_venv/bin/activate
 fi
 
 export PYTHONPATH=$PWD/_build/usd-deps/nv-usd/$CONFIG/lib/python

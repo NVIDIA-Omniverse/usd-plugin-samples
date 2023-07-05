@@ -122,7 +122,7 @@ More information on schemas can be found here: https://graphics.pixar.com/usd/re
 
 Schema extensions are created by defining the schema using USD syntax, typically in a file called `schema.usda`.  Before defining your schema classes, you must determine the name of your schema library.  Since the entire USD community can add schema extensions, it is important to be able to recognize from which organization / application a schema extension originates and to name them uniquely enough such that naming collisions do not occur across applications.  For example, across the NVIDIA organization, we want that our schema extensions are easily recognizeable by the community so it is clear what Omniverse will support and what 3rd party applications may not have support for.  In general, you can expect the following:
 
-- `Omni` is be used as the recognizeable prefix used for our schema extensions. If `Omni` is not appropriate, other prefixes may be used as long as they are distinct enough to recognize that they came from NVIDIA (e.g., `PhysX`).
+- `Omni` is the prefix used for NVIDIA's schema extensions. If `Omni` is not appropriate, other prefixes may be used as long as they are distinct enough to recognize that they came from NVIDIA (e.g., `PhysX`).
 - All applied API schemas will end with the `API` suffix (as well as adhering to the prefix rule above)
 - All properties added by an API schema will start with a recognizeable namespacing prefix (e.g., `omni`) and be namespaced appropriately (e.g., `omni:graph:attrname`, etc.)
 - Properties within an IsA schema may have namespace prefixes if derived from core USD schema types.
@@ -131,7 +131,7 @@ The samples provide examples for two types of schemas, codeful and codeless.  Th
 
 ## File Format Plugins
 
-A _file format plugin_ is one type of plugin to USD that is responsible for dynamically translating the contents of a foreign format into `SdfPrimSpec` compatible data.  While files are common, the source data does not have to reside strictly in a file.  
+A _file format plugin_ is the type of USD plugin that is responsible for dynamically translating the contents of a foreign format into `SdfPrimSpec` compatible data.  While files are common, the source data does not have to reside strictly in a file.  
 
 ![Data Sources](images/data_sources.png)
 
@@ -141,7 +141,7 @@ From a USD runtime perspective, file format plugins involve the following object
 
 ![File Format Architecture](images/file_format_architecture.png)
 
-When a stage is opened, the root layer is opened and prim specs are formed for all prims.  Each of these are indexed by the composition engine and the index notes if there are additional composition arcs for a prim (e.g., via a reference or payload).  These payload arcs are resolved by opening the referenced layer.  If the layer is an asset reference to a foreign file format, `Sdf` will look for a plugin responsible for that format and ask an instance of that plugin to load the asset.  This is done by the layer (`SdfLayer`) asking the `Sdf_FileFormatRegistry` to find a plugin associated with a particular extension, which if accessed for the first time triggers an acquisition of all plugins drived from `SdfFileFormat` held by `PlugRegistry` and the loading of the one responsible for the particular extension.  Once found, `SdfLayer` will initialize a `SdfAbstractData` object to associate with the file format (either a custom one provided by the file format or `SdfData` if there is no custom data object) and ask the plugin to read the information into the layer.  For each prim read in the layer, the composition engine will index those prims and recursively resolve any additional composition arcs required to build the full prim index.
+When a stage is opened, the root layer is opened and prim specs are formed for all prims.  Each of these are indexed by the composition engine and the index notes if there are additional composition arcs for a prim (e.g., via a reference or payload).  These arcs are resolved by opening the referenced layer.  If the layer is an asset reference to a foreign file format, `Sdf` will look for a plugin responsible for that format and ask an instance of that plugin to load the asset.  This is done by the layer (`SdfLayer`) asking the `Sdf_FileFormatRegistry` to find a plugin associated with a particular extension, which if accessed for the first time triggers an acquisition of all plugins drived from `SdfFileFormat` held by `PlugRegistry` and the loading of the one responsible for the particular extension.  Once found, `SdfLayer` will initialize a `SdfAbstractData` object to associate with the file format (either a custom one provided by the file format or `SdfData` if there is no custom data object) and ask the plugin to read the information into the layer.  For each prim read in the layer, the composition engine will index those prims and recursively resolve any additional composition arcs required to build the full prim index.
 
 File format plugins may also write out content in their native format.  By default, custom file format plugins do not write content and it is up to the implementor to indicate that they support writes and to write the content out appropriately.
 
@@ -155,7 +155,7 @@ Other examples of more traditional file format plugins exist directly in the USD
 
 ## Dynamic Payloads
 
-_Dynamic payloads_ are file format plugins with additional functionality to make them a bit more dynamic in nature.  These dynamics are provided via a set of parameters in the metadata of the prim that has the payload composition arc to a dynamic payload.  This is a powerful mechanism because:
+_Dynamic payloads_ are file format plugins with additional functionality (that can only be used with the payload composition arc) to make them a bit more dynamic in nature.  These dynamics are provided via a set of parameters in the metadata of the prim that has the payload composition arc to a dynamic payload.  This is a powerful mechanism because:
 
 - The information brought into the layer can be parameterized in ways specific to the data the payload is resposible for
 - Those parameters can be modified by tools that allow metadata modification to reload the layer with the new parameter set
@@ -187,7 +187,7 @@ This repository provides an example of a dynamic payload between two plugins:
 This was structured in this way for two reasons:
 
 - To illustrate that one file format could architecturally handle multiple back-ends generically by using its own plugin mechanism for loading back-end providers identified via a type on the metadata
-- To illustrate an example of an object that managees its own types of plugins
+- To illustrate an example of an object that manages its own types of plugins
 
 Architecturally, this breaks down as follows:
 
@@ -232,8 +232,16 @@ A couple of things to note here:
 - The paths here reference the `linkPath` property that is defined in the `packman` deps file you have configured to pull the appropriate USD and python packages.  When `packman` pulls these packages down, it will place them in these locations.
 - To change the USD build you are referencing, simply change the path specified here (relative to `${root}`).  Make sure that the python environment you use is consistent with that which was used to build the USD libraries being referenced (e.g. if you built USD with Python 3.10, make sure your `usd_python_root` points to an environment containing Python 3.10).
 
-
 The use of `packman` has been enabled in this repository to pull the relevant USD and python packages (22.11 and 3.10 respectively) for a turnkey type solution that builds plugins compatible with NVIDIA Omniverse (105+).  If you want to use a different version of USD simply change the paths that are specified in `usd_root` and `usd_python_root`.  
+
+If using a USD build with a custom prefix, you may specify this prefix in the `repo_usd` configuration and it will be applied to all USD base names when forming the library dependency.  For example, if your USD libraries were of the form lib_arch, lib_tf, etc., you would specify the prefix as follows:
+
+```
+[repo_usd]
+usd_root = "${root}/_build/usd-deps/nv-usd/%{config}"
+usd_python_root = "${root}/_build/usd-deps/python"
+usd_lib_prefix = "lib_"
+```
 
 `repo_usd` can also generate build files in either `cmake` or `premake` format (`cmake` is the default).  If you would like to take advantage of this functionality, there are a few more options in the `repo.toml` file that are required:
 
@@ -263,7 +271,7 @@ When the `generate_plugin_buildfiles` option is on, a build file in the specifie
 
 - the configured `generate_dir` for the plugin (or `plugin_dir` if no separate `generate_dir` is specified)
 
-These are required options for each plugin / schema defined and discussed in further detail below.  The remainder of this section assumes that the build file format will be the default (`cmake`).  When additional options are required for `premake` this will be noted specifically.
+The remainder of this section assumes that the build file format will be the default (`cmake`).  When additional options are required for `premake` this will be noted specifically.
 
 ### A Note on Tokens in `repo.toml`
 
@@ -274,7 +282,7 @@ Paths declared in `repo.toml` may include _tokens_ - strings that will be replac
 
 The first type of tokens are evaluated when the `repo.toml` configuration is loaded by `repo.usd`.  The second type of tokens are used to inform `repo_usd` to emit paths that are generic for the target build system.  For example, `%{config}` will be replaced by `%{cfg.buildcfg}` for `premake` and `PXR_PLUGIN_CONFIGURATION` for `cmake`.  These tokens are then evaluated by the build system at build time depending on your build configuration.  Using tokens generically allows a single `premake5.lua` or `CMakeLists.txt` file to be emitted that can be used on multiple platforms with multiple configurations (i.e., this allows you to generate these files once and commit them to your source control system, if desired).
 
-In addition, the special token `${root}` is used to generically designate the root directory of the repository.  The use of the above tokens are restricted to paths that are based on `${root}`.  That is, paths like `include_dir`, which are specified relative to `install_root`, do not support the use of these tokens.
+In addition, the special token `${root}` is used to generically designate the root directory of the repository.  The use of the above tokens (`%` / `$`) are restricted to paths that are based on `${root}`.  That is, paths like `include_dir`, which are specified relative to `install_root`, do not support the use of these tokens.
 
 ### Specifying Plugin Specific Options
 
@@ -290,33 +298,13 @@ generate_plugin_buildfiles = true
 plugin_dir = "${root}/src/myFileFormat"
 ```
 
-Each plugin must also define the USD libraries that it is dependent on.  These are the base names of the USD libraries (e.g. `arch`, `tf`, etc.).  These are defined in the `usd_lib_dependencies` option:
+Each plugin must also define the USD libraries that it is dependent on.  Specifying the USD library dependencies is required for all USD plugins, and each may depend upon a different set.  It is also necessary when defining codeful schemas, whether you wish to generate build files for the schema plugin or not (see below).  These are the base names of the USD libraries (e.g. `arch`, `tf`, etc.).  These are defined in the `usd_lib_dependencies` option:
 
 ```
 [repo_usd]
 usd_root = "${root}/_build/usd-deps/nv-usd/%{config}"
 usd_python_root = "${root}/_build/usd-deps/python"
 generate_plugin_buildfiles = true
-
-[repo_usd.plugin.myFileFormat]
-plugin_dir = "${root}/src/myFileFormat"
-usd_lib_dependencies = [
-    "arch",
-    "tf",
-    "vt",
-    "sdf",
-    "usd"
-]
-```
-
-If using a USD build with a custom prefix, you may specify this prefix in the `repo_usd` configuration and it will be applied to all USD base names when forming the library dependency.  For example, if your USD libraries were of the form lib_arch, lib_tf, etc., you would specify the prefix as follows:
-
-```
-[repo_usd]
-usd_root = "${root}/_build/usd-deps/nv-usd/%{config}"
-usd_python_root = "${root}/_build/usd-deps/python"
-generate_plugin_buildfiles = true
-usd_lib_prefix = "lib_"
 
 [repo_usd.plugin.myFileFormat]
 plugin_dir = "${root}/src/myFileFormat"
@@ -331,8 +319,6 @@ usd_lib_dependencies = [
 
 Plugins may specify a separate `generate_dir` path (relative to `${root}`).  If specified, this is the directory all generated files will be output to (including schema code and build files).  If not specified, `repo_usd` will use `plugin_dir` as the directory.
 
-Specifying the USD library dependencies is required for all USD plugins, and each may depend upon a different set.  It is also necessary when defining codeful schemas, whether you wish to generate build files for the schema plugin or not (see below).
-
 `repo_usd` exposes a number of options that allow you to control the target directory structure for your plugin.  These include:
 
 - `install_root`: path at which to root the plugin output files (default = `"${root}/_install/${platform}/${plugin_name}`).  This must be specified relative to `${root}`
@@ -346,12 +332,12 @@ When the option `generate_buildfile_format` is on, each plugin is required to sp
 
 - `public_headers`: a list of paths (relative to `plugin_dir`) that denote the header files that should be included in the generated project and which should also be copied to the specified `include_dir` during the build step.  If using this option for schemas, the paths must be relative to `generate_dir`.
 - `private_headers` a list of paths (relative to `plugin_dir`) that denote header files that should be included in the generated project but which should _not_ be copied to `include_dir`.  If using this option for schemas, the paths must be relative to `generate_dir`.
-- `cpp_files`: a list of paths (relative to `plugin_dir`) that denote cpp files that should be included in the generated project that contribute source for the library that will be built.  This option is not used for schemas (which instead use `additional_cpp_files`).
+- `cpp_files`: a list of paths (relative to `plugin_dir`) that denote cpp files that should be included in the generated project that contribute source for the library that will be built.
 - `resource_files`: a list of paths (relative to `plugin_dir` for general plugins, or `generate_dir` for schemas specifically) that denote files that should be included as resources that will be copied to the specified `resources_dir` during the build step.  At minimum, this typically includes the `plugInfo.json` file for your plugin.
 
 When using `premake`, you may also specify the directory to which the output of the `premake` files are generated.
 
-- `build_dir`: path relative to the repository root where you would like the projects created by premake to be generated.  The premake file itself (`premake5.lua`) is generated to the same directory as the source (`plugin_dir` for generic plugins, `generate_dir` for schema plugins), but the artifacts of the premake file will be generated to this location.  By default, this location is `${root}/_build/${schema_name}`.  Note that this option is only valid for `premake` - CMake artifacts are generated in the directory specified when running CMake configure and mirrors the source tree.
+- `build_dir`: path relative to the repository root where you would like the projects created by premake to be generated.  The premake file itself (`premake5.lua`) is generated to the same directory as the source (`generate_dir` or `plugin_dir` if `generate_dir` is not explicitly specified), but the artifacts of the premake file will be generated to this location.  By default, this location is `${root}/_build/${schema_name}`.  Note that this option is only valid for `premake` - CMake artifacts are generated in the directory specified when running CMake configure and mirrors the source tree.
 
 Finally, additional configuration options are provided for you to specify include and library directories that are additional to the built-in USD and python ones derived from your `usd_root` and `usd_python_root` settings.  As part of this, additional libraries may be specified that the target build will be linked to.  Custom preprocessor definitions (in addition to those already added for USD plugin libraries) can also be added to each plugin.  These are specified via the following options:
 
@@ -388,7 +374,7 @@ All options that are valid for plugins are also valid for schemas.  But schemas 
 
 - `schema_file`: The path to the `schema.usda` file defining the schema classes.  This must be specified relative to `${root}`.
 - `library_prefix`: The library prefix that is set in the `schema.usda` file (necessary for generating the python wrapper code, only necessary for codeful schemas)
-- `is_codeless`: Whether or not the schema is codeless (by default, the schema is codeful, so this is only necessary if you have a codeless schema)
+- `is_codeless`: Whether or not the schema is codeless (by default, the schema is codeful, so this is only necessary if you have a codeless schema).  If the schema is codeless, specifying `usd_lib_dependencies` is not required.
 - `usd_lib_dependencies`: Defined above; the base names of the USD libraries the schema requires as dependencies
 
 Note that the `library_prefix` option here is different from the `usd_lib_prefix` option defined above.  While the latter defines the prefix on the base USD library name (if you are working with a distribution that has a prefix), the former refers to the value of the `libraryPrefix` field of your `schema.usda` file.  You must ensure that the value of `library_prefix` in the `repo.toml` file matches the value of `libraryPrefix` in your `schema.usda` file.
@@ -444,6 +430,8 @@ usd_lib_dependencies = [
 ]
 ```
 
+Note that schema configurations only need to include `public_headers`, `cpp_files` and `resource_files` if there are files to be included that are in addition to those that `usdGenSchema` generates.
+
 `usdGenSchema` will generate most of the code necessary for your schema plugin.  `repo_usd` generates three additional files that in most cases are boilerplate that allow the schema module to be properly loaded by USD:
 
 - `module.cpp`: Defines the `TF_WRAP` statements required to expose the C++ schema classes to Python via `boost::python`
@@ -458,7 +446,7 @@ In almost all cases this code is boilerplate and as such generation of these fil
 
 If you set these options to `false`, make sure you have the right content in those files such that USD will load your schema.
 
-The options above are enough to generate schema code and (optionally) build files.  Even if your schema is codeless, build files will be generated in order to configure the `plugInfo.json` file and get the resources (`plugInfo.json` and `generatedSchema.usda`) in the right target directory.  Once the code and build files have been generated, it is up to the user to build the files using their chosen build system (e.g., `repo_build`, `cmake`, etc.).  After everything has been built, a second run of `repo_usd` is required to get the `plugInfo.json` file configured properly in the target directory.  The next section describes this process.
+The options above are enough to generate schema code and (optionally) build files.  Even if your schema is codeless, build files will be generated in order to configure the `plugInfo.json` file and get the resources (`plugInfo.json` and `generatedSchema.usda`) in the right target directory.  Once the code and build files have been generated, it is up to the user to build the files using their chosen build system (e.g., `cmake`, `premake`, `repo_build` for NVIDIA-projects, etc.).  After everything has been built, a second run of `repo_usd` is required to get the `plugInfo.json` file configured properly in the target directory.  The next section describes this process.
 
 ### Configuring the plugInfo.json File
 
@@ -487,21 +475,7 @@ The snippet below shows how to run `repo_usd` with the `--configure-pluginfo` op
 
 ### Root Build Files
 
-If the `generate_root_buildfiles` option is on, `repo_usd` will also generate a root `CMakeLists.txt` / `premake5.lua` file at the root of the repository that integrates the individual ones generated for each plugin.  This is provided as a convenience for getting started, but is often insufficient for integration into an existing build process.  As such, you may choose to generate this file once, and then turn this generation off and customize the generated file to your liking.  While this turnkey type setup can be useful, you may also choose to write the main build files yourself and integrate those generated for each plugin in a way that best suits your own build infrastructure.  If you choose to do this, you must include certain macros provided by `repo_usd` that set compiler and linker switches, take care of copying public headers and resource files, etc.  Interested parties can examine these files in `_repo/repo_usd/templates`.  At a minimum, your root `premake5.lua` file must have the following content (for the two example plugins used above):
-
-```
-require("_repo/repo_usd/templates/premake/premake5-usdplugin")
-
--- declare a workspace or use your existing one e.g.:
--- workspace(usd-plugins)
-
--- make sure these definitions are in the context of a workspace
--- they do not declare their own
-require("src/plugins/myFileFormat/premake5")
-require("src/schema/mySchema/generated/premake5")
-```
-
-Similarly for `cmake` this means the following:
+If the `generate_root_buildfiles` option is on, `repo_usd` will also generate a root `CMakeLists.txt` / `premake5.lua` file at the root of the repository that integrates the individual ones generated for each plugin.  This is provided as a convenience for getting started, but is often insufficient for integration into an existing build process.  As such, you may choose to generate this file once, and then turn this generation off and customize the generated file to your liking.  While this turnkey type setup can be useful, you may also choose to write the main build files yourself and integrate those generated for each plugin in a way that best suits your own build infrastructure.  If you choose to do this, you must include certain macros provided by `repo_usd` that set compiler and linker switches, take care of copying public headers and resource files, etc.  Interested parties can examine these files in `_repo/repo_usd/templates`.  At a minimum, your root `CMakeLists.txt` file must have the following content (for the two example plugins used above):
 
 ```
 # repo_usd requires CMAKE 3.20 minmum, but yours may be higher
@@ -519,7 +493,21 @@ add_subdirectory(src/plugins/myFileFormat)
 add_subdirectory(src/schema/mySchema/generated)
 ```
 
-__NOTE: If you have the option `generate_root_buildfile` on please that you do not have a CMakeLists.txt or premake5.lua file already at your repository root or setting this option will overwrite it!__
+Similarly, for `premake`, your root `premake5.lua` file must have the following:
+
+```
+require("_repo/repo_usd/templates/premake/premake5-usdplugin")
+
+-- declare a workspace or use your existing one e.g.:
+-- workspace(usd-plugins)
+
+-- make sure these definitions are in the context of a workspace
+-- they do not declare their own
+require("src/plugins/myFileFormat/premake5")
+require("src/schema/mySchema/generated/premake5")
+```
+
+__NOTE: If you have the option `generate_root_buildfile` on please ensure that you do not have a CMakeLists.txt or premake5.lua file already at your repository root or setting this option will overwrite it!__
 
 The samples provided in this repository have this option turned off (the default) because a properly configured root build file already exists.
 
@@ -527,32 +515,42 @@ The samples provided in this repository have this option turned off (the default
 
 If your schema definitions do not change often, you may choose to not run `repo_usd` with every build.  In this case, `repo_usd` is run once (both steps, generate and configure) and the files are generated.  If you choose to place the files in the `generate_dir` under source control, ensure that the `plugInfo.json` you place in source control is the one that was configured after the configure step and not the one prior (otherwise it will have the placeholder information generated by `usdGenSchema`).  This likely means as part of your one-time run of `repo_usd` you will also need a copy step to copy the configured `plugInfo.json` file back into the `generate_dir` location to overwrite the template with the correct values.
 
-### Migrating from 1.0.x to 2.0
+### Reference: Valid keys for `repo_usd` and the `repo.toml` File
 
-From 2.0 onward, there was a breaking change to the naming of the options used to generate the build files.  When migrating from 1.0.x to 2.0, you must change these options in the `repo.toml` file if you are using them.  Specifically, the following old options (and their new equivalents) are replaced:
+The following keys are available to configure `repo_usd`.
 
-- `generate_schema_makefiles` --> `generate_plugin_buildfiles`
-- `schema_makefile_format`    --> `plugin_buildfile_format`
-- `generate_root_makefile`    --> `generate_root_buildfile`
+`[repo_usd]`:
+- `usd_root`: (**Required** *string*) Specifies the path to the built USD installation on disk
+- `usd_python_root`: (**Required** *string*) Specifies the path to a Python installation on disk compatible with that used to build USD
+- `generate_plugin_buildfiles`: (**Optional** *bool* *default=false*) True to generate `CMakeLists.txt` / `premake5.lua` files
+- `plugin_buildfile_format`: (**Optional** *string* *default=cmake*) `cmake` to generate `CMakeLists.txt` files, `premake` for `premake5.lua` files
+- `generate_root_buildfile`: (**Optional** *bool* *default=false*) True to generate a `CMakeLists.txt` file at the root of the repository that includes the individual plugin `CMakeLists.txt` files (or `premake5.lua` file if `plugin_buildfile_format` is `premake`)
+- `usd_lib_prefix`: (**Optional** *string* *default=""*) A string denoting any prefix that needs to be added to the USD library dependencies based on your USD installation
+ 
+`[repo_usd.plugin.x]`:
+- `plugin_dir`: (**Required** *string*) Path relative to `${root}` where the source code of the plugin resides
+- `generate_dir`: (**Optional** *string* *default=plugin_dir*) Path relative to `${root}` where the build files (for all plugins) and schema files (for schemas) will be generated to
+- `install_root`: (**Optional** *string* *default="${root}/_install/${platform}/x"*) Path relative to `${root}` where the built artifacts will be placed for the plugin
+- `include_dir`: (**Optional** *string* *default="include"*) Path relative to `install_root` where `public_headers` will be placed
+- `lib_dir`: (**Optional** *string* *default="lib"*) Path relative to `install_root` where the built C++ library will be placed
+- `resources_dir`: (**Optional** *string* *default="resources") Path relative to `install_root` where all `resource_files` will be copied to and where `plugInfo.json` will be configured from
+- `usd_lib_dependencies`: (**Required** *list of strings*, unless this configuration is for a codeless schema in which case it is not required) List of base USD library names (e.g., `arch`, `tf`, etc.) on which the plugin depends
+- `public_headers`: (**Optional** *list of strings* *default=[]*) List of header files relative to `plugin_dir` that will be copied to the `include_dir` target
+- `private_headers`: (**Optional** *list of strings* *default=[]*) List of header files relative to `plugin_dir` that are required for compilation but that will not be copied to the `include_dir` target
+- `cpp_files`: (**Optional** *list of strings* *default=[]*) List of C++ files relative to `plugin_dir` that are required for compilation
+- `resource_files`: (**Optional** *list of strings* *default=[]*) List of additional files relative to `plugin_dir` that will be copied to the `resources_dir` target (e.g., `plugInfo.json`)
+- `additional_include_dirs`: (**Optional** *list of strings* *default=[]*) List of additional include directories relative to `plugin_dir` that will be added to the build file
+- `additional_library_dirs`: (**Optional** *list of strings* *default=[]*) List of additional library directories relative to `plugin_dir` that will be added to the build file
+- `additional_libs`: (**Optional** *list of strings* *default=[]*) List of additional libraries needed for compilation that will be added to the build file
+- `preprocessor_defines`: (**Optional** *list of strings* *default=[]*) List of preprocessor definitions to add to the build file (Note: the build system will automatically add `x_EXPORTS` and the relevant preprocessor defines for `boost` and `tbb` for USD)
+- `depends_on`: (**Optional** *list of strings* *default=[]*) List of plugins this one depends on so the build files generated have the right ordering
 
-Additionally, the interface to `add_plugin` for `premake` build files has changed with the inclusion of the additional `private_headers` list.  If you want to keep an existing build file from 1.0.x (with the aforementioned attribute name changes), you must add this additionally:
-
-```
-local private_headers = {
-
-}
-
-add_plugin("yourPluginName", options, public_headers, private_headers, cpp_files, python_module_cpp_files, python_module_files, resource_files)
-```
-
-### Migrating from 2.x to 3.0
-
-Starting in 3.0, `premake` and `cmake` have been better aligned and configuration has been consolidated.  In general, most configuration settings for `repo.toml` are the same, except the `$$` style token has been replaced with the `%` style token.  Any paths that currently have `$${platform}` or `$${config}` must be changed to use the new style tokens `%{platform}` and `%{config}`.
-
-Additionally, the rules are now clear where these tokens can be used.  They will be evaluated only for the following paths:
-
-- `usd_root`
-- `usd_python_root`
-- `plugin_dir`
-- `generate_dir`
-- `install_root`
+`[repo_usd.schema.x]` (Includes all keys from `[repo_usd.plugin.x]`):
+- `schema_file`: (**Required** *string*) Path relative to `${root}` where the `schema.usda` file can be found (including the `schema.usda` part)
+- `is_codeless`: (**Optional** *bool* *default=false*) True if the schema should be a codeless schema, false otherwise
+- `module_dir`: (**Optional** *string* *default="x"*) Path relative to `install_root` where the built Python module and Python module files will be placed
+- `pymodule_cpp_files`: (**Optional** *list of strings* *default=[]*) List of C++ files relative to `plugin_dir` that are required for compiling the Python module
+- `pymodule_files`: (**Optional** *list of strings* *default=["generate_dir/__init__.py"]*) List of Python files relative to `plugin_dir` that will be copied to the `resources_dir` target (preserving sub-directory structure)
+- `generate_module_cpp_file`: (**Optional** *bool* *default=true*) Boolean informing `repo_usd` whether or not to generate the `module.cpp` file for the schema plugin
+- `generate_module_deps_cpp_file`: (**Optional** *bool* *default=true*) Boolean informing `repo_usd` whether or not to generate the `moduleDeps.cpp` file for the schema plugin
+- `generate_init_py_file`: (**Optional** *bool* *default=true*) Boolean informing `repo_usd` whether or not to generate the `__init__.py` file for the schema plugin

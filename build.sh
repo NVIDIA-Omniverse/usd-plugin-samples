@@ -115,9 +115,8 @@ fi
 if [[ "$GENERATE" == "true" ]]
 then
     # pull down NVIDIA USD libraries
-    # NOTE: If you have your own local build, you can comment out these steps
-    $CWD/tools/packman/packman pull deps/usd-deps.packman.xml -p linux-$(arch) -t config=debug
-    $CWD/tools/packman/packman pull deps/usd-deps.packman.xml -p linux-$(arch) -t config=release
+    # NOTE: If you have your own local build, you can comment out this step
+    $CWD/tools/packman/packman pull deps/usd-deps.packman.xml -p linux-$(arch) -t config=$CONFIG
 
     # generate the schema code and plug-in information
     # NOTE: this will pull the NVIDIA repo_usd package to do this work
@@ -131,8 +130,7 @@ fi
 if [[ "$BUILD" == "true" ]]
 then
     # pull down target-deps to build dynamic payload which relies on CURL
-    $CWD/tools/packman/packman pull deps/target-deps.packman.xml -p linux-$(arch) -t config=debug
-    $CWD/tools/packman/packman pull deps/target-deps.packman.xml -p linux-$(arch) -t config=release
+    $CWD/tools/packman/packman pull deps/target-deps.packman.xml -p linux-$(arch) -t config=$CONFIG
 
     # Below is an example of using CMake to build the generated files
     cmake -B ./_build/cmake -DCMAKE_BUILD_TYPE=$CONFIG

@@ -79,13 +79,13 @@ bool EdfFileFormat::Read(SdfLayer* layer, const std::string& resolvedPath, bool 
 
 bool EdfFileFormat::WriteToString(const SdfLayer& layer, std::string* str, const std::string& comment) const
 {
-	// TODO:
+	// this POC doesn't support writing
 	return false;
 }
 
 bool EdfFileFormat::WriteToStream(const SdfSpecHandle& spec, std::ostream& out, size_t indent) const
 {
-	// TODO:
+	// this POC doesn't support writing
 	return false;
 }
 

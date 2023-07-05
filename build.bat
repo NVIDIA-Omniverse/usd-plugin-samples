@@ -114,9 +114,8 @@ REM should we generate the schema code?
 if "%GENERATE%" == "true" (
 
     REM pull down NVIDIA USD libraries
-    REM NOTE: If you have your own local build, you can comment out these steps
-    call "%~dp0tools\packman\packman.cmd" pull deps/usd-deps.packman.xml -p windows-x86_64 -t config=debug
-    call "%~dp0tools\packman\packman.cmd" pull deps/usd-deps.packman.xml -p windows-x86_64 -t config=release
+    REM NOTE: If you have your own local build, you can comment out this step
+    call "%~dp0tools\packman\packman.cmd" pull deps/usd-deps.packman.xml -p windows-x86_64 -t config=%CONFIG%
 
     if !errorlevel! neq 0 ( goto Error )
 
@@ -133,8 +132,7 @@ REM should we build the USD schema?
 REM NOTE: Modify this build step if using a build system other than cmake (ie, premake)
 if "%BUILD%" == "true" (
     REM pull down target-deps to build dynamic payload which relies on CURL
-    call "%~dp0tools\packman\packman.cmd" pull deps/target-deps.packman.xml -p windows-x86_64 -t config=debug
-    call "%~dp0tools\packman\packman.cmd" pull deps/target-deps.packman.xml -p windows-x86_64 -t config=release
+    call "%~dp0tools\packman\packman.cmd" pull deps/target-deps.packman.xml -p windows-x86_64 -t config=%CONFIG%
 
     REM Below is an example of using CMake to build the generated files
     REM You may also want to explicitly specify the toolset depending on which
@@ -150,8 +148,6 @@ if "%CONFIGURE%" == "true" (
     call "%~dp0tools\packman\python.bat" bootstrap.py usd --configure-pluginfo
 
     if !errorlevel! neq 0 (goto Error)
-
-    goto Success
 )
 
 REM do we need to stage?
