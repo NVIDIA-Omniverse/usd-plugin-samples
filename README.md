@@ -14,6 +14,7 @@ Additionally, this repository contains a set of tools that can be used to genera
 
 If you want to directly build and try out the dynamic payload sample in `usdview`, you can build the samples and set the environment using the sample tools, and load the payload in `usdview`.  The commands below assume either a Linux environment or `git-bash` on Windows.
 
+
 ```
 ./build.bat # builds the release build of the samples into _install\windows-x86_64\release (Windows)
 ./build.sh  # builds the release build of the samples into _install/linux-x86_64/release (Linux X86)
@@ -554,3 +555,7 @@ The following keys are available to configure `repo_usd`.
 - `generate_module_cpp_file`: (**Optional** *bool* *default=true*) Boolean informing `repo_usd` whether or not to generate the `module.cpp` file for the schema plugin
 - `generate_module_deps_cpp_file`: (**Optional** *bool* *default=true*) Boolean informing `repo_usd` whether or not to generate the `moduleDeps.cpp` file for the schema plugin
 - `generate_init_py_file`: (**Optional** *bool* *default=true*) Boolean informing `repo_usd` whether or not to generate the `__init__.py` file for the schema plugin
+
+## Contributing
+
+The source code for this repository is provided as-is and we are not accepting outside contributions at this time.
