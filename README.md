@@ -20,10 +20,10 @@ If you want to directly build and try out the dynamic payload sample in `usdview
 ./build.sh  # builds the release build of the samples into _install/linux-x86_64/release (Linux X86)
             # or into _install/linux-aarch64/release (Linux ARM)
 
-source setenvwindows      # sets up a python virtual environment (_dpvenv), installs PySide and PyOpenGL, and sets the PATH / PYTHONPATH
+source setenvwindows      # sets up a python virtual environment (_venv), installs PySide and PyOpenGL, and sets the PATH / PYTHONPATH
                           # to the built sample libraries and NVIDIA USD 22.11 distribution, sets the PXR_PLUGINPATH_NAME to include 
                           # paths to the sample plugInfo.json files (Windows)
-source setenvlinux        # sets up a python virtual environment (_dpvenv), installs PySide and PyOpenGL, and sets the LD_LIBRARY_PATH / PYTHONPATH
+source setenvlinux        # sets up a python virtual environment (_venv), installs PySide and PyOpenGL, and sets the LD_LIBRARY_PATH / PYTHONPATH
                           # to the built sample libraries and NVIDIA USD 22.11 distribution, sets the PXR_PLUGINPATH_NAME to include 
                           # paths to the sample plugInfo.json files (Linux)
 
@@ -64,7 +64,7 @@ By convention, all folders starting with `_` are derived artifacts and can be sa
 - _repo (stores the download `repo_usd` package for use)
 - _build (default location for generated and intermediary build artifacts)
 - _install (default location for built and staged plug-ins)
-- _dpenv (a virtual environment created to test the dynamic payload samples out in `usdview`)
+- _venv (a virtual environment created to test the dynamic payload samples out in `usdview`)
 
 These folders are used or not depending on various configuration options you provide to the `repo_usd` tool via the `repo.toml` file.  Options that can be provided, as well as command line options that can be passed to the `build.bat` / `build.sh` scripts are described in the section `Tool Options` below.
 
@@ -376,7 +376,6 @@ All options that are valid for plugins are also valid for schemas.  But schemas 
 - `schema_file`: The path to the `schema.usda` file defining the schema classes.  This must be specified relative to `${root}`.
 - `library_prefix`: The library prefix that is set in the `schema.usda` file (necessary for generating the python wrapper code, only necessary for codeful schemas)
 - `is_codeless`: Whether or not the schema is codeless (by default, the schema is codeful, so this is only necessary if you have a codeless schema).  If the schema is codeless, specifying `usd_lib_dependencies` is not required.
-- `usd_lib_dependencies`: Defined above; the base names of the USD libraries the schema requires as dependencies
 
 Note that the `library_prefix` option here is different from the `usd_lib_prefix` option defined above.  While the latter defines the prefix on the base USD library name (if you are working with a distribution that has a prefix), the former refers to the value of the `libraryPrefix` field of your `schema.usda` file.  You must ensure that the value of `library_prefix` in the `repo.toml` file matches the value of `libraryPrefix` in your `schema.usda` file.
 
@@ -470,8 +469,8 @@ To perform this configuration, `repo_usd` uses the values you provided (or the d
 The snippet below shows how to run `repo_usd` with the `--configure-pluginfo` option.
 
 ```
-.\repo.bat usd --configure-pluginfo (Windows)
-./repo.sh usd --configure-pluginfo (Linux)
+call "%~dp0tools\packman\python.bat" bootstrap.py usd --configure-pluginfo (Windows)
+tools/packman/python.sh bootstrap.py usd --configure-pluginfo (Linux)
 ```
 
 ### Root Build Files

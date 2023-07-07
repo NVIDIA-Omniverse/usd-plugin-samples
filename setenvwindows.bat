@@ -22,7 +22,7 @@ if not "%1" == "" (
 echo Setting environment for %CONFIG% configuration...
 
 if not exist %~dp0_venv (
-    %~dp0_build\usd-deps\python\python.exe -m venv _venv
+    %~dp0_build\usd-deps\python\python.exe -m venv %~dp0_venv
     call "%~dp0_venv\Scripts\activate.bat"
     pip install PySide2
     pip install PyOpenGL
@@ -31,5 +31,5 @@ if not exist %~dp0_venv (
 )
 
 set PYTHONPATH=%~dp0_build\usd-deps\nv-usd\%CONFIG%\lib\python
-set PATH=%PATH%:%~dp0_build\usd-deps\python;%~dp0_build\usd-deps\nv-usd\%CONFIG%\bin;%~dp0_build\usd-deps\nv-usd\%CONFIG%\lib;%~dp0_build\target-deps\zlib\lib\rt_dynamic\release;%~dp0_install\windows-x86_64\%CONFIG%\edfFileFormat\lib;%~dp0_install\windows-x86_64\%CONFIG%\omniMetProvider\lib
+set PATH=%PATH%;%~dp0_build\usd-deps\python;%~dp0_build\usd-deps\nv-usd\%CONFIG%\bin;%~dp0_build\usd-deps\nv-usd\%CONFIG%\lib;%~dp0_build\target-deps\zlib\lib\rt_dynamic\release;%~dp0_install\windows-x86_64\%CONFIG%\edfFileFormat\lib;%~dp0_install\windows-x86_64\%CONFIG%\omniMetProvider\lib
 set PXR_PLUGINPATH_NAME=%~dp0_install\windows-x86_64\%CONFIG%\omniMetSchema\resources;%~dp0_install\windows-x86_64\%CONFIG%\edfFileFormat\resources;%~dp0_install\windows-x86_64\%CONFIG%\omniMetProvider\resources
