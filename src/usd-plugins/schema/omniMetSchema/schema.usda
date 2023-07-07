@@ -1,0 +1,157 @@
+#usda 1.0
+(
+    subLayers = [
+        # To refer to schema types defined in schema.usda files from other
+        # libraries, simply add comma-separated lines of the form
+        # @<library name>/schema.usda@. In this example, we're referring
+        # to schema types from 'usd'. If you were adding sub-classes of
+        # UsdGeom schema types, you would use usdGeom/schema.usda instead.
+        @usd/schema.usda@
+    ]
+)
+
+over "GLOBAL" (
+    customData = {
+        string libraryName   = "omniMetSchema"
+        string libraryPath   = "./"
+        string libraryPrefix = "OmniMet"
+
+        # this tells usdgenschema not to generate code for the schema
+        # everything in this definition will be considered codeless
+        # and will generate no APIs (this is why it is separated
+        # from omniExampleSchema)
+        bool skipCodeGeneration = true
+    }
+) {
+}
+
+class AmaDepartment "AmaDepartment"  (
+    inherits = </Typed>
+    doc = """Defines a department object retrieved from the American
+             Metropolitan Museum of Art REST API.
+          """
+)
+{
+    uniform string departmentId = "" (
+        doc = """Defines the unique identifier of the department."""
+    )
+    uniform string displayName = "" (
+        doc = """The display name of the department."""
+    )
+}
+
+class AmaObject "AmaObject" (
+    inherits = </Typed>
+    doc = """Defines an art asset retrieved from the American
+             Metropolitan Museum of Art REST API.
+          """
+)
+{
+    uniform string objectId = "" (
+        doc = """Defines the unique identifier of the art asset."""
+    )
+
+    uniform bool isHighlight = false (
+        doc = """Defines wheteher the art asset is a highlight of the collection."""
+    )
+
+    uniform string accessionNumber = "" (
+        doc = """Defines the accession number of the art asset."""
+    )
+
+    uniform string accessionYear = "" (
+        doc = """Defines the accession year of the art asset."""
+    )
+
+    uniform bool isPublicDomain = false (
+        doc = """Defines whether or not the art asset is public domain."""
+    )
+
+    uniform string primaryImage = "" (
+        doc = """Defines the URL of the primary image for the art asset."""
+    )
+
+    uniform string primaryImageSmall = "" (
+        doc = """Defines the URL of the primary small image for the art asset."""
+    )
+
+    uniform string department = "" (
+        doc = """Defines the id of the department the asset belongs to."""
+    )
+
+    uniform string title = "" (
+        doc = """Defines the title of the art asset."""
+    )
+
+    uniform string culture = "" (
+        doc = """Defines the culture of the art asset."""
+    )
+
+    uniform string period = "" (
+        doc = """Defines the period of the art asset."""
+    )
+
+    uniform string dynasty = "" (
+        doc = """Defines the dynasty of the art asset."""
+    )
+
+    uniform string reign = "" (
+        doc = """Defines the reign of the art asset."""
+    )
+
+    uniform string portfolio = "" (
+        doc = """Defines the portfolio of the art asset."""
+    )
+}
+
+class "ArtistAPI" (
+    # single-apply schema representing Artist information
+    # attached to an AmaObject
+    inherits = </APISchemaBase>
+    customData = {
+        token apiSchemaType = "singleApply"
+    }
+)
+{
+    uniform string omni:met:artist:artistRole = "" (
+        doc = """The role of the artist in relation to the object
+                 of interest."""
+    )
+
+    uniform string omni:met:artist:artistPrefix = "" (
+        doc = """The prefix attached to the name of the artist, if any."""
+    )
+
+    uniform string omni:met:artist:artistDisplayName = "" (
+        doc = """The display name of the artist, if any."""
+    )
+
+    uniform string omni:met:artist:artistDisplayBio = "" (
+        doc = """The biography to display for the artist, if any."""
+    )
+
+    uniform string omni:met:artist:artistSuffix = "" (
+        doc = """The suffix attached to the name of the artist, if any."""
+    )
+
+    uniform string omni:met:artist:artistAlphaSort = "" (
+        doc = """The name that should be used for alphabetically sorting
+                 the artist."""
+    )
+
+    uniform string omni:met:artist:artistNationality = "" (
+        doc = """The nationality of the artist, if any."""
+    )
+
+    uniform string omni:met:artist:artistGender = "" (
+        doc = """The gender of the artist, if any."""
+    )
+
+    uniform string omni:met:artist:artistWikidata_URL = "" (
+        doc = """A link to artist information on wikidata, if there is any."""
+    )
+
+    uniform string omni:met:artist:artistULAN_URL = "" (
+        doc = """A link to artist data on ULAN, if there is any."""
+    )
+}

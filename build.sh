@@ -31,6 +31,7 @@ DIRECTORIES_TO_CLEAN=(
     _repo
     src/usd-plugins/schema/omniExampleCodelessSchema/generated
     src/usd-plugins/schema/omniExampleSchema/generated
+    src/usd-plugins/schema/omniMetSchema/generated
 )
 
 while [ $# -gt 0 ]
@@ -47,7 +48,7 @@ do
     then
         BUILD=true
     fi
-    if [[ "$1" == "--stage" ]]
+    if [[ "$1" == "--prep-ov-install" ]]
     then
         STAGE=true
     fi
@@ -75,11 +76,11 @@ if [[
         && "$HELP" != "true"
     ]]
 then
-    HELP=true
-    HELP_EXIT_CODE=1
-    echo "No actions selected - specify at least one of:"
-    echo "  --clean --generate --build --stage --configure --help"
-    echo ""
+    # default action when no arguments are passed is to do everything
+    GENERATE=true
+    BUILD=true
+    STAGE=true
+    CONFIGURE=true
 fi
 
 # requesting how to run the script
@@ -92,9 +93,9 @@ then
     done
     echo "--generate: Perform code generation of schema libraries"
     echo "--build: Perform compilation and installation of USD schema libraries"
-    echo "--stage: Preps the kit-extension by copying it to the _install directory and stages the"
+    echo "--prep-ov-install: Preps the kit-extension by copying it to the _install directory and stages the"
     echo "      built USD schema libraries in the appropriate sub-structure"
-    echo "--configure: Performs a configuration step when using premake after you have built and"
+    echo "--configure: Performs a configuration step after you have built and"
     echo "      staged the schema libraries to ensure the plugInfo.json has the right information"
     echo "--debug: Performs the steps with a debug configuration instead of release"
     echo "      (default = release)"
@@ -114,9 +115,8 @@ fi
 if [[ "$GENERATE" == "true" ]]
 then
     # pull down NVIDIA USD libraries
-    # NOTE: If you have your own local build, you can comment out these steps
-    $CWD/tools/packman/packman pull deps/usd-deps.packman.xml -p linux-$(arch) -t config=debug
-    $CWD/tools/packman/packman pull deps/usd-deps.packman.xml -p linux-$(arch) -t config=release
+    # NOTE: If you have your own local build, you can comment out this step
+    $CWD/tools/packman/packman pull deps/usd-deps.packman.xml -p linux-$(arch) -t config=$CONFIG
 
     # generate the schema code and plug-in information
     # NOTE: this will pull the NVIDIA repo_usd package to do this work
@@ -129,9 +129,18 @@ fi
 # NOTE: Modify this build step if using a build system other than cmake (ie, premake)
 if [[ "$BUILD" == "true" ]]
 then
+    # pull down target-deps to build dynamic payload which relies on CURL
+    $CWD/tools/packman/packman pull deps/target-deps.packman.xml -p linux-$(arch) -t config=$CONFIG
+
     # Below is an example of using CMake to build the generated files
     cmake -B ./_build/cmake -DCMAKE_BUILD_TYPE=$CONFIG
     cmake --build ./_build/cmake --config $CONFIG --target install
+fi
+
+# do we need to configure? This will configure the plugInfo.json files
+if [[ "$CONFIGURE" == "true" ]]
+then
+    $CWD/tools/packman/python.sh bootstrap.py usd --configure-pluginfo
 fi
 
 # do we need to stage?
@@ -146,13 +155,4 @@ then
     cp -rf $CWD/_install/linux-$(arch)/$CONFIG/omniExampleSchema/lib $CWD/_install/linux-$(arch)/$CONFIG/omni.example.schema/OmniExampleSchema/
     cp -rf $CWD/_install/linux-$(arch)/$CONFIG/omniExampleSchema/resources $CWD/_install/linux-$(arch)/$CONFIG/omni.example.schema/OmniExampleSchema/    
     cp -rf $CWD/_install/linux-$(arch)/$CONFIG/omniExampleCodelessSchema/* $CWD/_install/linux-$(arch)/$CONFIG/omni.example.schema/OmniExampleCodelessSchema/
-fi
-
-# do we need to configure?
-# When using premake, the plugInfo.json files
-# do not get their tokens replaced as premake
-# does not have this functionality built in like cmake
-if [[ "$CONFIGURE" == "true" ]]
-then
-    $CWD/tools/packman/python.sh bootstrap.py usd --configure-plugInfo
 fi
