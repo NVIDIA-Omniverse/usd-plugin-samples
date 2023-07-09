@@ -15,7 +15,7 @@ over "GLOBAL" (
     customData = {
         string libraryName   = "omniExampleCodelessSchema"
         string libraryPath   = "./"
-        string libraryPrefix = "OmniExample"
+        string libraryPrefix = "OmniExampleCodeless"
 
         # this tells usdgenschema not to generate code for the schema
         # everything in this definition will be considered codeless
