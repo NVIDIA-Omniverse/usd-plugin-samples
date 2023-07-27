@@ -101,7 +101,7 @@ WarpComputationAPIAdapter::GetImagingSubprimData(
     attr.Get(&value, 0.f);
     if (value.length())
     {
-        //+++ Are we leaking these
+
         return HdRetainedContainerDataSource::New(
             _tokens->warpComputation,
             _WarpComputationDataSource::New(

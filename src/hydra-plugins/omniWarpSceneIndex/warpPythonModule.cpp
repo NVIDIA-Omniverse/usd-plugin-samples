@@ -36,20 +36,24 @@ OmniWarpPythonModule::~OmniWarpPythonModule()
 {
     TfPyLock pyLock;
     boost::python::object result;
-    bool ok = TfPyInvokeAndReturn(_moduleName.c_str(), "terminate_sim", &result, _primPath);
+    TfPyInvokeAndReturn(_moduleName.c_str(), "terminate_sim", &result, _primPath);
 }
 
-void OmniWarpPythonModule::InitSim(HdMeshTopologySchema& topologySchema)
+void OmniWarpPythonModule::InitParticles(VtVec3fArray positions)
 {
-    HdIntArrayDataSourceHandle faceIndicesDs = topologySchema.GetFaceVertexIndices();
-
     TfPyLock pyLock;
-    //+++ doesn't handle changing (timesampled > 1) faceIndicesDs
     boost::python::object result;
-    bool ok = TfPyInvokeAndReturn(_moduleName.c_str(), "initialize_sim", &result, _primPath, faceIndicesDs->GetTypedValue(0.f));
+    TfPyInvokeAndReturn(_moduleName.c_str(), "initialize_sim_particles", &result, _primPath, positions);
 }
 
-VtVec3fArray OmniWarpPythonModule::ExecSim(VtVec3fArray origPoints)
+void OmniWarpPythonModule::InitMesh(VtIntArray indices, VtVec3fArray vertices)
+{
+    TfPyLock pyLock;
+    boost::python::object result;
+    TfPyInvokeAndReturn(_moduleName.c_str(), "initialize_sim_mesh", &result, _primPath, indices, vertices);
+}
+
+VtVec3fArray OmniWarpPythonModule::ExecSim()
 {
     TfPyLock pyLock;
     boost::python::object result;
@@ -60,7 +64,7 @@ VtVec3fArray OmniWarpPythonModule::ExecSim(VtVec3fArray origPoints)
         dt = _usdImagingSi->GetTime().GetValue();
     }
 
-    if (TfPyInvokeAndReturn(_moduleName.c_str(), "exec_sim", &result, _primPath, origPoints, dt))
+    if (TfPyInvokeAndReturn(_moduleName.c_str(), "exec_sim", &result, _primPath, dt))
     {
         boost::python::extract<VtVec3fArray> theResults(result);
         if (theResults.check())
@@ -69,29 +73,7 @@ VtVec3fArray OmniWarpPythonModule::ExecSim(VtVec3fArray origPoints)
         }
     }
 
-    return origPoints;
+    return VtVec3fArray();
 }
-
-#if 0
-bool isWarpEnabled(const SdfPath& /*primPath*/)
-{
-    bool warpEnabled = false;
-    {
-        TfPyLock pyLock;
-
-        boost::python::object result;
-        bool ok = TfPyInvokeAndReturn("pxr.WarpSceneIndexPlugin.warpSceneIndex", "is_enabled", &result);
-        if (ok)
-        {
-            boost::python::extract<bool> bResult(result);
-            if (bResult.check())
-            {
-                warpEnabled = bResult();
-            }
-        }
-    }
-    return warpEnabled;
-}
-#endif
 
 PXR_NAMESPACE_CLOSE_SCOPE

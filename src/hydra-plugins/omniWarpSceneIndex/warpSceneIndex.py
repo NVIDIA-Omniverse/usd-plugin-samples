@@ -31,17 +31,11 @@ def deform(positions: wp.array(dtype=wp.vec3), t: float):
     positions[tid] = x
 
 class Example:
-    def __init__(self, indices: Vt.IntArray):
-        self.mesh = None
-        self.indices = indices
-
-    def create_mesh(self, points: Vt.Vec3fArray):
-        # create collision mesh
-        if self.mesh is None:
-            self.mesh = wp.Mesh(
-                points=wp.array(points, dtype=wp.vec3),
-                indices=wp.array(self.indices, dtype=int),
-            )
+    def __init__(self, indices: Vt.IntArray, points: Vt.Vec3fArray):
+        self.mesh = wp.Mesh(
+            points=wp.array(points, dtype=wp.vec3),
+            indices=wp.array(indices, dtype=int),
+        )
 
     def update(self, sim_time: float):
         wp.launch(kernel=deform, dim=len(self.mesh.points), inputs=[self.mesh.points, sim_time])
@@ -56,13 +50,12 @@ def terminate_sim(primPath: Sdf.Path):
     global global_examples
     global_examples[primPath] = None
 
-def initialize_sim(primPath: Sdf.Path, indices: Vt.IntArray):
+def initialize_sim_mesh(primPath: Sdf.Path, indices: Vt.IntArray, orig_points: Vt.Vec3fArray):
     global global_examples
-    global_examples[primPath] = Example(indices)
+    global_examples[primPath] = Example(indices, orig_points)
 
-def exec_sim(primPath: Sdf.Path, orig_points: Vt.Vec3fArray, sim_dt: float):
+def exec_sim(primPath: Sdf.Path, sim_dt: float):
     global global_examples
-    global_examples[primPath].create_mesh(orig_points)
 
     # Sim expects 60 samples per second (or hydra time of 1.0)
     global_examples[primPath].update(sim_dt / 60.0)

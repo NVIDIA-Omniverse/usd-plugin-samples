@@ -44,12 +44,14 @@ public:
         UsdImagingStageSceneIndexConstRefPtr usdImagingSi);
     ~OmniWarpPythonModule();
 
-    void InitSim(HdMeshTopologySchema& topologySchema);
-    VtVec3fArray ExecSim(VtVec3fArray);
+    void InitParticles(VtVec3fArray positions);
+    void InitMesh(VtIntArray indices, VtVec3fArray vertices);
+
+    VtVec3fArray ExecSim();
 
 private:
         std::string _moduleName;
-        const SdfPath &_primPath;
+        SdfPath _primPath;
         UsdImagingStageSceneIndexConstRefPtr _usdImagingSi;
 };
 

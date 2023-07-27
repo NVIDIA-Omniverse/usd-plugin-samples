@@ -19,6 +19,8 @@
 #include <pxr/pxr.h>
 #include <pxr/imaging/hd/filteringSceneIndex.h>
 #include <pxr/usdImaging/usdImaging/stageSceneIndex.h>
+#include "pxr/imaging/hd/primvarSchema.h"
+#include "pxr/imaging/hd/meshSchema.h"
 
 #include "api.h"
 #include "warpPythonModule.h"
@@ -67,27 +69,20 @@ protected:
         const HdSceneIndexBase &sender,
         const HdSceneIndexObserver::DirtiedPrimEntries &entries) override;
 private:
-    friend _PointsDataSource;
-    friend _WarpMeshDataSource;
-
     OmniWarpPythonModuleSharedPtr GetWarpPythonModule(const SdfPath &primPath) const;
 
     OmniWarpPythonModuleSharedPtr CreateWarpPythonModule(const SdfPath &primPath,
         OmniWarpComputationSchema& warpSchema,
-        HdMeshTopologySchema& topologySchema) const;
+        HdMeshTopologySchema& topologySchema,
+        HdPrimvarSchema& primVarSchema,
+        UsdImagingStageSceneIndexRefPtr usdImagingSi);
 
-    // SceneIndexPlugins do not have access to the current stage/frame time.
-    // Only the UsdImagingStageSceneIndex has this. We store this for each Mesh,
-    // nullptr is a valid value. If valid, warp simulation can use the exact
-    // stage time. If null, the warp has to emulate frame time
-    typedef TfHashMap<SdfPath, UsdImagingStageSceneIndexRefPtr, TfHash> _PrimDelegateHashMap;
-    _PrimDelegateHashMap _pdCache;
+    OmniWarpPythonModuleSharedPtr CreateWarpPythonModule(const SdfPath &primPath,
+        OmniWarpComputationSchema& warpSchema,
+        HdPrimvarSchema& primVarSchema,
+        UsdImagingStageSceneIndexRefPtr usdImagingSi);
 
-    // For a prim, AddPrim() is called once, while GetPrim() is called many times
-    // We don't know until GetPrim() whether prim supports WarpComputationAPI
-    // We only want a single WarpPythonModule per prim, so support deferred creation
-    // until after GetPrim()
-
+    // Each prim with a WarpComputationAPI gets it's own Python Module instance
     typedef std::unordered_map<SdfPath, OmniWarpPythonModuleSharedPtr, SdfPath::Hash> _WarpPythonModuleMap;
     mutable _WarpPythonModuleMap _pythonModuleMap;
 
