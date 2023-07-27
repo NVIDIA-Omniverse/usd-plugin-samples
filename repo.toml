@@ -276,6 +276,7 @@ usd_lib_dependencies = [
     "hd",
     "hdsi",
     "hdx",
+    "hf",
     "pxOsd",
     "sdf",
     "sdr",
