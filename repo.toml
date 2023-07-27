@@ -5,6 +5,7 @@ usd_python_root = "${root}/_build/usd-deps/python"
 generate_plugin_buildfiles = true
 plugin_buildfile_format = "cmake"
 generate_root_buildfile = true
+usd_lib_prefix = "usd_"
 
 # this tells repo_usd about our codeful schema extension
 [repo_usd.schema.omniExampleSchema]
@@ -161,4 +162,125 @@ additional_library_dirs = [
     "../../../../_build/target-deps/libcurl/lib/release",
     "../../../../_build/target-deps/zlib/lib",
     "../../../../_build/target-deps/openssl/lib"
+]
+
+[repo_usd.plugin.omniGeoSceneIndex]
+plugin_dir = "${root}/src/hydra-plugins/omniGeoSceneIndex"
+install_root = "${root}/_install/%{platform}/%{config}/omniGeoSceneIndex"
+include_dir = "include/omniGeoSceneIndex"
+private_headers = [
+    "api.h",
+    "computedDependentDataSource.h",
+    "computedPrimDataSource.h",
+    "geospatialDataSource.h",
+    "geospatialSceneIndex.h",
+    "geospatialSceneIndexPlugin.h",
+    "localPositionAPIAdapter.h",
+    "localPositionDataSource.h",
+    "localPositionSchema.h",
+    "referencePositionAPIAdapter.h",
+    "referencePositionDataSource.h",
+    "referencePositionSchema.h"
+]
+cpp_files = [
+    "computedDependentDataSource.cpp",
+    "computedPrimDataSource.cpp",
+    "geospatialDataSource.cpp",
+    "geospatialSceneIndex.cpp",
+    "geospatialSceneIndexPlugin.cpp",
+    "localPositionAPIAdapter.cpp",
+    "localPositionDataSource.cpp",
+    "localPositionSchema.cpp",
+    "referencePositionAPIAdapter.cpp",
+    "referencePositionDataSource.cpp",
+    "referencePositionSchema.cpp"
+]
+resource_files = [
+    "plugInfo.json"
+]
+usd_lib_dependencies = [
+    "arch",
+    "tf",
+    "work",
+    "plug",
+    "vt",
+    "gf",
+    "hd",
+    "hf",
+    "sdf",
+    "usd",
+    "usdGeom",
+    "usdImaging"
+]
+additional_include_dirs = [
+    "../../../_build/target-deps/omni-geospatial/include"
+]
+additional_library_dirs = [
+    "../../../_build/target-deps/omni-geospatial/bin"
+]
+additional_libs = [
+    "omniGeospatial"
+]
+
+[repo_usd.plugin.omniWarpSceneIndex]
+plugin_dir = "${root}/src/hydra-plugins/omniWarpSceneIndex"
+install_root = "${root}/_install/%{platform}/%{config}/omniWarpSceneIndex"
+include_dir = "include/omniWarpSceneIndex"
+private_headers = [
+    "api.h",
+    "tokens.h",
+    "warpComputationAPI.h",
+    "warpComputationAPIAdapter.h",
+    "warpComputationSchema.h",
+    "warpPythonModule.h",
+    "warpSceneIndex.h",
+    "warpSceneIndexPlugin.h"
+]
+cpp_files = [
+    "tokens.cpp",
+    "warpComputationAPI.cpp",
+    "warpComputationAPIAdapter.cpp",
+    "warpComputationSchema.cpp",
+    "warpPythonModule.cpp",
+    "warpSceneIndex.cpp",
+    "warpSceneIndexPlugin.cpp",
+    "moduleDeps.cpp"
+]
+pymodule_cpp_files = [
+    "module.cpp",
+    "wrapTokens.cpp",
+    "wrapWarpComputationAPI.cpp"
+]
+pymodule_files = [
+    "__init__.py",
+    "warpSceneIndex.py",
+    "warpModules/__init__.py",
+    "warpModules/deform.py",
+    "warpModules/sim.py"
+]
+resource_files = [
+    "plugInfo.json",
+    "generatedSchema.usda"
+]
+usd_lib_dependencies = [
+    "arch",
+    "tf",
+    "gf",
+    "plug",
+    "trace",
+    "vt",
+    "work",
+    "hio",
+    "garch",
+    "glf",
+    "hd",
+    "hdsi",
+    "hdx",
+    "pxOsd",
+    "sdf",
+    "sdr",
+    "usd",
+    "usdGeom",
+    "usdShade",
+    "usdImaging",
 ]
