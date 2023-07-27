@@ -20,8 +20,6 @@
 #include "referencePositionDataSource.h"
 #include "referencePositionSchema.h"
 
-#include <iostream>
-
 PXR_NAMESPACE_OPEN_SCOPE
 
 TF_REGISTRY_FUNCTION(TfType)
@@ -53,12 +51,9 @@ HdContainerDataSourceHandle OmniGeospatialWGS84ReferencePositionAPIAdapter::GetI
         // there shouldn't be a subprim or an applied instance name
         // if there is, we don't really know what to do with it
         // so we return null to indicate there is no data source
-        // for this prim setup    
-        std::cout << "Returning nullptr \n"  << std::flush;
+        // for this prim setup
         return nullptr;
     }
-
-    std::cout << "Hi there\n" << std::flush;
 
     return HdRetainedContainerDataSource::New(
         HdOmniGeospatialWGS84ReferencePositionSchemaTokens->referencePositionApi,

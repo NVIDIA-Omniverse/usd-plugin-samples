@@ -9,6 +9,6 @@
     <package name="openssl" version="1.1.1m+nv1-${platform}" />
   </dependency>
   <dependency name="omni-geospatial" linkPath="../_build/target-deps/omni-geospatial">
-    <package name="omni-geospatial" version="2.0.3+mr18.382.c7c0982e.tc.${platform}.${config}" />
+    <package name="omni-geospatial" version="2.0.3-pxr_23_05+mr17.384.337fb43b.tc.${platform}.${config}" />
   </dependency>
 </project>

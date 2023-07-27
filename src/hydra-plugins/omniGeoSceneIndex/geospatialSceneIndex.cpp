@@ -47,8 +47,6 @@ OmniGeospatialSceneIndex::~OmniGeospatialSceneIndex() = default;
 
 HdSceneIndexPrim OmniGeospatialSceneIndex::GetPrim(const SdfPath &primPath) const
 {
-    return this->_GetInputSceneIndex()->GetPrim(primPath);
-
     // lookup the prim to see if we have wrapped it yet
     auto iterBoolPair = this->_IsPrimWrapped(primPath);
     if (iterBoolPair.second)

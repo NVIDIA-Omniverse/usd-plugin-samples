@@ -213,10 +213,10 @@ usd_lib_dependencies = [
     "usdImaging"
 ]
 additional_include_dirs = [
-    "../../../_build/target-deps/omni-geospatial/include"
+    "${root}/_build/target-deps/omni-geospatial/include"
 ]
 additional_library_dirs = [
-    "../../../_build/target-deps/omni-geospatial/bin"
+    "${root}/_build/target-deps/omni-geospatial/bin"
 ]
 additional_libs = [
     "omniGeospatial"

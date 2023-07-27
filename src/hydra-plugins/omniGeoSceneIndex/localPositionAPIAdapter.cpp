@@ -23,8 +23,6 @@
 #include "referencePositionDataSource.h"
 #include "referencePositionSchema.h"
 
-#include <iostream>
-
 PXR_NAMESPACE_OPEN_SCOPE
 
 TF_REGISTRY_FUNCTION(TfType)
@@ -48,8 +46,6 @@ HdContainerDataSourceHandle OmniGeospatialWGS84LocalPositionAPIAdapter::GetImagi
     const UsdImagingDataSourceStageGlobals& stageGlobals)
 #endif
 {
-    std::cout << "Hi there position\n" << std::flush;
-
     // at the point we are invoked here, the stage scene index has already determined
     // that the API schema applies to the prim, so we can safely create our
     // data source

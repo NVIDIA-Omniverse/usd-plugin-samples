@@ -220,7 +220,7 @@ GfMatrix4d HdOmniGeospatialComputedPrimDataSource::_GeospatialMatrixDataSource::
     // NOTE: in the case of the geospatially applied prim, we are completely
     // ignoring the fact that resetXformStack may be true at any given time sample
     // that is, geospatial positioning takes priority over local transformation reset
-    
+
     // to compute the local position, we need to first get the geodetic reference
     TfToken targetFrame = this->_GetTangentPlane();
     GfVec3d tangentPosition = this->_GetReferencePosition();
