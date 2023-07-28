@@ -32,5 +32,5 @@ fi
 
 export PYTHONPATH=$PWD/_build/usd-deps/nv-usd/$CONFIG/lib/python:$PWD/_build/target-deps/omni-geospatial
 export PATH=$PATH:$PWD/_build/usd-deps/python:$PWD/_build/usd-deps/nv-usd/$CONFIG/bin:$PWD/_build/usd-deps/nv-usd/$CONFIG/lib:$PWD/_build/target-deps/zlib/lib/rt_dynamic/release:$PWD/_install/windows-x86_64/$CONFIG/edfFileFormat/lib:$PWD/_install/windows-x86_64/$CONFIG/omniMetProvider/lib:$PWD/_build/target-deps/omni-geospatial/bin
-export PXR_PLUGINPATH_NAME=$PWD/_install/windows-x86_64/$CONFIG/omniMetSchema/resources:$PWD/_install/windows-x86_64/$CONFIG/edfFileFormat/resources:$PWD/_install/windows-x86_64/$CONFIG/omniMetProvider/resources:$PWD/_build/target-deps/omni-geospatial/plugins/OmniGeospatial/resources:$PWD/_install/windows-x86_64/$CONFIG/omniGeoSceneIndex/resources
+export PXR_PLUGINPATH_NAME=$PWD/_install/windows-x86_64/$CONFIG/omniMetSchema/resources:$PWD/_install/windows-x86_64/$CONFIG/edfFileFormat/resources:$PWD/_install/windows-x86_64/$CONFIG/omniMetProvider/resources:$PWD/_build/target-deps/omni-geospatial/plugins/OmniGeospatial/resources:$PWD/_install/windows-x86_64/$CONFIG/omniGeoSceneIndex/resources:$PWD/_install/windows-x86_64/$CONFIG/omniMetricsAssembler/resources
 export USDIMAGINGGL_ENGINE_ENABLE_SCENE_INDEX=true

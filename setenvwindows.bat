@@ -32,5 +32,5 @@ if not exist %~dp0_venv (
 
 set PYTHONPATH=%~dp0_build\usd-deps\nv-usd\%CONFIG%\lib\python;%~dp0_build\target-deps\omni-geospatial
 set PATH=%PATH%;%~dp0_build\usd-deps\python;%~dp0_build\usd-deps\nv-usd\%CONFIG%\bin;%~dp0_build\usd-deps\nv-usd\%CONFIG%\lib;%~dp0_build\target-deps\zlib\lib\rt_dynamic\release;%~dp0_install\windows-x86_64\%CONFIG%\edfFileFormat\lib;%~dp0_install\windows-x86_64\%CONFIG%\omniMetProvider\lib;%~dp0_build\target-deps\omni-geospatial\bin
-set PXR_PLUGINPATH_NAME=%~dp0_install\windows-x86_64\%CONFIG%\omniMetSchema\resources;%~dp0_install\windows-x86_64\%CONFIG%\edfFileFormat\resources;%~dp0_install\windows-x86_64\%CONFIG%\omniMetProvider\resources;%~dp0_build\target-deps\omni-geospatial\plugins\OmniGeospatial\resources;%~dp0_install\windows-x86_64\%CONFIG%\omniGeoSceneIndex\resources
+set PXR_PLUGINPATH_NAME=%~dp0_install\windows-x86_64\%CONFIG%\omniMetSchema\resources;%~dp0_install\windows-x86_64\%CONFIG%\edfFileFormat\resources;%~dp0_install\windows-x86_64\%CONFIG%\omniMetProvider\resources;%~dp0_build\target-deps\omni-geospatial\plugins\OmniGeospatial\resources;%~dp0_install\windows-x86_64\%CONFIG%\omniGeoSceneIndex\resources;%~dp0_install/windows-x86_64/%CONFIG%/omniMetricsAssembler/resources
 set USDIMAGINGGL_ENGINE_ENABLE_SCENE_INDEX=true

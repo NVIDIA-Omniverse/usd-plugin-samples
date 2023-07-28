@@ -1,0 +1,19 @@
+#usda 1.0
+(
+    defaultPrim = "World"
+    metersPerUnit = 1
+    upAxis = "Y"
+    subLayers = [
+        @./metrics_assembler_2.usda@
+    ]
+)
+
+def Xform "World"
+{
+    def Sphere "TranslatedSphere"
+    {
+        double radius = 1.0
+        float3 xformOp:translate = (0, 10, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate"]
+    }
+}

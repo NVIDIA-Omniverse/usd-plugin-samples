@@ -222,6 +222,45 @@ additional_libs = [
     "omniGeospatial"
 ]
 
+[repo_usd.plugin.omniMetricsAssembler]
+plugin_dir = "${root}/src/hydra-plugins/omniMetricsAssembler"
+install_root = "${root}/_install/%{platform}/%{config}/omniMetricsAssembler"
+include_dir = "include/omniMetricsAssembler"
+private_headers = [
+    "api.h",
+    "metricsAdapter.h",
+    "metricsDataSource.h",
+    "metricsDoubleDataSource.h",
+    "metricsSceneIndex.h",
+    "metricsSceneIndexPlugin.h",
+    "metricsSchema.h"
+]
+cpp_files = [
+    "metricsAdapter.cpp",
+    "metricsDataSource.cpp",
+    "metricsDoubleDataSource.cpp",
+    "metricsSceneIndex.cpp",
+    "metricsSceneIndexPlugin.cpp",
+    "metricsSchema.cpp"
+]
+resource_files = [
+    "plugInfo.json"
+]
+usd_lib_dependencies = [
+    "arch",
+    "tf",
+    "work",
+    "plug",
+    "vt",
+    "gf",
+    "hd",
+    "hf",
+    "sdf",
+    "usd",
+    "usdGeom",
+    "usdImaging"
+]
+
 [repo_usd.plugin.omniWarpSceneIndex]
 plugin_dir = "${root}/src/hydra-plugins/omniWarpSceneIndex"
 install_root = "${root}/_install/%{platform}/%{config}/omniWarpSceneIndex"
