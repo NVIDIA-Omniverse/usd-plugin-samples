@@ -127,6 +127,11 @@ void wrapOmniWarpSceneIndexWarpComputationAPI()
              (arg("defaultValue")=object(),
               arg("writeSparsely")=false))
 
+        
+        .def("GetDependentPrimsRel",
+             &This::GetDependentPrimsRel)
+        .def("CreateDependentPrimsRel",
+             &This::CreateDependentPrimsRel)
         .def("__repr__", ::_Repr)
     ;
 

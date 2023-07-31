@@ -184,6 +184,20 @@ public:
     UsdAttribute CreateSourceFileAttr(VtValue const &defaultValue = VtValue(), bool writeSparsely=false) const;
 
 public:
+    // --------------------------------------------------------------------- //
+    // DEPENDENTPRIMS 
+    // --------------------------------------------------------------------- //
+    /// Computation is dependendent on the current position of this mesh
+    ///
+    OMNIWARPSCENEINDEX_API
+    UsdRelationship GetDependentPrimsRel() const;
+
+    /// See GetDependentPrimsRel(), and also 
+    /// \ref Usd_Create_Or_Get_Property for when to use Get vs Create
+    OMNIWARPSCENEINDEX_API
+    UsdRelationship CreateDependentPrimsRel() const;
+
+public:
     // ===================================================================== //
     // Feel free to add custom code below this line, it will be preserved by 
     // the code generator. 

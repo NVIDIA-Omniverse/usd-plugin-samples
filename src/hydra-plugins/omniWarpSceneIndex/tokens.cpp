@@ -26,9 +26,11 @@
 PXR_NAMESPACE_OPEN_SCOPE
 
 OmniWarpSceneIndexTokensType::OmniWarpSceneIndexTokensType() :
+	dependentPrims("dependentPrims", TfToken::Immortal),
     paramsSourceFile("params:sourceFile", TfToken::Immortal),
     OmniWarpComputationAPI("OmniWarpComputationAPI", TfToken::Immortal),
     allTokens({
+        dependentPrims,
         paramsSourceFile,
         OmniWarpComputationAPI
     })

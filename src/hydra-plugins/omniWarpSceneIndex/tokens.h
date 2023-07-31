@@ -62,6 +62,11 @@ PXR_NAMESPACE_OPEN_SCOPE
 /// \endcode
 struct OmniWarpSceneIndexTokensType {
     OMNIWARPSCENEINDEX_API OmniWarpSceneIndexTokensType();
+     /// \brief "dependentPrims"
+    /// 
+    /// OmniWarpComputationAPI
+    const TfToken dependentPrims;
+
     /// \brief "params:sourceFile"
     /// 
     /// OmniWarpSceneIndexWarpComputationAPI

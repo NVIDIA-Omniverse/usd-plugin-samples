@@ -82,6 +82,10 @@ private:
         HdPrimvarSchema& primVarSchema,
         UsdImagingStageSceneIndexRefPtr usdImagingSi);
 
+    void GetDependentMeshData(OmniWarpComputationSchema warpSchema,
+        VtIntArray& outIndices,
+        VtVec3fArray& outVertices);
+
     // Each prim with a WarpComputationAPI gets it's own Python Module instance
     typedef std::unordered_map<SdfPath, OmniWarpPythonModuleSharedPtr, SdfPath::Hash> _WarpPythonModuleMap;
     mutable _WarpPythonModuleMap _pythonModuleMap;

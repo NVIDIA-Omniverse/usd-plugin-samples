@@ -53,6 +53,15 @@ void OmniWarpPythonModule::InitMesh(VtIntArray indices, VtVec3fArray vertices)
     TfPyInvokeAndReturn(_moduleName.c_str(), "initialize_sim_mesh", &result, _primPath, indices, vertices);
 }
 
+void OmniWarpPythonModule::InitParticlesWithDependentMesh(
+    VtVec3fArray positions, VtIntArray indices, VtVec3fArray vertices)
+{
+    TfPyLock pyLock;
+    boost::python::object result;
+    TfPyInvokeAndReturn(_moduleName.c_str(), "initialize_sim_particles_with_mesh", &result,
+        _primPath, positions, indices, vertices);
+}
+
 VtVec3fArray OmniWarpPythonModule::ExecSim()
 {
     TfPyLock pyLock;
@@ -65,6 +74,29 @@ VtVec3fArray OmniWarpPythonModule::ExecSim()
     }
 
     if (TfPyInvokeAndReturn(_moduleName.c_str(), "exec_sim", &result, _primPath, dt))
+    {
+        boost::python::extract<VtVec3fArray> theResults(result);
+        if (theResults.check())
+        {
+            return theResults();
+        }
+    }
+
+    return VtVec3fArray();
+}
+
+VtVec3fArray OmniWarpPythonModule::ExecSim(VtVec3fArray dependentVertices)
+{
+    TfPyLock pyLock;
+    boost::python::object result;
+
+    float dt = 0.f;
+    if (_usdImagingSi)
+    {
+        dt = _usdImagingSi->GetTime().GetValue();
+    }
+
+    if (TfPyInvokeAndReturn(_moduleName.c_str(), "exec_sim_with_dependent_vertices", &result, _primPath, dependentVertices, dt))
     {
         boost::python::extract<VtVec3fArray> theResults(result);
         if (theResults.check())

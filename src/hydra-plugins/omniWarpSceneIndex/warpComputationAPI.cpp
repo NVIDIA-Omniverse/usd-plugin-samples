@@ -119,6 +119,19 @@ OmniWarpSceneIndexWarpComputationAPI::CreateSourceFileAttr(VtValue const &defaul
                        writeSparsely);
 }
 
+UsdRelationship
+OmniWarpSceneIndexWarpComputationAPI::GetDependentPrimsRel() const
+{
+    return GetPrim().GetRelationship(OmniWarpSceneIndexTokens->dependentPrims);
+}
+
+UsdRelationship
+OmniWarpSceneIndexWarpComputationAPI::CreateDependentPrimsRel() const
+{
+    return GetPrim().CreateRelationship(OmniWarpSceneIndexTokens->dependentPrims,
+                       /* custom = */ false);
+}
+
 namespace {
 static inline TfTokenVector
 _ConcatenateAttributeNames(const TfTokenVector& left,const TfTokenVector& right)

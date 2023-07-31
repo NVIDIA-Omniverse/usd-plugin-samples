@@ -27,6 +27,7 @@ PXR_NAMESPACE_OPEN_SCOPE
 #define OMNIWARPCOMPUTATION_SCHEMA_TOKENS \
     (warpComputation) \
     (sourceFile) \
+    (dependentPrims) \
 
 TF_DECLARE_PUBLIC_TOKENS(OmniWarpComputationSchemaTokens, OMNIWARPSCENEINDEX_API,
     OMNIWARPCOMPUTATION_SCHEMA_TOKENS);
@@ -44,6 +45,9 @@ public:
     OMNIWARPSCENEINDEX_API
     HdStringDataSourceHandle GetSourceFile();
 
+    OMNIWARPSCENEINDEX_API
+    HdPathArrayDataSourceHandle GetDependentPrims();
+
     // RETRIEVING AND CONSTRUCTING
 
     /// Builds a container data source which includes the provided child data
@@ -54,7 +58,8 @@ public:
     OMNIWARPSCENEINDEX_API
     static HdContainerDataSourceHandle
     BuildRetained(
-        const HdStringDataSourceHandle &sourceFile
+        const HdStringDataSourceHandle &sourceFile,
+        const HdPathArrayDataSourceHandle &dependentPrims
     );
 
     /// \class OmniWarpComputationSchema::Builder
@@ -70,12 +75,17 @@ public:
         Builder &SetSourceFile(
             const HdStringDataSourceHandle &sourceFile);
 
+		OMNIWARPSCENEINDEX_API
+        Builder &SetDependentPrims(
+            const HdPathArrayDataSourceHandle &dependentPrims);
+
         /// Returns a container data source containing the members set thus far.
         OMNIWARPSCENEINDEX_API
         HdContainerDataSourceHandle Build();
 
     private:
         HdStringDataSourceHandle _sourceFile;
+        HdPathArrayDataSourceHandle _dependentPrims;
     };
 
     /// Retrieves a container data source with the schema's default name token
@@ -104,6 +114,12 @@ public:
     OMNIWARPSCENEINDEX_API
     static const HdDataSourceLocator &GetSourceFileLocator();
 
+    /// Returns an HdDataSourceLocator (relative to the prim-level data source)
+    /// where the dependent prims.
+    /// This is often useful for checking intersection against the
+    /// HdDataSourceLocatorSet sent with HdDataSourceObserver::PrimsDirtied.
+    OMNIWARPSCENEINDEX_API
+    static const HdDataSourceLocator &GetDependentPrimsLocator();
 };
 
 PXR_NAMESPACE_CLOSE_SCOPE

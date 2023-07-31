@@ -31,4 +31,7 @@ class "OmniWarpComputationAPI" (
         }
         doc = "Full path to the python source file containing warp execution"
     )
+    rel dependentPrims (
+        doc = "Computation is dependendent on the current position of this mesh"
+    )
 }

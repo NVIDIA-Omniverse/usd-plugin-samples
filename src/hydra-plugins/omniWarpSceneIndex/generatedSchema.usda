@@ -5,6 +5,9 @@
 
 class "OmniWarpComputationAPI"
 {
+    rel dependentPrims (
+        doc = "Computation is dependendent on the current position of this mesh"
+    )
     string params:sourceFile (
         doc = "Full path to the python source file containing warp execution"
     )

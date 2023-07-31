@@ -26,6 +26,7 @@ TF_DEFINE_PRIVATE_TOKENS(
     _tokens,
     (warpComputation)
     (sourceFile)
+    (dependentPrims)
 );
 
 TF_REGISTRY_FUNCTION(TfType)
@@ -40,6 +41,49 @@ TF_REGISTRY_FUNCTION(TfType)
 namespace
 {
 
+class DependentPrimsDataSource : public HdPathArrayDataSource
+{
+public:
+    HD_DECLARE_DATASOURCE(DependentPrimsDataSource);
+
+    DependentPrimsDataSource(
+        const UsdRelationship &rel)
+    : _usdRel(rel)
+    {
+    }
+
+    VtValue
+    DependentPrimsDataSource::GetValue(
+            HdSampledDataSource::Time shutterOffset)
+    {
+        return VtValue(GetTypedValue(shutterOffset));
+    }
+
+    VtArray<SdfPath>
+    DependentPrimsDataSource::GetTypedValue(
+            HdSampledDataSource::Time shutterOffset)
+    {
+        SdfPathVector paths;
+        _usdRel.GetForwardedTargets(&paths);
+        VtArray<SdfPath> vtPaths(paths.begin(), paths.end());
+        return vtPaths;
+    }
+
+    bool
+    DependentPrimsDataSource::GetContributingSampleTimesForInterval(
+            HdSampledDataSource::Time startTime,
+            HdSampledDataSource::Time endTime,
+            std::vector<HdSampledDataSource::Time> *outSampleTimes)
+    {
+        return false;
+    }
+
+private:
+    UsdRelationship _usdRel;
+};
+
+HD_DECLARE_DATASOURCE_HANDLES(DependentPrimsDataSource);
+
 class _WarpComputationDataSource : public HdContainerDataSource
 {
 public:
@@ -53,9 +97,10 @@ public:
     {
     }
 
-    TfTokenVector GetNames() override {
+    TfTokenVector GetNames() override
+    {
         TfTokenVector result;
-        result.reserve(2);
+        result.reserve(3);
 
         result.push_back(_tokens->warpComputation);
 
@@ -63,16 +108,28 @@ public:
             result.push_back(_tokens->sourceFile);
         }
 
+        if (_api.GetDependentPrimsRel()) {
+            result.push_back(_tokens->dependentPrims);
+        }
+
         return result;
     }
 
     HdDataSourceBaseHandle Get(const TfToken &name) override {
-        if (name == _tokens->sourceFile) {
-            if (UsdAttribute attr = _api.GetSourceFileAttr()) {
+        if (name == _tokens->sourceFile)
+        {
+            if (UsdAttribute attr = _api.GetSourceFileAttr())
+            {
                 return UsdImagingDataSourceAttributeNew(attr, _stageGlobals);
             }
         }
-
+        else if (name == _tokens->dependentPrims)
+        {
+            if (UsdRelationship rel = _api.GetDependentPrimsRel())
+            {
+                return DependentPrimsDataSource::New(rel);
+            }
+        }
         return nullptr;
     }
 
@@ -96,12 +153,12 @@ WarpComputationAPIAdapter::GetImagingSubprimData(
     const UsdImagingDataSourceStageGlobals &stageGlobals)
 {
     OmniWarpSceneIndexWarpComputationAPI _api(prim);
+    std::string pythonModuleName;
     UsdAttribute attr = _api.GetSourceFileAttr();
-    std::string value;
-    attr.Get(&value, 0.f);
-    if (value.length())
-    {
+    attr.Get(&pythonModuleName, 0.f);
 
+    if (pythonModuleName.length())
+    {
         return HdRetainedContainerDataSource::New(
             _tokens->warpComputation,
             _WarpComputationDataSource::New(

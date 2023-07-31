@@ -30,19 +30,30 @@ OmniWarpComputationSchema::GetSourceFile()
         OmniWarpComputationSchemaTokens->sourceFile);
 }
 
-/*static*/
+HdPathArrayDataSourceHandle
+OmniWarpComputationSchema::GetDependentPrims()
+{
+    return _GetTypedDataSource<HdPathArrayDataSource>(
+        OmniWarpComputationSchemaTokens->dependentPrims);
+}
+
 HdContainerDataSourceHandle
 OmniWarpComputationSchema::BuildRetained(
-        const HdStringDataSourceHandle &sourceFile
+        const HdStringDataSourceHandle &sourceFile,
+        const HdPathArrayDataSourceHandle &dependentPrims
 )
 {
-    TfToken names[1];
-    HdDataSourceBaseHandle values[1];
+    TfToken names[2];
+    HdDataSourceBaseHandle values[2];
 
     size_t count = 0;
     if (sourceFile) {
         names[count] = OmniWarpComputationSchemaTokens->sourceFile;
         values[count++] = sourceFile;
+    }
+   if (dependentPrims) {
+        names[count] = OmniWarpComputationSchemaTokens->dependentPrims;
+        values[count++] = dependentPrims;
     }
 
     return HdRetainedContainerDataSource::New(count, names, values);
@@ -85,6 +96,16 @@ OmniWarpComputationSchema::GetSourceFileLocator()
     );
     return locator;
 }
+/*static*/
+const HdDataSourceLocator &
+OmniWarpComputationSchema::GetDependentPrimsLocator()
+{
+    static const HdDataSourceLocator locator(
+        OmniWarpComputationSchemaTokens->warpComputation,
+        OmniWarpComputationSchemaTokens->dependentPrims
+    );
+    return locator;
+}
 
 OmniWarpComputationSchema::Builder &
 OmniWarpComputationSchema::Builder::SetSourceFile(
@@ -94,11 +115,20 @@ OmniWarpComputationSchema::Builder::SetSourceFile(
     return *this;
 }
 
+OmniWarpComputationSchema::Builder &
+OmniWarpComputationSchema::Builder::SetDependentPrims(
+    const HdPathArrayDataSourceHandle &depdendentPrims)
+{
+    _dependentPrims = depdendentPrims;
+    return *this;
+}
+
 HdContainerDataSourceHandle
 OmniWarpComputationSchema::Builder::Build()
 {
     return OmniWarpComputationSchema::BuildRetained(
-        _sourceFile
+        _sourceFile,
+        _dependentPrims
     );
 }
 

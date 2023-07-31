@@ -46,8 +46,11 @@ public:
 
     void InitParticles(VtVec3fArray positions);
     void InitMesh(VtIntArray indices, VtVec3fArray vertices);
+    void InitParticlesWithDependentMesh(VtVec3fArray positions,
+        VtIntArray indices, VtVec3fArray vertices);
 
     VtVec3fArray ExecSim();
+    VtVec3fArray ExecSim(VtVec3fArray dependentVertices);
 
 private:
         std::string _moduleName;
