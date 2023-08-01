@@ -40,7 +40,7 @@ def Xform "root"
             prepend apiSchemas = ["WarpComputationAPI"]
         )        
         {
-            string params:sourceFile = "pxr.WarpSceneIndexPlugin.warpModules.sim"
+            string params:sourceFile = "OmniWarpSceneIndex.warpModules.sim"
             double radius = 1
         }
     }
