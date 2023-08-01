@@ -5,10 +5,9 @@ usd_python_root = "${root}/_build/usd-deps/python"
 generate_plugin_buildfiles = true
 plugin_buildfile_format = "cmake"
 generate_root_buildfile = true
-usd_lib_prefix = "usd_"
 
 # this tells repo_usd about our codeful schema extension
-[repo_usd.schema.omniExampleSchema]
+[repo_usd.plugin.omniExampleSchema]
 schema_file = "${root}/src/usd-plugins/schema/omniExampleSchema/schema.usda"
 plugin_dir = "${root}/src/usd-plugins/schema/omniExampleSchema"
 generate_dir = "${root}/src/usd-plugins/schema/omniExampleSchema/generated"
@@ -23,7 +22,7 @@ usd_lib_dependencies = [
 ]
 
 # this tells repo_usd about our codeless schema extension
-[repo_usd.schema.omniExampleCodelessSchema]
+[repo_usd.plugin.omniExampleCodelessSchema]
 schema_file = "${root}/src/usd-plugins/schema/omniExampleCodelessSchema/schema.usda"
 plugin_dir = "${root}/src/usd-plugins/schema/omniExampleCodelessSchema"
 generate_dir = "${root}/src/usd-plugins/schema/omniExampleCodelessSchema/generated"
@@ -32,7 +31,7 @@ is_codeless = true
 
 # this tells repo_usd about the codeless schema for use by
 # our file format / dynamic payload infrastructure
-[repo_usd.schema.omniMetSchema]
+[repo_usd.plugin.omniMetSchema]
 schema_file = "${root}/src/usd-plugins/schema/omniMetSchema/schema.usda"
 plugin_dir = "${root}/src/usd-plugins/schema/omniMetSchema"
 generate_dir = "${root}/src/usd-plugins/schema/omniMetSchema/generated"
@@ -263,6 +262,8 @@ usd_lib_dependencies = [
 
 [repo_usd.plugin.omniWarpSceneIndex]
 plugin_dir = "${root}/src/hydra-plugins/omniWarpSceneIndex"
+schema_file = "${root}/src/hydra-plugins/omniWarpSceneIndex/schema.usda"
+library_prefix = "OmniWarpSceneIndex"
 install_root = "${root}/_install/%{platform}/%{config}/omniWarpSceneIndex"
 include_dir = "include/omniWarpSceneIndex"
 private_headers = [
@@ -299,7 +300,7 @@ pymodule_files = [
 ]
 resource_files = [
     "plugInfo.json",
-    "generatedSchema.usda"
+    "schema.usda"
 ]
 usd_lib_dependencies = [
     "arch",
