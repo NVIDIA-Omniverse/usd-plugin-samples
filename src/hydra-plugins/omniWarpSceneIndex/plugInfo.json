@@ -15,18 +15,22 @@
                             "UsdAPISchemaBase"
                         ], 
                         "schemaKind": "singleApplyAPI"
-                    },
-                    "WarpComputationAPIAdapter" : {
-                        "bases": ["UsdImagingAPISchemaAdapter"],
-                        "isInternal": true,
-                        "apiSchemaName": "WarpComputationAPI"
-                    },
-                    "Omni_WarpSceneIndexPlugin" : {
-                        "bases": ["HdSceneIndexPlugin"],
-                        "loadWithRenderer" : "GL",
-                        "priority": 0,
-                        "displayName": "Scene Index to execute Warp"
-                      },
+                    }, 
+                    "Omni_WarpSceneIndexPlugin": {
+                        "bases": [
+                            "HdSceneIndexPlugin"
+                        ], 
+                        "displayName": "Scene Index to execute Warp", 
+                        "loadWithRenderer": "GL", 
+                        "priority": 0
+                    }, 
+                    "WarpComputationAPIAdapter": {
+                        "apiSchemaName": "WarpComputationAPI", 
+                        "bases": [
+                            "UsdImagingAPISchemaAdapter"
+                        ], 
+                        "isInternal": true
+                    }
                 }
             }, 
             "LibraryPath": "@PLUG_INFO_LIBRARY_PATH@", 
