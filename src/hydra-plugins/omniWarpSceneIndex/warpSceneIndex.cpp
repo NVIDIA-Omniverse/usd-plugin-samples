@@ -35,6 +35,7 @@
 
 PXR_NAMESPACE_OPEN_SCOPE
 
+VtDictionary GetSimulationParams(HdContainerDataSourceHandle ds);
 UsdImagingStageSceneIndexRefPtr FindUsdImagingSceneIndex(const std::vector<HdSceneIndexBaseRefPtr>&);
 
 OmniWarpSceneIndexRefPtr
@@ -113,7 +114,7 @@ public:
 
     VtVec3fArray GetTypedValue(const Time shutterOffset) override
     {
-        return _pythonModule->ExecSim();
+        return _pythonModule->ExecSim(GetSimulationParams(_simParamsDs));
     }
 
     bool GetContributingSampleTimesForInterval(
@@ -126,13 +127,16 @@ public:
 
 private:
 
-    _PointsDataSource(HdPrimvarsSchema &primVarSchema, OmniWarpPythonModuleSharedPtr pythonModule)
+    _PointsDataSource(HdPrimvarsSchema &primVarSchema, OmniWarpPythonModuleSharedPtr pythonModule,
+        const HdContainerDataSourceHandle &simParamsDataSource)
         : _schema(primVarSchema),
-          _pythonModule(pythonModule)
+          _pythonModule(pythonModule),
+          _simParamsDs(simParamsDataSource)
     {
     }
     HdPrimvarsSchema& _schema;
     OmniWarpPythonModuleSharedPtr _pythonModule;
+    HdContainerDataSourceHandle const _simParamsDs;
 };
 
 class _InstancePositionsDataSource : public HdVec3fArrayDataSource
@@ -155,10 +159,10 @@ public:
                 HdSampledDataSourceHandle valueDataSource = depPrimVar.GetPrimvarValue();
                 auto pointsVt = valueDataSource->GetValue(0.f);
                 VtVec3fArray pointsArray =  pointsVt.UncheckedGet<VtArray<GfVec3f>>();
-                return _pythonModule->ExecSim(pointsArray);
+                return _pythonModule->ExecSim(GetSimulationParams(_simParamsDs), pointsArray);
             }
         }
-        return _pythonModule->ExecSim();
+        return _pythonModule->ExecSim(GetSimulationParams(_simParamsDs));
     }
 
     bool GetContributingSampleTimesForInterval(
@@ -172,14 +176,17 @@ public:
 private:
 
     _InstancePositionsDataSource(HdPrimvarsSchema &primVarSchema, OmniWarpPythonModuleSharedPtr pythonModule,
-        const HdContainerDataSourceHandle &depDataSource)
+        const HdContainerDataSourceHandle &depDataSource,
+        const HdContainerDataSourceHandle &simParamsDataSource)
         : _schema(primVarSchema),
           _pythonModule(pythonModule),
-          _depDs(depDataSource)
+          _depDs(depDataSource),
+          _simParamsDs(simParamsDataSource)
     {
     }
     HdPrimvarsSchema& _schema;
-	HdContainerDataSourceHandle _depDs;
+    HdContainerDataSourceHandle _depDs;
+    HdContainerDataSourceHandle _simParamsDs;
     OmniWarpPythonModuleSharedPtr _pythonModule;
 };
 
@@ -201,7 +208,7 @@ public:
         if (name == HdTokens->points)
         {
             return _PrimvarDataSource::New(
-                _PointsDataSource::New(_schema, _pythonModule),
+                _PointsDataSource::New(_schema, _pythonModule, _simParamsDs),
                 HdPrimvarSchemaTokens->vertex,
                 HdPrimvarSchemaTokens->point);
         }
@@ -211,16 +218,19 @@ public:
 
 private:
     _MeshPrimVarsOverrideDataSource(const HdContainerDataSourceHandle &primDataSource,
-        HdPrimvarsSchema &primVarSchema, OmniWarpPythonModuleSharedPtr pythonModule)
+        HdPrimvarsSchema &primVarSchema, OmniWarpPythonModuleSharedPtr pythonModule,
+        const HdContainerDataSourceHandle &simParamsDataSource)
       :  _schema(primVarSchema),
         _pythonModule(pythonModule),
-        _inputDs(primDataSource)
+        _inputDs(primDataSource),
+        _simParamsDs(simParamsDataSource)
     {
     }
 
     HdPrimvarsSchema _schema;
     OmniWarpPythonModuleSharedPtr _pythonModule;
     HdContainerDataSourceHandle const _inputDs;
+    HdContainerDataSourceHandle const _simParamsDs;
 };
 
 class _InstancerPrimVarsOverrideDataSource : public HdContainerDataSource
@@ -241,7 +251,7 @@ public:
         if (name == HdInstancerTokens->translate)
         {
             return _PrimvarDataSource::New(
-                _InstancePositionsDataSource::New(_schema, _pythonModule, _depDs),
+                _InstancePositionsDataSource::New(_schema, _pythonModule, _depDs, _simParamsDs),
                  HdPrimvarSchemaTokens->instance,
                  HdPrimvarRoleTokens->vector);
         }
@@ -252,11 +262,13 @@ public:
 private:
     _InstancerPrimVarsOverrideDataSource(const HdContainerDataSourceHandle &primDataSource,
         HdPrimvarsSchema &primVarSchema, OmniWarpPythonModuleSharedPtr pythonModule,
-        const HdContainerDataSourceHandle &depDataSource)
+        const HdContainerDataSourceHandle &depDataSource,
+        const HdContainerDataSourceHandle &simParamsDataSource)
       :  _schema(primVarSchema),
         _pythonModule(pythonModule),
         _inputDs(primDataSource),
-        _depDs(depDataSource)
+        _depDs(depDataSource),
+        _simParamsDs(simParamsDataSource)
     {
     }
 
@@ -264,6 +276,7 @@ private:
 	HdContainerDataSourceHandle _depDs;
     OmniWarpPythonModuleSharedPtr _pythonModule;
     HdContainerDataSourceHandle const _inputDs;
+    HdContainerDataSourceHandle const _simParamsDs;
 };
 
 class _WarpMeshDataSource : public HdContainerDataSource
@@ -290,7 +303,7 @@ public:
             auto primVarSchema = HdPrimvarsSchema::GetFromParent(_inputDs);
             if (auto primVarContainer = HdContainerDataSource::Cast(result))
             {
-                return _MeshPrimVarsOverrideDataSource::New(primVarContainer, primVarSchema, _pythonModule);
+                return _MeshPrimVarsOverrideDataSource::New(primVarContainer, primVarSchema, _pythonModule, _inputDs);
             }
         }
         return result;
@@ -335,7 +348,7 @@ public:
             auto primVarSchema = HdPrimvarsSchema::GetFromParent(_inputDs);
             if (auto primVarContainer = HdContainerDataSource::Cast(result))
             {
-                return _InstancerPrimVarsOverrideDataSource::New(primVarContainer, primVarSchema, _pythonModule, _depDs);
+                return _InstancerPrimVarsOverrideDataSource::New(primVarContainer, primVarSchema, _pythonModule, _depDs, _simParamsDs);
             }
         }
         return result;
@@ -345,16 +358,19 @@ private:
     _WarpInstancerDataSource(const SdfPath& primPath,
         const HdContainerDataSourceHandle &primDataSource,
         OmniWarpPythonModuleSharedPtr pythonModule,
-        const HdContainerDataSourceHandle &depDataSource)
+        const HdContainerDataSourceHandle &depDataSource,
+        const HdContainerDataSourceHandle &simParamsDataSource)
       : _primPath(primPath),
         _inputDs(primDataSource),
         _pythonModule(pythonModule),
-        _depDs(depDataSource)
+        _depDs(depDataSource),
+        _simParamsDs(simParamsDataSource)
     {
     }
 
     HdContainerDataSourceHandle _inputDs;
 	HdContainerDataSourceHandle _depDs;
+    HdContainerDataSourceHandle _simParamsDs;
     OmniWarpPythonModuleSharedPtr _pythonModule;
 
     const SdfPath& _primPath;
@@ -367,7 +383,7 @@ OmniWarpSceneIndex::GetPrim(const SdfPath& primPath) const
 
     if (prim.primType == HdPrimTypeTokens->mesh && prim.dataSource)
     {
-        if (OmniWarpComputationSchema warpCompSchema = OmniWarpComputationSchema::GetFromParent(prim.dataSource))
+        if (OmniWarpComputationSchema warpSchema = OmniWarpComputationSchema::GetFromParent(prim.dataSource))
         {
             prim.dataSource = _WarpMeshDataSource::New(
                 primPath, prim.dataSource, GetWarpPythonModule(primPath));
@@ -400,7 +416,7 @@ OmniWarpSceneIndex::GetPrim(const SdfPath& primPath) const
                         }
                     }
                     prim.dataSource = _WarpInstancerDataSource::New(
-                        primPath, prim.dataSource, GetWarpPythonModule(primPath), _depDs);
+                        primPath, prim.dataSource, GetWarpPythonModule(primPath), _depDs, protoPrim.dataSource);
                 }
             }
         }
@@ -445,8 +461,9 @@ void OmniWarpSceneIndex::_PrimsAdded(
                     // stage time. If null, the warp has to emulate frame time
                     usdImagingSi = FindUsdImagingSceneIndex(filteringIdx->GetInputScenes());
                 }
+                auto vtSimParams = GetSimulationParams(prim.dataSource);
                 HdPrimvarSchema origPoints = primVarsSchema.GetPrimvar(HdTokens->points);
-                CreateWarpPythonModule(entry.primPath, warpSchema, meshTopologySchema, origPoints, usdImagingSi);
+                CreateWarpPythonModule(entry.primPath, warpSchema, meshTopologySchema, origPoints, usdImagingSi, vtSimParams);
             }
         }
         else if (entry.primType == HdPrimTypeTokens->instancer)
@@ -479,8 +496,9 @@ void OmniWarpSceneIndex::_PrimsAdded(
                             // stage time. If null, the warp has to emulate frame time
                             usdImagingSi = FindUsdImagingSceneIndex(filteringIdx->GetInputScenes());
                         }
+                        auto vtSimParams = GetSimulationParams(protoPrim.dataSource);
                         HdPrimvarSchema positionsPos = primVarSchema.GetPrimvar(HdInstancerTokens->translate);
-                        CreateWarpPythonModule(entry.primPath, warpSchema, positionsPos, usdImagingSi);
+                        CreateWarpPythonModule(entry.primPath, warpSchema, positionsPos, usdImagingSi, vtSimParams);
                         break;
                     }
                 }
@@ -588,7 +606,8 @@ OmniWarpSceneIndex::CreateWarpPythonModule(const SdfPath &primPath,
     OmniWarpComputationSchema& warpSchema,
     HdMeshTopologySchema& topologySchema,
     HdPrimvarSchema& primVarSchema,
-    UsdImagingStageSceneIndexRefPtr usdImagingSi)
+    UsdImagingStageSceneIndexRefPtr usdImagingSi,
+    VtDictionary vtSimParams)
 {
     //+++ Multithreaded access to _pythonModuleMap
     std::string moduleName = warpSchema.GetSourceFile()->GetTypedValue(0);
@@ -605,7 +624,7 @@ OmniWarpSceneIndex::CreateWarpPythonModule(const SdfPath &primPath,
 
     OmniWarpPythonModuleSharedPtr pythonModule =
         std::make_shared<OmniWarpPythonModule>(primPath, moduleName, usdImagingSi);
-    pythonModule->InitMesh(indices, pointsArray);
+    pythonModule->InitMesh(indices, pointsArray, vtSimParams);
     _pythonModuleMap[primPath] = pythonModule;
     return _pythonModuleMap.find(primPath)->second;
 }
@@ -614,7 +633,8 @@ OmniWarpPythonModuleSharedPtr
 OmniWarpSceneIndex::CreateWarpPythonModule(const SdfPath &primPath,
     OmniWarpComputationSchema& warpSchema,
     HdPrimvarSchema& primVarSchema,
-    UsdImagingStageSceneIndexRefPtr usdImagingSi)
+    UsdImagingStageSceneIndexRefPtr usdImagingSi,
+    VtDictionary vtSimParams)
 {
     //+++ Multithreaded access to _pythonModuleMap
     std::string moduleName = warpSchema.GetSourceFile()->GetTypedValue(0);
@@ -631,14 +651,9 @@ OmniWarpSceneIndex::CreateWarpPythonModule(const SdfPath &primPath,
     VtIntArray indices;
     VtVec3fArray pointsArray;
     GetDependentMeshData(warpSchema, indices, pointsArray);
-    if (indices.size() && pointsArray.size())
-    {
-        pythonModule->InitParticlesWithDependentMesh(positionsArray, indices, pointsArray);
-    }
-    else
-    {
-        pythonModule->InitParticles(positionsArray);
-    }
+
+    pythonModule->InitParticles(positionsArray, indices, pointsArray, vtSimParams);
+
     _pythonModuleMap[primPath] = pythonModule;
     return _pythonModuleMap.find(primPath)->second;
 }
@@ -682,7 +697,32 @@ OmniWarpSceneIndex::GetDependentMeshData(OmniWarpComputationSchema warpSchema, V
     }
 }
 
-static UsdImagingStageSceneIndexRefPtr FindUsdImagingSceneIndex(const std::vector<HdSceneIndexBaseRefPtr>& inputScenes)
+static VtDictionary
+GetSimulationParams(HdContainerDataSourceHandle ds)
+{
+    VtDictionary vtSimParams;
+    auto warpContainer = HdContainerDataSource::Cast(ds->Get(OmniWarpComputationSchemaTokens->warpComputation));
+    if (warpContainer)
+    {
+        TfTokenVector names = warpContainer->GetNames();
+        if (std::find(names.begin(), names.end(), OmniWarpComputationSchemaTokens->simulationParams) != names.end())
+        {
+            OmniWarpComputationSchema warpSchema = OmniWarpComputationSchema::GetFromParent(ds);
+            if (warpSchema)
+            {
+                VtValue metaData = warpSchema.GetSimulationParams()->GetValue(0);
+                if (metaData.IsHolding<VtDictionary>())
+                {
+                    vtSimParams = metaData.UncheckedGet<VtDictionary>();
+                }
+            }
+        }
+    }
+    return vtSimParams;
+}
+
+static UsdImagingStageSceneIndexRefPtr
+FindUsdImagingSceneIndex(const std::vector<HdSceneIndexBaseRefPtr>& inputScenes)
 {
     TfRefPtr<UsdImagingStageSceneIndex> retVal;
 

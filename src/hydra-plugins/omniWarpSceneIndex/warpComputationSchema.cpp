@@ -37,14 +37,22 @@ OmniWarpComputationSchema::GetDependentPrims()
         OmniWarpComputationSchemaTokens->dependentPrims);
 }
 
+HdSampledDataSourceHandle
+OmniWarpComputationSchema::GetSimulationParams()
+{
+    return _GetTypedDataSource<HdSampledDataSource>(
+        OmniWarpComputationSchemaTokens->simulationParams);
+}
+
 HdContainerDataSourceHandle
 OmniWarpComputationSchema::BuildRetained(
         const HdStringDataSourceHandle &sourceFile,
-        const HdPathArrayDataSourceHandle &dependentPrims
+        const HdPathArrayDataSourceHandle &dependentPrims,
+        const HdSampledDataSourceHandle &simulationParams
 )
 {
-    TfToken names[2];
-    HdDataSourceBaseHandle values[2];
+    TfToken names[3];
+    HdDataSourceBaseHandle values[3];
 
     size_t count = 0;
     if (sourceFile) {
@@ -54,6 +62,10 @@ OmniWarpComputationSchema::BuildRetained(
    if (dependentPrims) {
         names[count] = OmniWarpComputationSchemaTokens->dependentPrims;
         values[count++] = dependentPrims;
+    }
+   if (simulationParams) {
+        names[count] = OmniWarpComputationSchemaTokens->simulationParams;
+        values[count++] = simulationParams;
     }
 
     return HdRetainedContainerDataSource::New(count, names, values);
@@ -107,6 +119,17 @@ OmniWarpComputationSchema::GetDependentPrimsLocator()
     return locator;
 }
 
+/*static*/
+const HdDataSourceLocator &
+OmniWarpComputationSchema::GetSimulationParamsLocator()
+{
+    static const HdDataSourceLocator locator(
+        OmniWarpComputationSchemaTokens->warpComputation,
+        OmniWarpComputationSchemaTokens->simulationParams
+    );
+    return locator;
+}
+
 OmniWarpComputationSchema::Builder &
 OmniWarpComputationSchema::Builder::SetSourceFile(
     const HdStringDataSourceHandle &sourceFile)
@@ -123,12 +146,21 @@ OmniWarpComputationSchema::Builder::SetDependentPrims(
     return *this;
 }
 
+OmniWarpComputationSchema::Builder &
+OmniWarpComputationSchema::Builder::SetSimulationParams(
+    const HdSampledDataSourceHandle &simulationParams)
+{
+    _simulationParams = simulationParams;
+    return *this;
+}
+
 HdContainerDataSourceHandle
 OmniWarpComputationSchema::Builder::Build()
 {
     return OmniWarpComputationSchema::BuildRetained(
         _sourceFile,
-        _dependentPrims
+        _dependentPrims,
+        _simulationParams
     );
 }
 

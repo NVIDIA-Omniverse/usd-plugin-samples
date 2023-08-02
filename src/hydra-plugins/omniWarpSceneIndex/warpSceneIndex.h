@@ -75,12 +75,14 @@ private:
         OmniWarpComputationSchema& warpSchema,
         HdMeshTopologySchema& topologySchema,
         HdPrimvarSchema& primVarSchema,
-        UsdImagingStageSceneIndexRefPtr usdImagingSi);
+        UsdImagingStageSceneIndexRefPtr usdImagingSi,
+        VtDictionary vtSimParams);
 
     OmniWarpPythonModuleSharedPtr CreateWarpPythonModule(const SdfPath &primPath,
         OmniWarpComputationSchema& warpSchema,
         HdPrimvarSchema& primVarSchema,
-        UsdImagingStageSceneIndexRefPtr usdImagingSi);
+        UsdImagingStageSceneIndexRefPtr usdImagingSi,
+        VtDictionary vtSimParams);
 
     void GetDependentMeshData(OmniWarpComputationSchema warpSchema,
         VtIntArray& outIndices,

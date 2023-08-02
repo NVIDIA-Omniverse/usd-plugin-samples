@@ -50,11 +50,11 @@ def terminate_sim(primPath: Sdf.Path):
     global global_examples
     global_examples[primPath] = None
 
-def initialize_sim_mesh(primPath: Sdf.Path, indices: Vt.IntArray, orig_points: Vt.Vec3fArray):
+def initialize_sim_mesh(primPath: Sdf.Path, indices: Vt.IntArray, orig_points: Vt.Vec3fArray, sim_params: dict = None):
     global global_examples
     global_examples[primPath] = Example(indices, orig_points)
 
-def exec_sim(primPath: Sdf.Path, sim_dt: float):
+def exec_sim(primPath: Sdf.Path, sim_dt: float, dep_vertices: Vt.Vec3fArray = None, sim_params: dict = None):
     global global_examples
     # Sim expects 60 samples per second (or hydra time of 1.0)
     global_examples[primPath].update(sim_dt / 60.0)

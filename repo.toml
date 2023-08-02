@@ -293,9 +293,12 @@ pymodule_cpp_files = [
 ]
 pymodule_files = [
     "__init__.py",
-    "warpSceneIndex.py",
     "warpModules/__init__.py",
-    "warpModules/deform.py",
+    "warpModules/deform01.py",
+    "warpModules/deform02.py",
+    "warpModules/bunny.py",
+    "warpModules/bunnyParticles.py",
+    "warpModules/ocean.py",
     "warpModules/sim.py"
 ]
 resource_files = [

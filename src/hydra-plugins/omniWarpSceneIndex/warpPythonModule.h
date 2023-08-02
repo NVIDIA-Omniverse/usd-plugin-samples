@@ -44,13 +44,12 @@ public:
         UsdImagingStageSceneIndexConstRefPtr usdImagingSi);
     ~OmniWarpPythonModule();
 
-    void InitParticles(VtVec3fArray positions);
-    void InitMesh(VtIntArray indices, VtVec3fArray vertices);
-    void InitParticlesWithDependentMesh(VtVec3fArray positions,
-        VtIntArray indices, VtVec3fArray vertices);
+    void InitMesh(VtIntArray indices, VtVec3fArray vertices, VtDictionary simParams);
+    void InitParticles(VtVec3fArray positions,
+        VtIntArray indices, VtVec3fArray vertices, VtDictionary simParams);
 
-    VtVec3fArray ExecSim();
-    VtVec3fArray ExecSim(VtVec3fArray dependentVertices);
+    VtVec3fArray ExecSim(VtDictionary simParams);
+    VtVec3fArray ExecSim(VtDictionary simParams, VtVec3fArray dependentVertices);
 
 private:
         std::string _moduleName;

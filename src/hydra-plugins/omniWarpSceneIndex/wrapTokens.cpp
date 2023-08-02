@@ -64,7 +64,7 @@ void wrapOmniWarpSceneIndexTokens()
 {
     boost::python::class_<OmniWarpSceneIndexTokensType, boost::noncopyable>
         cls("Tokens", boost::python::no_init);
-    _AddToken(cls, "dependentPrims", OmniWarpSceneIndexTokens->dependentPrims);
-    _AddToken(cls, "paramsSourceFile", OmniWarpSceneIndexTokens->paramsSourceFile);
+    _AddToken(cls, "warpDependentPrims", OmniWarpSceneIndexTokens->warpDependentPrims);
+    _AddToken(cls, "warpSourceFile", OmniWarpSceneIndexTokens->warpSourceFile);
     _AddToken(cls, "OmniWarpComputationAPI", OmniWarpSceneIndexTokens->OmniWarpComputationAPI);
 }

@@ -23,15 +23,16 @@ class "OmniWarpComputationAPI" (
     }
 )
 {
-    string params:sourceFile (
-        # Informs schema generator to create GetSourceFileAttr() method
-        # instead of GetParamsSourceFileAttr() method
+    string warp:sourceFile (
         customData = {
             string apiName = "sourceFile"
         }
         doc = "Full path to the python source file containing warp execution"
     )
-    rel dependentPrims (
+    rel warp:dependentPrims (
+        customData = {
+            string apiName = "dependentPrims"
+        }
         doc = "Computation is dependendent on the current position of this mesh"
     )
 }

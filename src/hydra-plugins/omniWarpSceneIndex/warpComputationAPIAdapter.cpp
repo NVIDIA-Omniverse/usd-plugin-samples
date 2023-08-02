@@ -27,6 +27,7 @@ TF_DEFINE_PRIVATE_TOKENS(
     (warpComputation)
     (sourceFile)
     (dependentPrims)
+    (simulationParams)
 );
 
 TF_REGISTRY_FUNCTION(TfType)
@@ -40,6 +41,35 @@ TF_REGISTRY_FUNCTION(TfType)
 
 namespace
 {
+
+class SimulationParamsDataSource : public HdSampledDataSource
+{
+public:
+    HD_DECLARE_DATASOURCE(SimulationParamsDataSource);
+
+    SimulationParamsDataSource(
+        const VtDictionary &dict)
+    : _customData(dict)
+    {
+    }
+
+    VtValue
+    GetValue(Time shutterOffset)
+    {
+        return VtValue(_customData);
+    }
+
+    bool
+    GetContributingSampleTimesForInterval(
+        Time startTime,
+        Time endTime,
+        std::vector<Time> * outSampleTimes)
+    {
+        return false;
+    }
+    VtDictionary _customData;
+};
+
 
 class DependentPrimsDataSource : public HdPathArrayDataSource
 {
@@ -100,12 +130,19 @@ public:
     TfTokenVector GetNames() override
     {
         TfTokenVector result;
-        result.reserve(3);
+        result.reserve(4);
 
         result.push_back(_tokens->warpComputation);
 
-        if (_api.GetSourceFileAttr()) {
+        if (UsdAttribute attr = _api.GetSourceFileAttr()) {
             result.push_back(_tokens->sourceFile);
+
+            VtDictionary customData = attr.GetCustomData();
+            VtDictionary::iterator iter = customData.begin();
+            if (iter != customData.end())
+            {
+                result.push_back(_tokens->simulationParams);
+            }
         }
 
         if (_api.GetDependentPrimsRel()) {
@@ -129,6 +166,19 @@ public:
             {
                 return DependentPrimsDataSource::New(rel);
             }
+        }
+        else if (name == _tokens->simulationParams)
+        {
+            if (UsdAttribute attr = _api.GetSourceFileAttr())
+            {
+                VtDictionary customData = attr.GetCustomData();
+                VtDictionary::iterator iter = customData.begin();
+                if (iter != customData.end())
+                {
+                    return SimulationParamsDataSource::New(customData);
+                }
+            }
+
         }
         return nullptr;
     }

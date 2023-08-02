@@ -28,6 +28,7 @@ PXR_NAMESPACE_OPEN_SCOPE
     (warpComputation) \
     (sourceFile) \
     (dependentPrims) \
+    (simulationParams) \
 
 TF_DECLARE_PUBLIC_TOKENS(OmniWarpComputationSchemaTokens, OMNIWARPSCENEINDEX_API,
     OMNIWARPCOMPUTATION_SCHEMA_TOKENS);
@@ -48,6 +49,9 @@ public:
     OMNIWARPSCENEINDEX_API
     HdPathArrayDataSourceHandle GetDependentPrims();
 
+    OMNIWARPSCENEINDEX_API
+    HdSampledDataSourceHandle GetSimulationParams();
+
     // RETRIEVING AND CONSTRUCTING
 
     /// Builds a container data source which includes the provided child data
@@ -59,7 +63,8 @@ public:
     static HdContainerDataSourceHandle
     BuildRetained(
         const HdStringDataSourceHandle &sourceFile,
-        const HdPathArrayDataSourceHandle &dependentPrims
+        const HdPathArrayDataSourceHandle &dependentPrims,
+        const HdSampledDataSourceHandle &simulationParams
     );
 
     /// \class OmniWarpComputationSchema::Builder
@@ -79,6 +84,9 @@ public:
         Builder &SetDependentPrims(
             const HdPathArrayDataSourceHandle &dependentPrims);
 
+        Builder &SetSimulationParams(
+            const HdSampledDataSourceHandle &simulationParams);
+
         /// Returns a container data source containing the members set thus far.
         OMNIWARPSCENEINDEX_API
         HdContainerDataSourceHandle Build();
@@ -86,6 +94,7 @@ public:
     private:
         HdStringDataSourceHandle _sourceFile;
         HdPathArrayDataSourceHandle _dependentPrims;
+        HdSampledDataSourceHandle _simulationParams;
     };
 
     /// Retrieves a container data source with the schema's default name token
@@ -120,6 +129,14 @@ public:
     /// HdDataSourceLocatorSet sent with HdDataSourceObserver::PrimsDirtied.
     OMNIWARPSCENEINDEX_API
     static const HdDataSourceLocator &GetDependentPrimsLocator();
+
+
+    /// Returns an HdDataSourceLocator (relative to the prim-level data source)
+    /// where the simulation params can be found.
+    /// This is often useful for checking intersection against the
+    /// HdDataSourceLocatorSet sent with HdDataSourceObserver::PrimsDirtied.
+    OMNIWARPSCENEINDEX_API
+    static const HdDataSourceLocator &GetSimulationParamsLocator();
 };
 
 PXR_NAMESPACE_CLOSE_SCOPE
