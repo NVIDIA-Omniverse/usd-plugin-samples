@@ -5,14 +5,17 @@ This repository contains a set of samples that illustrate authoring of different
 - USD schemas (both codeful and codeless)
 - File Format Plugins
 - Dynamic Payloads
+- Hydra 2 Scene Indices
 
-Additionally, this repository contains a set of tools that can be used to generate schema code and templates that can be used for both CMake and Premake to build the plug-ins using compiler / linker settings consistent with those used when building USD libraries.  The sections below introduce these samples with the hope of helping you get started on your USD plug-in journey.  Feel free to fork this repository, delete the portions you don't need, and customize the remaining in whatever way suits your USD environment.
+Additionally, this repository contains a set of tools that can be used to generate schema code and templates that can be used for both `cmake` and `premake` to build the plug-ins using compiler / linker settings consistent with those used when building USD libraries.  The sections below introduce these samples with the hope of helping you get started on your USD plug-in journey.  Feel free to fork this repository, delete the portions you don't need, and customize the remaining in whatever way suits your USD environment.
+
+While the repository is set up in such a way that you can quickly get started using stock Pixar builds (in this case, `23.05`), the intent is to enable you to "bring your own" USD builds by specifying where it resides in configuration for the included tooling.  Note that not all features included in these samples are available in all USD versions, so some samples may not build out of the box against certain USD versions without modifications.  In general, the schema examples should be compatible with anything `21.02` and later, the dynamic payload example with anything `22.11` and later, and the hydra 2 examples with anything `23.05` and later.
 
 ## Quick Start
 
 **Prerequisite: You must have CMake 3.20+ installed on your system and available through the `PATH`**
 
-If you want to directly build and try out the dynamic payload sample in `usdview`, you can build the samples and set the environment using the sample tools, and load the payload in `usdview`.  The commands below assume either a Linux environment or `git-bash` on Windows.
+If you want to directly build and try out the samples in `usdview`, you can use the provided tools to build the libraries and configure the environment to enable you to load the sample scenes in `usdview`.  The commands below assume either a Linux environment or `git-bash` on Windows.
 
 
 ```
@@ -21,16 +24,35 @@ If you want to directly build and try out the dynamic payload sample in `usdview
             # or into _install/linux-aarch64/release (Linux ARM)
 
 source setenvwindows      # sets up a python virtual environment (_venv), installs PySide and PyOpenGL, and sets the PATH / PYTHONPATH
-                          # to the built sample libraries and NVIDIA USD 22.11 distribution, sets the PXR_PLUGINPATH_NAME to include 
+                          # to the built sample libraries and the USD 23.05 distribution, sets the PXR_PLUGINPATH_NAME to include 
                           # paths to the sample plugInfo.json files (Windows)
 source setenvlinux        # sets up a python virtual environment (_venv), installs PySide and PyOpenGL, and sets the LD_LIBRARY_PATH / PYTHONPATH
-                          # to the built sample libraries and NVIDIA USD 22.11 distribution, sets the PXR_PLUGINPATH_NAME to include 
+                          # to the built sample libraries and the USD 23.05 distribution, sets the PXR_PLUGINPATH_NAME to include 
                           # paths to the sample plugInfo.json files (Linux)
 
 usdview resources/scene.usda  --unloaded    # opens usdview on the provided sample scene with a dynamic payload in an unloaded state
 ```
 
-Once `usdview` has been opened, you can load the dynamic payload by right-clicking on `MetropolitanMuseumOfArt` and selecting `Load`.  Using the default metadata configuration, this will load the payload as a set of deferred reads invoking REST APIs to retrieve department and object data for the Metropolitan Museum of Art.  Alternatively, you can open `usdview` fully loaded without the `--unloaded` option.
+Different samples rely on different sample scenes:
+
+__Dymamic Payloads__
+
+Open `usdview` with the `resources/scene.usda` sample stage.  Once `usdview` has been opened, you can load the dynamic payload by right-clicking on `MetropolitanMuseumOfArt` and selecting `Load`.  Using the default metadata configuration, this will load the payload as a set of deferred reads invoking REST APIs to retrieve department and object data for the Metropolitan Museum of Art.  Alternatively, you can open `usdview` fully loaded without the `--unloaded` option.
+
+__Hydra 2 Metrics Assembler__
+
+Open `usdview` with the `resources/metrics_assembler.usda` sample stage.  You can play with the value of `metersPerUnit` in the `metrics_assembler_2.usda` layer to observe what happens when this value is different from that of the `metersPerUnit` value of the root stage.
+
+__Hydra 2 Warp__
+
+Several examples are provided to illustrate the use of NVIDIA's warp in conjunction with scene indices:
+
+- `warp_demo_mesh.usda` - Sample for using warp to deform a mesh
+- `warp_demo_sim.usda` - Sample demonstrating the use of warp to simulate physics against a set of sphere particles
+
+## Licensing Notes
+
+The content herein is subject to the license [here](LICENSE).  The dynamic payload example makes use of the Metropolitan Museum of Art Collection API, and usage of this is subject to terms and conditions specified [here](https://metmuseum.github.io).  In particular, because the API does not require registration or use of an API key, request rates should be limited to _80 requests per second_.
 
 ## General Project Structure
 
@@ -39,6 +61,10 @@ The repository is structured as follows:
 ```
 deps
 src
+  hydra-plugins
+    omniGeoSceneIndex
+    omniMetricsAssembler
+    omniWarpSceneIndex
   kit-extension
   usd-plugins
     dynamicPayload
@@ -49,24 +75,34 @@ bootstrap.py
 build.bat
 build.sh
 repo.toml
-setenv
+setenvwindows
+setenvlinux
+setenvwindows.bat
 ```
 
 All example source code is kept in the `src` diretory, with each sub folder demonstrating a different type of USD plug-in.  The remaining files are there to support the schema generation and build infrastructure necessary to create the plug-in libraries.  This infrastructure uses an NVIDIA tool called `packman` to pull packages required for schema and makefile generation.  These include the following:
 
-- USD 22.11 builds compatible with NVIDIA Omniverse 105 kit-based applications
+- Stock OpenUSD 23.05 builds
 - A python distribution used to build the above USD packages (Python 3.10)
-- A tool (`repo_usd`) used to generate schema code and makefiles in the desired format (Cmake / Premake)
+- A tool (`repo_usd`) used to generate schema code and makefiles in the desired format (`cmake` / `premake`)
 - The jinja python package (3.1.2) and its dependencies to support `usdGenSchema` (installed to a local folder via `repo_usd`)
+- The installation of PyOpenGL, PySide, and warp-lang to a virtual environment to support running the provided examples easily
 
 By convention, all folders starting with `_` are derived artifacts and can be safely deleted when cleaning the repository.  In particular, four of these folders are used:
 
 - _repo (stores the download `repo_usd` package for use)
 - _build (default location for generated and intermediary build artifacts)
 - _install (default location for built and staged plug-ins)
-- _venv (a virtual environment created to test the dynamic payload samples out in `usdview`)
+- _venv (a virtual environment created to setup the environment for trying the samples out in `usdview`)
 
 These folders are used or not depending on various configuration options you provide to the `repo_usd` tool via the `repo.toml` file.  Options that can be provided, as well as command line options that can be passed to the `build.bat` / `build.sh` scripts are described in the section `Tool Options` below.
+
+Each set of samples is accompanied by a `README` containing additional information about the relevant part of USD being explored and how the sample is constructed.  These can be found here:
+
+- [Schemas, File Format Plugins, and Dynamic Payloads](src/usd-plugins/README.md)
+- [Hydra 2 Scene Indices](src/hydra-plugins/README.md)
+
+The remainder of this document explores the USD plugin system in general and the tooling provided to build the samples in greater depth.
 
 ## USD Plugins
 
@@ -99,102 +135,13 @@ From the point of view of the USD runtime, plugins are read generically by inter
 
 Objects that are interested in plugins of a certain type may query the `PlugRegistry` for all plugins that derive from a type registered in the type system via a call to `GetAllDerivedTypes`.  This returns all registered types that derive from the requested type; from this the object can get the actual plugin metadata via a call to `GetPluginForType`.  Finally, the object can load the plugin from the metadata via `Load` in order to work with the specific API implemented by the plugin.  This loads the library associated with the plugin into memory and makes the types in it accessible to the system.  In general, the objects that manage this information are specific for a particular plugin type (e.g. `SdfFileFormat`) and are typically singletons in the USD runtime (e.g., `Sdf_FileFormatRegistry`).  
 
-The file format objects that imlement the USD plugin architecture for `SdfFileFormat` are given below:
+The file format objects that implement the USD plugin architecture for `SdfFileFormat` are given below:
 
 ![File Format Plugin Example](images/file_format_plugin_example.png)
 
 In all cases, the singleton objects that load plugins do so __once__ at the time of first access and cache that information.  __This means that any code that performs a call to `RegisterPlugins` must be executed prior to the first call to the singleton object managing plugins of that type!__.
 
 For illustrative purposes, the `edf` file format plugin contained within this sample also has an example of a type that manages plugins (of type `IEdfDataProvider`) in a similar way that the built-in USD managers manage their own plugin types.
-
-## USD Schemas
-
-Recall that USD defines the concept of a "prim".  Prims abstractly serve as data containers for groups of logically related data.  These groups are referred to as _schemas_ (or more specificaly, _prim schemas_ to distinguish them from _property schemas_).  When we say that a prim has a type of _Mesh_, what we really mean is that the prim provides the logical set of related data defined by the `UsdGeomMesh` schema (e.g., vertices, faces, normals, etc.).
-
-Schemas are divided into two major categories _IsA_ schemas and _API_ schemas.  _IsA_ schemas are meant to define a specific purpose for a prim.  In the case above, a _Mesh_ prim is a prim who's specific purpose is to represent a mesh.  A prim can only subscribe to a single _IsA_ schema - that is, it has a single well defined role in the scene hierarchy.  These types of schemas can be inherited and within that inheritance hierarchy schemas can be either _abstract_ or _concrete_.  Only concrete schemas are instantiable in the USD scene hierarchy.
-
-_API Schemas_, on the other hand, serve only as additional data groups on prims as well as a well-defined API to get and set those values.  These schema types can be applied to any prim in the scene hierarchy (as long as the schema rules say it can be applied to that prim type). If a prim has a type, you will see that type in the scene hierarchy.  If a prim has an API schema applied, you won't see a difference in its type, but will still be able to ask that prim for the data contained within that schema.  These types of schemas can be either _non-applied_ or _applied_ API schemas, with the difference being that applied API schemes will be recorded in the USD file such that they retain that information on interchange of the scene data to other applications.  If a schema is an applied API schema, it can be either single instance (_single-apply_ API schemas, applied only once to a prim) or multi-instance (_multiple-apply_ API schemas, can be applied several times, each defining a unique instance).
-
-USD ships with many schema definitions that you may be familiar with, including "IsA" schemas (e.g., `Mesh`, `Xform`) and "API" schemas (e.g., `UsdShadeMaterialBindingAPI`, `UsdCollectionAPI`, etc.).  These can all be found in their respective modules (e.g., the schema set provided by `UsdGeom` can be found in pxr/usd/usdGeom/schema.usda).
-
-More information on schemas can be found here: https://graphics.pixar.com/usd/release/tut_generating_new_schema.html
-
-### Creating new Schema Extensions and Naming Conventions
-
-Schema extensions are created by defining the schema using USD syntax, typically in a file called `schema.usda`.  Before defining your schema classes, you must determine the name of your schema library.  Since the entire USD community can add schema extensions, it is important to be able to recognize from which organization / application a schema extension originates and to name them uniquely enough such that naming collisions do not occur across applications.  For example, across the NVIDIA organization, we want that our schema extensions are easily recognizeable by the community so it is clear what Omniverse will support and what 3rd party applications may not have support for.  In general, you can expect the following:
-
-- `Omni` is the prefix used for NVIDIA's schema extensions. If `Omni` is not appropriate, other prefixes may be used as long as they are distinct enough to recognize that they came from NVIDIA (e.g., `PhysX`).
-- All applied API schemas will end with the `API` suffix (as well as adhering to the prefix rule above)
-- All properties added by an API schema will start with a recognizeable namespacing prefix (e.g., `omni`) and be namespaced appropriately (e.g., `omni:graph:attrname`, etc.)
-- Properties within an IsA schema may have namespace prefixes if derived from core USD schema types.
-
-The samples provide examples for two types of schemas, codeful and codeless.  The former will have C++ / Python code generated for it, the latter will only have USD plug-in information generated.  These are provided in the `src/usd-plugins/schema/omniExampleSchema` and `src/usd-plugins/schema/omniExampleCodelessSchema` in their respective `schema.usda` files.  
-
-## File Format Plugins
-
-A _file format plugin_ is the type of USD plugin that is responsible for dynamically translating the contents of a foreign format into `SdfPrimSpec` compatible data.  While files are common, the source data does not have to reside strictly in a file.  
-
-![Data Sources](images/data_sources.png)
-
-Two objects are provided in the `Sdf` library for implementing file format plugins, `SdfFileFormat` and `SdfAbstractData`.  The former is a base class for defining a new type of file format and the interface used to read / write that format by the USD runtime and the latter is a data adapter that can be used to customize how the data that was read is stored / cached / accessed.  All file format plugins implement `SdfFileFormat`.  File format plugins that need more granular management of the data cache also implement `SdfAbstractData` although this is not necessary - if you do not provide a custom data object the USD runtime will use `SdfData` as the data object associated with the content from your file format for a layer.
-
-From a USD runtime perspective, file format plugins involve the following objects:
-
-![File Format Architecture](images/file_format_architecture.png)
-
-When a stage is opened, the root layer is opened and prim specs are formed for all prims.  Each of these are indexed by the composition engine and the index notes if there are additional composition arcs for a prim (e.g., via a reference or payload).  These arcs are resolved by opening the referenced layer.  If the layer is an asset reference to a foreign file format, `Sdf` will look for a plugin responsible for that format and ask an instance of that plugin to load the asset.  This is done by the layer (`SdfLayer`) asking the `Sdf_FileFormatRegistry` to find a plugin associated with a particular extension, which if accessed for the first time triggers an acquisition of all plugins drived from `SdfFileFormat` held by `PlugRegistry` and the loading of the one responsible for the particular extension.  Once found, `SdfLayer` will initialize a `SdfAbstractData` object to associate with the file format (either a custom one provided by the file format or `SdfData` if there is no custom data object) and ask the plugin to read the information into the layer.  For each prim read in the layer, the composition engine will index those prims and recursively resolve any additional composition arcs required to build the full prim index.
-
-File format plugins may also write out content in their native format.  By default, custom file format plugins do not write content and it is up to the implementor to indicate that they support writes and to write the content out appropriately.
-
-Interestingly, file format plugins do not actually have to read from files - they can read from any backing data store as long as they know what data to read and how to interpret it.  From the point of view of the USD runtime, the only requirements are the interface to reading / writing the data and the association of the plugin type to a file extension (which can be made up for non-file types).
-
-This repository provides a sample file format plugin that is used to implement dynamic payload functionality in the `src/fileFormat/edfFileFormat` directory.  The information is read from REST APIs associated with the Metropolitan Museum of Art to illustrate the data need not come from a file at all.  An empty file (`resources/empty.edf`) is provided such that the payload reference can be added to the stage using an existing asset, but the content is not used at all.  We could eliminate the file entirely by referencing an anonymous layer with the `.edf` extension.
-
-Other examples of more traditional file format plugins exist directly in the USD repository; for example, the Alembic (`abc`) file format plugin resides here:
-
-- https://github.com/PixarAnimationStudios/USD/blob/release/pxr/usd/plugin/usdAbc/alembicFileFormat.h
-
-## Dynamic Payloads
-
-_Dynamic payloads_ are file format plugins with additional functionality (that can only be used with the payload composition arc) to make them a bit more dynamic in nature.  These dynamics are provided via a set of parameters in the metadata of the prim that has the payload composition arc to a dynamic payload.  This is a powerful mechanism because:
-
-- The information brought into the layer can be parameterized in ways specific to the data the payload is resposible for
-- Those parameters can be modified by tools that allow metadata modification to reload the layer with the new parameter set
-- Metadata participates in composition, so the composition engine can form the strongest opinions of the custom prim metadata and use that opinion to compute additional file format arguments that will be added to the asset path (and sent to the file format plugin)
-
-From a USD runtime perspective, dynamic payloads involve the following objects (additionally to those already shown for file format plugins)
-
-![Dynamic Payload Architecture](images/dynamic_payload_architecture.png)
-
-To implement a dynamic payload, your file format plugin must provide additional functionality for the USD runtime:
-
-- Must inherit `PcpDynamicFileFormatInterface` in addition to `SdfFileFormat`
-- Must be able to compose a set of `FileFormatArguments` from the contents of metadata read from the prim associated with the paylaod
-
-The metadata used must be declared in the `plugInfo.json` file such that `Sdf` knows about it.  It is up to you to determine what format this metadata takes and there is often a balance between generality (for extensiblity) vs. clarity (knowing what exactly can be parameterized).  
-
-The `PcpDynamicFileFormatInterface` provides two important methods that need to be implemented:
-
-- `ComposeFieldsForFileFormatArguments`: This method takes a composition context to acquire the composed metadata and translate this information into a set of `FileFormatArguments` that will be provided to the layer when opening the layer (and eventually, to the `SdfFileFormat` object as arguments to the `Read` invocation)
-- `CanFieldChangeAffectFileFormatArguments`: This method allows the file format plugin to inform the composition engine what metadata value changes would contribute to the construction of new file format arguments (and hence, a reload of the layer)
-
-Depending on how the implementation translates the metadata into `FileFormatArguments`, it is possible that there is a 1:1, 1:N, or N:1 mapping of metadata values to `FileFormatArguments` values.  It is up to the implementation to understand whether changes to a particular metadata value would contribute to a recomputation of a `FileFormatArguments` value.  If a change does contribute and new `FileFormatArguments` are generated, the composition engine will trigger a reload of that layer using the new `FileFormatArguments`.  Since the arguments contribute to the layer identifier, this would be considered a new layer from the point of view of the USD runtime.
-
-This repository provides an example of a dynamic payload between two plugins:
-
-- The `EdfFileFormat` object provided in `src/usd-plugins/fileFormat/edfFileFormat`
-- The `OmniMetProvider` object provided in `src/usd-plugins/dynamicPayload/omniMetProvider`
-
-This was structured in this way for two reasons:
-
-- To illustrate that one file format could architecturally handle multiple back-ends generically by using its own plugin mechanism for loading back-end providers identified via a type on the metadata
-- To illustrate an example of an object that manages its own types of plugins
-
-Architecturally, this breaks down as follows:
-
-![EDF Data Provider Plugin Architecture](images/edf_plugin_example.png)
-
-Note that the implementation for data provider plugins is modeled exactly after the generic USD plugin architecture.  This pattern allows you to create and manage your own plugins in the same way USD does.  In this case, the file format plugin architecture manages the `EdfFileFormat` plugin itself, and the `EdFFileFormat` takes care of loading whatever provider is specified via the metadata attached to the prim.  In theory, this allows different dynamic payloads on different prims to use different data providers to source data, but uses the same fundamental architecture to manage that data once it comes in.
 
 ## Using the Tool to Generate Schema Code and Build Files
 
@@ -235,7 +182,7 @@ A couple of things to note here:
 
 The use of `packman` has been enabled in this repository to pull the relevant USD and python packages (22.11 and 3.10 respectively) for a turnkey type solution that builds plugins compatible with NVIDIA Omniverse (105+).  If you want to use a different version of USD simply change the paths that are specified in `usd_root` and `usd_python_root`.  
 
-If using a USD build with a custom prefix, you may specify this prefix in the `repo_usd` configuration and it will be applied to all USD base names when forming the library dependency.  For example, if your USD libraries were of the form lib_arch, lib_tf, etc., you would specify the prefix as follows:
+By default, `repo_usd` will attempt to detect the USD library prefix for your build dynamically.  This works in most situations, but if it is unable to detect it, you may specify the prefix explicitly in configuration via the `usd_lib_prefix` attribute.  For example, if your USD libraries were of the form lib_arch, lib_tf, etc., you would specify the prefix as follows:
 
 ```
 [repo_usd]
@@ -287,7 +234,7 @@ In addition, the special token `${root}` is used to generically designate the ro
 
 ### Specifying Plugin Specific Options
 
-Each USD plugin in the repository can be configured with a number of options.  All non-schema plugins are configured in the `repo.toml` file in the form `repo_usd.plugin.x` where `x` defines the name of the plugin (and from which the compiled library name will derive).  All plugins must specify a path in the `plugin_dir` option, which informs the tool what the plugin's source code root directory will be from which all source files will be referenced.  For example, assume we had a plugin named `myFileFormat`.  We could configure it as follows:
+Each USD plugin in the repository can be configured with a number of options.  All plugins are configured in the `repo.toml` file in the form `repo_usd.plugin.x` where `x` defines the name of the plugin (and from which the compiled library name will derive).  All plugins must specify a path in the `plugin_dir` option, which informs the tool what the plugin's source code root directory will be from which all source files will be referenced.  For example, assume we had a plugin named `myFileFormat`.  We could configure it as follows:
 
 ```
 [repo_usd]
@@ -329,12 +276,20 @@ Plugins may specify a separate `generate_dir` path (relative to `${root}`).  If 
 
 You can change any of these options per-plugin by specifying values for each of the above keys in the `repo.toml` file section of the specific plugin.  In particular, many choose to specify `install_root` explicitly and leave the others as their defaults relative to this path.
 
-When the option `generate_buildfile_format` is on, each plugin is required to specify the files that will be used to build the library the build file will be generated for.  This requires the following options to be defined:
+When the option `generate_plugin_buildfiles` is on, each plugin is required to specify the files that will be used to build the library the build file will be generated for.  This requires at minimum the following options to be defined (all paths relative to `generate_dir`, which defaults to `plugin_dir` if not specified explicitly):
 
-- `public_headers`: a list of paths (relative to `plugin_dir`) that denote the header files that should be included in the generated project and which should also be copied to the specified `include_dir` during the build step.  If using this option for schemas, the paths must be relative to `generate_dir`.
-- `private_headers` a list of paths (relative to `plugin_dir`) that denote header files that should be included in the generated project but which should _not_ be copied to `include_dir`.  If using this option for schemas, the paths must be relative to `generate_dir`.
-- `cpp_files`: a list of paths (relative to `plugin_dir`) that denote cpp files that should be included in the generated project that contribute source for the library that will be built.
-- `resource_files`: a list of paths (relative to `plugin_dir` for general plugins, or `generate_dir` for schemas specifically) that denote files that should be included as resources that will be copied to the specified `resources_dir` during the build step.  At minimum, this typically includes the `plugInfo.json` file for your plugin.
+- `public_headers`: a list of paths that denote the header files that should be included in the generated project and which should also be copied to the specified `include_dir` during the build step.
+- `private_headers` a list of paths that denote header files that should be included in the generated project but which should _not_ be copied to `include_dir`.
+- `cpp_files`: a list of paths that denote cpp files that should be included in the generated project that contribute source for the library that will be built.
+- `resource_files`: a list of paths that denote files that should be included as resources that will be copied to the specified `resources_dir` during the build step.  At minimum, this typically includes the `plugInfo.json` file for your plugin.
+
+If your plugin also requires a Python module to be built, an additional set of options must be provided (all paths relative to `generate_dir`, which defaults to `plugin_dir` if not specified explicitly):
+
+- `module_dir`: Path relative to `install_root` where the Python library will be built to and python module files copied
+- `pymodule_cpp_files`: A list of C++ file paths that will be compiled into the Python module library
+- `pymodule_files`: A list of python files to include in the Python module distribution.  These files will be copied to the target `module_dir` with relative paths retained.
+
+Note that in the case of schemas (see below), the generated files will be automatically added to the appropriate list above to be included in the respective C++ or Python libraries.
 
 When using `premake`, you may also specify the directory to which the output of the `premake` files are generated.
 
@@ -354,24 +309,13 @@ Finally, you can customize dependencies among plug-ins by using the `depends_on`
 
 - `depends_on`: A list of strings, each which refers to the name of a plugin that must be built prior to the one this option is attached to.  The string used here is the same string you use in your definition of the root key (i.e., the `x` in `[repo_usd.plugin.x]`)
 
-The above options are valid for all types of plugins, including schema plugins.  The following section denotes the options that are additionally valid only for schema type plugins.
+The above options are valid for all types of plugins.  For plugins that also contain schema definitions, an additional set of options can be provided as discussed below.
 
-### Configuring Schema Generation
+### Additional Options for Plugins that Contain Schemas
 
-Schemas are special types of plugins because they are defined via schema definition files and can be either codeful or codeless.  Codeful schemas require code to be generated via the `usdGenSchema` tool that comes with the USD distribution and built into a library like any other USD plugin.  Codeless schemas also require `usdGenSchema`, but only resource files are generated (`plugInfo.json` and `generatedSchema.usda`).  The content of the latter file is used by the `UsdSchemaRegistry` to identify your schema types.  
+A schema definition file can be contained within a plugin, indicating that schema definitions and associated code (if not codeless) will be included in the resulting C++ and Python libraries.  Codeful schemas require code to be generated via the `usdGenSchema` tool that comes with the USD distribution and built into a library like any other USD plugin.  Codeless schemas also require `usdGenSchema`, but only resource files are generated (`plugInfo.json` and `generatedSchema.usda`).  The content of the latter file is used by the `UsdSchemaRegistry` to identify your schema types.  
 
-`repo_usd` provides some additional options to configure code and build file generation of schema content.  Like regular plugins, they are defined individually in the `repo.toml` file, but instead of in the section `repo_usd.plugin` they are each defined in the section `repo_usd.schema`.  For example, if you had a schema `mySchema`, you would define its options in a block like the following:
-
-```
-[repo_usd]
-usd_root = "${root}/_build/usd-deps/nv-usd/%{config}"
-usd_python_root = "${root}/_build/usd-deps/python"
-generate_plugin_buildfiles = true
-
-[repo_usd.schema.mySchema]
-```
-
-All options that are valid for plugins are also valid for schemas.  But schemas have a few additional options that are explored in this section.  Each schema at minimum requires definition of the following options:
+`repo_usd` provides some additional options to configure code and build file generation of schema content in the `[repo_usd.plugin.x]` section:
 
 - `schema_file`: The path to the `schema.usda` file defining the schema classes.  This must be specified relative to `${root}`.
 - `library_prefix`: The library prefix that is set in the `schema.usda` file (necessary for generating the python wrapper code, only necessary for codeful schemas)
@@ -391,17 +335,11 @@ usd_root = "${root}/_build/usd-deps/nv-usd/%{config}"
 usd_python_root = "${root}/_build/usd-deps/python"
 generate_plugin_buildfiles = true
 
-[repo_usd.schema.mySchema]
+[repo_usd.plugin.mySchema]
 schema_file = "${root}/src/schema/mySchema/schema.usda"
 generate_dir = "${root}/src/schema/mySchema/generated"
 is_codeless = true
 ```
-
-Since schemas always expose a Python module as well as a C++ library, there are a few additional options that can be set for a schema plugin:
-
-- `module_dir`: Path relative to `install_root` where the schema Python library will be built to and python module files copied
-- `pymodule_cpp_files`: A list of C++ file paths that will be compiled into the Python module library in addition to those generated by `usdGenSchema`
-- `pymodule_files`: A list of python files to include in the Python module distribution.  These files will be copied to the target `module_dir` with relative paths retained.
 
 Typical configuration of a plugin will define `install_root`, `include_dir`, `lib_dir`, `resource_dir`, and `module_dir` (in the case of schemas) rather than leaving them to the defaults.  For example:
 
@@ -430,7 +368,7 @@ usd_lib_dependencies = [
 ]
 ```
 
-Note that schema configurations only need to include `public_headers`, `cpp_files` and `resource_files` if there are files to be included that are in addition to those that `usdGenSchema` generates.
+Note that schema configurations only need to include `public_headers`, `cpp_files`, `pymodule_cpp_files`, `pymodule_files`, and `resource_files` if there are files to be included that are in addition to those that `usdGenSchema` generates.
 
 `usdGenSchema` will generate most of the code necessary for your schema plugin.  `repo_usd` generates three additional files that in most cases are boilerplate that allow the schema module to be properly loaded by USD:
 
@@ -544,8 +482,6 @@ The following keys are available to configure `repo_usd`.
 - `additional_libs`: (**Optional** *list of strings* *default=[]*) List of additional libraries needed for compilation that will be added to the build file
 - `preprocessor_defines`: (**Optional** *list of strings* *default=[]*) List of preprocessor definitions to add to the build file (Note: the build system will automatically add `x_EXPORTS` and the relevant preprocessor defines for `boost` and `tbb` for USD)
 - `depends_on`: (**Optional** *list of strings* *default=[]*) List of plugins this one depends on so the build files generated have the right ordering
-
-`[repo_usd.schema.x]` (Includes all keys from `[repo_usd.plugin.x]`):
 - `schema_file`: (**Required** *string*) Path relative to `${root}` where the `schema.usda` file can be found (including the `schema.usda` part)
 - `is_codeless`: (**Optional** *bool* *default=false*) True if the schema should be a codeless schema, false otherwise
 - `module_dir`: (**Optional** *string* *default="x"*) Path relative to `install_root` where the built Python module and Python module files will be placed
@@ -554,6 +490,7 @@ The following keys are available to configure `repo_usd`.
 - `generate_module_cpp_file`: (**Optional** *bool* *default=true*) Boolean informing `repo_usd` whether or not to generate the `module.cpp` file for the schema plugin
 - `generate_module_deps_cpp_file`: (**Optional** *bool* *default=true*) Boolean informing `repo_usd` whether or not to generate the `moduleDeps.cpp` file for the schema plugin
 - `generate_init_py_file`: (**Optional** *bool* *default=true*) Boolean informing `repo_usd` whether or not to generate the `__init__.py` file for the schema plugin
+- `generate_buildfile`: (**Optional** *bool* *default=`generate_plugin_buildfiles`) Boolean informing `repo_usd` to override whatever setting is in `generate_plugin_buildfiles` globally on a per-plugin basis.
 
 ## Contributing
 
