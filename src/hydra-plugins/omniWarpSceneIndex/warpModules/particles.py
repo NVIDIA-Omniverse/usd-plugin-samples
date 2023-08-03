@@ -57,11 +57,11 @@ def terminate_sim(primPath: Sdf.Path):
     global_examples[primPath] = None
 
 def initialize_sim_particles(primPath: Sdf.Path,
-    orig_positions: Vt.Vec3fArray, mesh_indices: Vt.IntArray = None, mesh_points: Vt.Vec3fArray = None, sim_params: dict = None):
+    src_positions: Vt.Vec3fArray, dep_mesh_indices: Vt.IntArray = None, dep_mesh_points: Vt.Vec3fArray = None, sim_params: dict = None):
     global global_examples
     global_examples[primPath] = Example2()
 
-    for pt in orig_positions:
+    for pt in src_positions:
         global_examples[primPath].builder.add_particle(pt, (5.0, 0.0, 0.0), 0.1)
     global_examples[primPath].model = global_examples[primPath].builder.finalize()
     global_examples[primPath].model.particle_kf = 25.0
@@ -71,7 +71,7 @@ def initialize_sim_particles(primPath: Sdf.Path,
     global_examples[primPath].state_1 = global_examples[primPath].model.state()
     global_examples[primPath].integrator = wp.sim.SemiImplicitIntegrator()
 
-def exec_sim(primPath: Sdf.Path, sim_dt: float, dep_vertices: Vt.Vec3fArray = None, sim_params: dict = None):
+def exec_sim(primPath: Sdf.Path, sim_dt: float, dep_mesh_points: Vt.Vec3fArray = None, sim_params: dict = None):
     # Not respecting sim_dt at all, using internal time
     global global_examples
     global_examples[primPath].update()

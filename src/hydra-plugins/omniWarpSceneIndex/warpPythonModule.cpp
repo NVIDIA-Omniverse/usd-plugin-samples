@@ -39,20 +39,22 @@ OmniWarpPythonModule::~OmniWarpPythonModule()
     TfPyInvokeAndReturn(_moduleName.c_str(), "terminate_sim", &result, _primPath);
 }
 
-void OmniWarpPythonModule::InitMesh(VtIntArray indices, VtVec3fArray vertices, VtDictionary simParams)
+void OmniWarpPythonModule::InitMesh(VtIntArray indices, VtVec3fArray vertices,
+    VtIntArray depIndices, VtVec3fArray depVertices, VtDictionary simParams)
 {
     TfPyLock pyLock;
     boost::python::object result;
-    TfPyInvokeAndReturn(_moduleName.c_str(), "initialize_sim_mesh", &result, _primPath, indices, vertices, simParams);
+    TfPyInvokeAndReturn(_moduleName.c_str(), "initialize_sim_mesh", &result, _primPath, indices, vertices,
+        depIndices, depVertices, simParams);
 }
 
 void OmniWarpPythonModule::InitParticles(
-    VtVec3fArray positions, VtIntArray indices, VtVec3fArray vertices, VtDictionary simParams)
+    VtVec3fArray positions, VtIntArray depIndices, VtVec3fArray depVertices, VtDictionary simParams)
 {
     TfPyLock pyLock;
     boost::python::object result;
     TfPyInvokeAndReturn(_moduleName.c_str(), "initialize_sim_particles", &result,
-        _primPath, positions, indices, vertices, simParams);
+        _primPath, positions, depIndices, depVertices, simParams);
 }
 
 VtVec3fArray OmniWarpPythonModule::ExecSim(VtDictionary simParams)

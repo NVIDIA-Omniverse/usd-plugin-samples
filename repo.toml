@@ -294,12 +294,14 @@ pymodule_cpp_files = [
 pymodule_files = [
     "__init__.py",
     "warpModules/__init__.py",
+    "warpModules/cloth.py",
     "warpModules/deform01.py",
     "warpModules/deform02.py",
-    "warpModules/bunny.py",
-    "warpModules/bunnyParticles.py",
     "warpModules/ocean.py",
-    "warpModules/sim.py"
+    "warpModules/oceanSim/__init__.py",
+    "warpModules/oceanSim/preferences.py",
+    "warpModules/oceanSim/preferencesUI.py",
+    "warpModules/particles.py"
 ]
 resource_files = [
     "plugInfo.json",
