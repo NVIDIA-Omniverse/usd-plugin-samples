@@ -223,7 +223,7 @@ public:
         if (name == HdTokens->points)
         {
             return _PrimvarDataSource::New(
-                _PointsDataSource::New(_schema, _pythonModule, _simParamsDs),
+                _PointsDataSource::New(_schema, _pythonModule, _simParamsDs, _depDs),
                 HdPrimvarSchemaTokens->vertex,
                 HdPrimvarSchemaTokens->point);
         }

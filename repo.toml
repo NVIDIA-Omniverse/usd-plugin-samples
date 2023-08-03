@@ -293,14 +293,14 @@ pymodule_cpp_files = [
 ]
 pymodule_files = [
     "__init__.py",
+    "oceanSim/__init__.py",
+    "oceanSim/preferences.py",
+    "oceanSim/preferencesUI.py",
     "warpModules/__init__.py",
     "warpModules/cloth.py",
     "warpModules/deform01.py",
     "warpModules/deform02.py",
     "warpModules/ocean.py",
-    "warpModules/oceanSim/__init__.py",
-    "warpModules/oceanSim/preferences.py",
-    "warpModules/oceanSim/preferencesUI.py",
     "warpModules/particles.py"
 ]
 resource_files = [
