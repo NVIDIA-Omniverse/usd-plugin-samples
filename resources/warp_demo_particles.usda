@@ -5,6 +5,7 @@
     startTimeCode = 0
     timeCodesPerSecond = 300
     upAxis = "Y"
+    framesPerSecond = 120.0
 )
 
 def Xform "root"
