@@ -25,7 +25,6 @@ if [ ! -d _venv ]; then
     $PWD/_build/usd-deps/python/python.exe -m venv _venv
     source $PWD/_venv/Scripts/activate
     pip install PySide2
-    pip install PySide6
     pip install PyOpenGL
     pip install warp-lang
 else
