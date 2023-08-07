@@ -35,8 +35,55 @@
 
 PXR_NAMESPACE_OPEN_SCOPE
 
-VtDictionary GetSimulationParams(HdContainerDataSourceHandle ds);
-UsdImagingStageSceneIndexRefPtr FindUsdImagingSceneIndex(const std::vector<HdSceneIndexBaseRefPtr>&);
+
+static VtDictionary
+GetSimulationParams(HdContainerDataSourceHandle ds)
+{
+    VtDictionary vtSimParams;
+    auto warpContainer = HdContainerDataSource::Cast(ds->Get(OmniWarpComputationSchemaTokens->warpComputation));
+    if (warpContainer)
+    {
+        TfTokenVector names = warpContainer->GetNames();
+        if (std::find(names.begin(), names.end(), OmniWarpComputationSchemaTokens->simulationParams) != names.end())
+        {
+            OmniWarpComputationSchema warpSchema = OmniWarpComputationSchema::GetFromParent(ds);
+            if (warpSchema)
+            {
+                VtValue metaData = warpSchema.GetSimulationParams()->GetValue(0);
+                if (metaData.IsHolding<VtDictionary>())
+                {
+                    vtSimParams = metaData.UncheckedGet<VtDictionary>();
+                }
+            }
+        }
+    }
+    return vtSimParams;
+}
+
+static UsdImagingStageSceneIndexRefPtr
+FindUsdImagingSceneIndex(const std::vector<HdSceneIndexBaseRefPtr>& inputScenes)
+{
+    TfRefPtr<UsdImagingStageSceneIndex> retVal;
+
+    for (size_t i = 0; i < inputScenes.size(); i++)
+    {
+        HdSceneIndexBaseRefPtr const &sceneIdx = inputScenes[i];
+        if (UsdImagingStageSceneIndexRefPtr const imagingSI = TfDynamic_cast<UsdImagingStageSceneIndexRefPtr>(sceneIdx))
+        {
+            retVal = imagingSI;
+            break;
+        }
+        if (HdFilteringSceneIndexBaseRefPtr const filteringSi = TfDynamic_cast<HdFilteringSceneIndexBaseRefPtr>(sceneIdx))
+        {
+            retVal = FindUsdImagingSceneIndex(filteringSi->GetInputScenes());
+            if (retVal)
+            {
+                break;
+            }
+        }
+    }
+    return retVal;
+}
 
 OmniWarpSceneIndexRefPtr
 OmniWarpSceneIndex::New(
@@ -732,55 +779,6 @@ OmniWarpSceneIndex::GetDependentMeshData(OmniWarpComputationSchema warpSchema, V
             outIndices = faceIndicesDs->GetTypedValue(0.f);
         }
     }
-}
-
-static VtDictionary
-GetSimulationParams(HdContainerDataSourceHandle ds)
-{
-    VtDictionary vtSimParams;
-    auto warpContainer = HdContainerDataSource::Cast(ds->Get(OmniWarpComputationSchemaTokens->warpComputation));
-    if (warpContainer)
-    {
-        TfTokenVector names = warpContainer->GetNames();
-        if (std::find(names.begin(), names.end(), OmniWarpComputationSchemaTokens->simulationParams) != names.end())
-        {
-            OmniWarpComputationSchema warpSchema = OmniWarpComputationSchema::GetFromParent(ds);
-            if (warpSchema)
-            {
-                VtValue metaData = warpSchema.GetSimulationParams()->GetValue(0);
-                if (metaData.IsHolding<VtDictionary>())
-                {
-                    vtSimParams = metaData.UncheckedGet<VtDictionary>();
-                }
-            }
-        }
-    }
-    return vtSimParams;
-}
-
-static UsdImagingStageSceneIndexRefPtr
-FindUsdImagingSceneIndex(const std::vector<HdSceneIndexBaseRefPtr>& inputScenes)
-{
-    TfRefPtr<UsdImagingStageSceneIndex> retVal;
-
-    for (size_t i = 0; i < inputScenes.size(); i++)
-    {
-        HdSceneIndexBaseRefPtr const &sceneIdx = inputScenes[i];
-        if (UsdImagingStageSceneIndexRefPtr const imagingSI = TfDynamic_cast<UsdImagingStageSceneIndexRefPtr>(sceneIdx))
-        {
-            retVal = imagingSI;
-            break;
-        }
-        if (HdFilteringSceneIndexBaseRefPtr const filteringSi = TfDynamic_cast<HdFilteringSceneIndexBaseRefPtr>(sceneIdx))
-        {
-            retVal = FindUsdImagingSceneIndex(filteringSi->GetInputScenes());
-            if (retVal)
-            {
-                break;
-            }
-        }
-    }
-    return retVal;
 }
 
 PXR_NAMESPACE_CLOSE_SCOPE
