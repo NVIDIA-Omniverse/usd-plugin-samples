@@ -285,3 +285,123 @@ Finally, this proof of concept made some assumptions that require further discus
 - The author had not inserted scale correctives of their own.  A dynamic resolution system that resolves metric divergences can never know whether a hand corrected scale was authored in the layer stack.  The best that could be done would be to agree on some sort of naming convention for the corrective and, if present as a independent `xformOp` attribute in the strongest opinion, would cause the Hydra layer to not perform a second corrective when it resolved the value
 - What should happen in the case where multiple attributes are considered?  Take a `UsdGeomPlane` for example, with `width` and `height` attributes - this proof of concept would reconcile each of these attributes differently via a (potentially) non-uniform scale determined by different layer target sites for the strongest opinions of these properties.  This case also illustrates that some correctives are not straightforward, and in this case, may rely on other attributes (`axis`) that aren't directly affected by the corrective; this makes it difficult to rely solely on a declarative system for resolution.
 - Correctives were only applied to scale.  Other correctives might be necessary in other instances, i.e., layer divergence in `upAxis` which would require a rotation corrective.
+
+# Adding Scene Dynamics to Hydra via NVIDIA Warp
+
+In this proof of concept, we demonstrate the application of warp modules to prims of interest to imbue them with dynamics that can be executed as the scene is played via `usdview`.  This uses a combination of a new applied API schema holding information about the simulation to execute, a scene index to coordinate the initialization, execution, and termination of the simulation, and NVIDIA's Warp capabilities to write simulation code in Python.  Several examples are provided to try out including:
+
+- Mesh deformation
+- Cloth dynamics
+- Particles
+- Ocean surface modulation
+
+## Selecting Prims Affected by Dynamics
+
+In this proof of concept, a custom applied API schema was created such that when it is applied to a prim, that prim becomes the target of dynamics implemented via a warp function at each time step.  The applied API schema `OmniWarpComputationAPI` models a set of properties that allow the user to specify:
+
+- The source warp file that will be used at runtime to execute the dynamics for the prim it is applied to
+- A relationship to a dependent prim containing information relevant for the dynamics to execute
+
+To apply warp-based dynamics to a prim in the scene, the user would apply the `OmniWarpComputationAPI` applied API schema to the prim and designate the warp file and (if necessary) the dependent prim on which to pull additional data from.  This information is read later by the Hydra 2 plug-in components to set up the hydra scene property to execute the dynamics.
+
+This proof of concept provides support for attaching a warp simulation to either a `Mesh` or `PointInstancer`.  The warp file must follow a specific layout in order to work within this proof of concept.  For a mesh, the following method must be implemented:
+
+```
+def initialize_sim_mesh(primPath: Sdf.Path, src_indices: Vt.IntArray, src_points: Vt.Vec3fArray,
+    dep_mesh_indices: Vt.IntArray = None, dep_mesh_points: Vt.Vec3fArray = None, sim_params: dict = None):
+    """
+    Initializes the simulation and associated mesh by providing the points, indicies, and dependency mesh information
+    from the source prim the applied API schema is attached to.
+
+    Args:
+        primPath: A SdfPath object denoting the path of the prim the applied API schema is attached to.
+        src_indices: An IntArray object containing the indices of the mesh object.
+        src_points: A Vec3fArray object containing the vertices of the mesh object.
+        dep_mesh_indices: An IntArray object containing the indices of the mesh marked as a dependency
+          on the applied API schema.  If the mesh has no dependency, this value should be None.
+        dep_mesh_points: A Vec3fArray object containing the vertices of the mesh marked as a depedency
+          on the applied API schema.  If the mesh has no dependency, this value should be None.
+        sim_params: A dictionary where each key represents the name of a simulation parameter and the value
+          represents the value that should be applied for that parameter.  If the simulation has no
+          parameters this value should be None.
+    """
+```
+
+For a point instancer, the following method must be implemented:
+
+```
+def initialize_sim_particles(primPath: Sdf.Path,
+    src_positions: Vt.Vec3fArray, dep_mesh_indices: Vt.IntArray = None, dep_mesh_points: Vt.Vec3fArray = None, sim_params: dict = None):
+    """
+    Initializes the simulation and associated set of points for the prim at the given path for which the
+    applied API schema was attached.
+
+    Args:
+        primPath: A SdfPath object denoting the path of a prim for which the applied API schema was attached.
+        src_positions: A Vec3fArray of point positions representing the particle points of a point instancer.
+        dep_mesh_indices: An IntArray object containing the indices of the mesh marked as a dependency
+          on the applied API schema.  If the mesh has no dependency, this value should be None.
+        dep_mesh_points: A Vec3fArray object containing the vertices of the mesh marked as a depedency
+          on the applied API schema.  If the mesh has no dependency, this value should be None.
+        sim_params: A dictionary where each key represents the name of a simulation parameter and the value
+          represents the value that should be applied for that parameter.  If the simulation has no
+          parameters this value should be None.
+    """
+```
+
+For both types of objects, the warp file must also implement the following methods:
+
+```
+def exec_sim(primPath: Sdf.Path, sim_dt: float, dep_mesh_points: Vt.Vec3fArray = None, sim_params: dict = None):
+    """
+    Executes the simulation assigned to the prim at the given path.
+
+    Args:
+        primPath: A SdfPath object denoting the path of a prim for which the applied API schema was attached
+          and for which the `initialize_sim_mesh` or `initialize_sim_particles` method had been previously invoked.
+        sim_dt: The time delta between the last simulation step and now.
+        dep_mesh_points: A Vec3fArray containing the vertices of the mesh marked as a dependency for this
+          simulation.
+        sim_params: A dictionary where each key represents the name of a simulation parameter and the value
+          represents the value that should be applied for that parameter.  If the simulation has no parameters
+          this value should be None.
+    """
+
+def terminate_sim(primPath: Sdf.Path):
+    """
+    Terminates the simulation for the prim at the provided path.
+
+    Args:
+        primPath: A SdfPath object denoting the path of a prim the applied API schema is attached to
+          and which had previously been initialized via a call to `initialize_sim_mesh` or `initialize_sim_particles`.
+    """
+```
+
+
+If the warp simulation contains parameters, these can be specified as metadata on the `warp:sourceFile` attribute of the applied API schema.  These act as default parameter values for the simulation.
+
+The provided hydra adapter with this sample is a straightforward mapping of the properties present on the applied API schema to the relevant set of hydra 2 data sources containing this data for the hydra scene index prim.  Note that hydra 2 data sources are only added for the properties if they contain a valid value.  That is, if the value of the `warp:dependentPrims` property of the applied API schema does not specify a value, no data source will be added.  Similarly, if no simulation parameters are specified in metadata, no data source holding these parameters will be added to the hydra scene index prim.
+
+## Executing Dynamics via a Scene Index Plug-in
+
+The `OmniWarpSceneIndex` plug-in is responsible for filtering out prims with the warp data sources associated with them, setting up the simulation, executing the simulation, and tearing down the simulation.  It operates in three phases:
+
+- Initialization: Executed when a prim with the warp hydra data sources are added to the scene
+- Executtion: Execution of the warp simulation at each time step
+- Termination: Executed when a prim with the warp hydra data sources are removed from the scene
+
+### Initialization
+
+When a prim is added to the hydra scene, the scene index observes this via the `_PrimsAdded` method.  If the hydra prim is a mesh or a point instancer, and if it has the data sources representing the appropriate source data (i.e., mesh topology, warp computation API, etc.) the scene index will create a new `OmniWarpPythonModule` object representing the loaded warp python module and invoke either the `initialize_sim_mesh` or `initialize_sim_particles` depending on whether the source prim is a mesh or a point instancer.  It will hold this initialized module in a cache indexed by the path of the prim such that when execution occurs, it can pull the module from the cache to invoke execution. 
+
+### Execution
+
+During execution (i.e. when the user presses the `Play` button), the render delegate is constantly querying the scene index for the hydra prims.  When the `OmniWarpSceneIndex` recevies a call to `GetPrim`, it checks whether the associated hydra prim is of a type of interest (mesh or point instancer) and whether it has attached to it the data source created by the `OmniWarpComputationAPIAdapter` object encapsulating the information from the applied API schema.  IF it is a prim of interest, it creates a new data source encapsulating the python module that was created during the initialization step and sends that back.
+
+For a mesh, the data source will wrap the standard data source meant to return the data for the locator `HdTokens->points`.  Instead of returning the original mesh points, the data source will execute a time step of the warp simulation to retrieve the modified point positions based on the result of the simulation and return those points instead of the original ones.  For a point instancer, the data source will wrap the standard data source to return the data for the locator `HdInstancerTokens->translate` and execute the associated simulation in the same way.
+
+One challenge lies in how to get the current simulation time.  In this proof of concept, when the python module is initialized when the prim is added, the scene index chain is walked until the `UsdImagingStageSceneIndex` scene index is found, representing the base scene index of the scene.  From this object, the warp python module wrapper is able to retrieve the current time and send this to the warp simulation as the time delta.  This is possible because the stage time is updated as the sequence is played in `usdview`.  Note that this creates larger time steps as the simulation drifts from the start time - that is, the simulation is not calculated based on the time between state(i-1) and state(i), but rather on the time between state(0) and state(i).  Further work would need to be done to cache intermediate states such that large time deltas do not cause simulation issues.
+
+### Termination
+
+When a prim is removed from the hydra scene, the scene index observes this via the `_PrimsRemoved` method.  If the hydra prim had a warp module created for it, it is during this time that the module and its associated resources are released.  During warp module destruction, the warp module wrapper will invoke `terminate_sim` on the warp module prior to it being destroyed.
