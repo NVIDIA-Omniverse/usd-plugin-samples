@@ -38,6 +38,20 @@
             "ResourcePath": "@PLUG_INFO_RESOURCE_PATH@", 
             "Root": "@PLUG_INFO_ROOT@", 
             "Type": "library"
+        }, 
+        {
+            "Info": {
+                "Types": {
+                    "OmniWarpSceneIndex.oceanSim.OceanSimPluginContainer": {
+                        "bases": [
+                            "pxr.Usdviewq.plugin.PluginContainer"
+                        ], 
+                        "displayName": "Ocean Simulator Plugin"
+                    }
+                }
+            }, 
+            "Name": "OmniWarpSceneIndex.oceanSim", 
+            "Type": "python"
         }
     ]
 }

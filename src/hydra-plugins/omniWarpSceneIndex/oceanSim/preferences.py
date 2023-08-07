@@ -23,7 +23,7 @@
 #
 
 from pxr.Usdviewq.qt import QtCore, QtGui, QtWidgets
-from pxr.WarpSceneIndexPlugin.preferencesUI import Ui_Preferences
+from .preferencesUI import Ui_Preferences
 
 class Preferences(QtWidgets.QDialog):
     def __init__(self, parent, attr):
