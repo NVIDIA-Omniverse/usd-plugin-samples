@@ -20,7 +20,7 @@
 
 #include "geospatialSceneIndex.h"
 #include "referencePositionSchema.h"
-#include "localpositionSchema.h"
+#include "localPositionSchema.h"
 #include "geospatialDataSource.h"
 
 PXR_NAMESPACE_OPEN_SCOPE
