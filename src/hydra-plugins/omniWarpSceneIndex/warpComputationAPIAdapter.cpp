@@ -83,14 +83,14 @@ public:
     }
 
     VtValue
-    DependentPrimsDataSource::GetValue(
+    GetValue(
             HdSampledDataSource::Time shutterOffset)
     {
         return VtValue(GetTypedValue(shutterOffset));
     }
 
     VtArray<SdfPath>
-    DependentPrimsDataSource::GetTypedValue(
+    GetTypedValue(
             HdSampledDataSource::Time shutterOffset)
     {
         SdfPathVector paths;
@@ -100,7 +100,7 @@ public:
     }
 
     bool
-    DependentPrimsDataSource::GetContributingSampleTimesForInterval(
+    GetContributingSampleTimesForInterval(
             HdSampledDataSource::Time startTime,
             HdSampledDataSource::Time endTime,
             std::vector<HdSampledDataSource::Time> *outSampleTimes)
