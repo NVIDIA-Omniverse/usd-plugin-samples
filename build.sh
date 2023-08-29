@@ -121,7 +121,7 @@ then
     # generate the schema code and plug-in information
     # NOTE: this will pull the NVIDIA repo_usd package to do this work
     export CONFIG=$CONFIG
-    $CWD/tools/packman/python.sh bootstrap.py usd
+    $CWD/tools/packman/python.sh bootstrap.py usd --configuration $CONFIG
 fi
 
 # do we need to build?
@@ -140,7 +140,7 @@ fi
 # do we need to configure? This will configure the plugInfo.json files
 if [[ "$CONFIGURE" == "true" ]]
 then
-    $CWD/tools/packman/python.sh bootstrap.py usd --configure-pluginfo
+    $CWD/tools/packman/python.sh bootstrap.py usd --configure-pluginfo --configuration $CONFIG
 fi
 
 # do we need to stage?
