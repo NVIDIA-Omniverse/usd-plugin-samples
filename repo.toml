@@ -143,7 +143,7 @@ additional_static_libs = [
 ]
 additional_library_dirs = [
     "../../../../_install/%{platform}/%{config}/edfFileFormat/lib",
-    "../../../../_build/target-deps/libcurl/lib/release",
+    "../../../../_build/target-deps/libcurl/lib",
     "../../../../_build/target-deps/zlib/lib",
     "../../../../_build/target-deps/openssl/lib"
 ]
@@ -160,7 +160,7 @@ additional_static_libs = [
 ]
 additional_library_dirs = [
     "../../../../_install/%{platform}/%{config}/edfFileFormat/lib",
-    "../../../../_build/target-deps/libcurl/lib/release",
+    "../../../../_build/target-deps/libcurl/lib",
     "../../../../_build/target-deps/zlib/lib",
     "../../../../_build/target-deps/openssl/lib"
 ]
