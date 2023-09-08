@@ -1,0 +1,12 @@
+#usda 1.0
+(
+    metersPerUnit = 0.5
+)
+
+def Sphere "Sphere" (
+)
+{
+    double radius = 1.0
+    float3 xformOp:scale = (1, 1, 1)
+    uniform token[] xformOpOrder = ["xformOp:scale"]
+}

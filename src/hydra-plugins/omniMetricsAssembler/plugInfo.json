@@ -1,0 +1,26 @@
+{
+    "Plugins": [
+        {
+            "Info": {
+                "Types": {
+                    "OmniMetricsSceneIndexPlugin" : {
+                        "bases": ["HdSceneIndexPlugin"],
+                        "loadWithRenderer": "",
+                        "priority": 0,
+                        "displayName": "Omniverse Metrics Assembler Scene Index"
+                    },
+                    "OmniMetricsAssemblerAdapter" : {
+                        "bases": ["UsdImagingAPISchemaAdapter"],
+                        "isInternal": true,
+                        "apiSchemaName": ""
+                    }
+                }
+            },
+            "LibraryPath": "@PLUG_INFO_LIBRARY_PATH@",
+            "Name": "omniMetricsAssembler",
+            "ResourcePath": "@PLUG_INFO_RESOURCE_PATH@",
+            "Root": "@PLUG_INFO_ROOT@",
+            "Type": "library"
+        }
+    ]
+}

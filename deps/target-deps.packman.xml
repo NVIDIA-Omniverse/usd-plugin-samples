@@ -1,11 +1,14 @@
 <project toolsVersion="5.6">
   <dependency name="libcurl" linkPath="../_build/target-deps/libcurl">
-    <package name="libcurl" version="7.80.0+nv1-${platform}"/>
+    <package name="libcurl" version="8.1.2-3-${platform}-static-release"/>
   </dependency>
   <dependency name="zlib" linkPath="../_build/target-deps/zlib">
     <package name="zlib" version="1.2.13+nv1-${platform}" />
   </dependency>
   <dependency name="openssl" linkPath="../_build/target-deps/openssl">
-    <package name="openssl" version="1.1.1m+nv1-${platform}" />
+    <package name="openssl" version="3.0.10-3-${platform}-static-release" />
+  </dependency>
+  <dependency name="omni-geospatial" linkPath="../_build/target-deps/omni-geospatial">
+    <package name="omni-geospatial" version="2.0.3-pxr_23_05+mr17.384.337fb43b.tc.${platform}.${config}" />
   </dependency>
 </project>
