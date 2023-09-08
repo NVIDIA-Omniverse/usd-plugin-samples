@@ -1,0 +1,31 @@
+{
+    "Plugins": [
+        {
+            "Info": {
+                "Types": {
+                    "OmniGeospatialSceneIndexPlugin" : {
+                        "bases": ["HdSceneIndexPlugin"],
+                        "loadWithRenderer": "",
+                        "priority": 0,
+                        "displayName": "Omniverse Geospatial Scene Index"
+                    },
+                    "OmniGeospatialWGS84ReferencePositionAPIAdapter" : {
+                        "bases": ["UsdImagingAPISchemaAdapter"],
+                        "isInternal": true,
+                        "apiSchemaName": "OmniWGS84ReferencePositionAPI"
+                    },
+                    "OmniGeospatialWGS84LocalPositionAPIAdapter" : {
+                        "bases": ["UsdImagingAPISchemaAdapter"],
+                        "isInternal": true,
+                        "apiSchemaName": "OmniWGS84LocalPositionAPI"
+                    }
+                }
+            },
+            "LibraryPath": "@PLUG_INFO_LIBRARY_PATH@",
+            "Name": "omniGeospatialSceneIndex",
+            "ResourcePath": "@PLUG_INFO_RESOURCE_PATH@",
+            "Root": "@PLUG_INFO_ROOT@",
+            "Type": "library"
+        }
+    ]
+}

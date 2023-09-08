@@ -44,3 +44,19 @@ PACKAGE-DEPS.yaml
 src/usd-plugins/schema/omniExampleSchema/generated
 src/usd-plugins/schema/omniExampleCodelessSchema/generated
 src/usd-plugins/schema/omniMetSchema/generated
+
+# generated files for hydra-plugins/omniWarpSceneIndex
+src/hydra-plugins/omniWarpSceneIndex/__init__.py
+src/hydra-plugins/omniWarpSceneIndex/api.h
+src/hydra-plugins/omniWarpSceneIndex/generatedSchema.usda
+src/hydra-plugins/omniWarpSceneIndex/module.cpp
+src/hydra-plugins/omniWarpSceneIndex/moduleDeps.cpp
+src/hydra-plugins/omniWarpSceneIndex/tokens.cpp
+src/hydra-plugins/omniWarpSceneIndex/tokens.h
+src/hydra-plugins/omniWarpSceneIndex/warpComputationAPI.cpp
+src/hydra-plugins/omniWarpSceneIndex/warpComputationAPI.h
+src/hydra-plugins/omniWarpSceneIndex/wrapWarpComputationAPI.cpp
+src/hydra-plugins/omniWarpSceneIndex/wrapTokens.cpp
+
+# all generated CMakeLists.txt files
+**/CMakeLists.txt

@@ -1,0 +1,38 @@
+#usda 1.0
+(
+    """ This file contains an example schemata for code generation using
+        usdGenSchema.
+    """
+    subLayers = [
+        @usd/schema.usda@
+    ]
+) 
+
+over "GLOBAL" (
+    customData = {
+        string libraryName       = "omniWarpSceneIndex"
+        string libraryPath       = "./"
+    }
+) {
+}
+
+class "OmniWarpComputationAPI" (
+    inherits = </APISchemaBase>
+    customData = {
+        string className = "WarpComputationAPI"
+    }
+)
+{
+    string warp:sourceFile (
+        customData = {
+            string apiName = "sourceFile"
+        }
+        doc = "Full path to the python source file containing warp execution"
+    )
+    rel warp:dependentPrims (
+        customData = {
+            string apiName = "dependentPrims"
+        }
+        doc = "Computation is dependendent on the current position of this mesh"
+    )
+}

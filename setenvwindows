@@ -26,10 +26,12 @@ if [ ! -d _venv ]; then
     source $PWD/_venv/Scripts/activate
     pip install PySide2
     pip install PyOpenGL
+    pip install warp-lang
 else
     source $PWD/_venv/Scripts/activate
 fi
 
-export PYTHONPATH=$PWD/_build/usd-deps/nv-usd/$CONFIG/lib/python
-export PATH=$PATH:$PWD/_build/usd-deps/python:$PWD/_build/usd-deps/nv-usd/$CONFIG/bin:$PWD/_build/usd-deps/nv-usd/$CONFIG/lib:$PWD/_build/target-deps/zlib/lib/rt_dynamic/release:$PWD/_install/windows-x86_64/$CONFIG/edfFileFormat/lib:$PWD/_install/windows-x86_64/$CONFIG/omniMetProvider/lib
-export PXR_PLUGINPATH_NAME=$PWD/_install/windows-x86_64/$CONFIG/omniMetSchema/resources:$PWD/_install/windows-x86_64/$CONFIG/edfFileFormat/resources:$PWD/_install/windows-x86_64/$CONFIG/omniMetProvider/resources
+export PYTHONPATH=$PWD/_build/usd-deps/nv-usd/$CONFIG/lib/python:$PWD/_build/target-deps/omni-geospatial:$PWD/_install/windows-x86_64/$CONFIG/omniWarpSceneIndex
+export PATH=$PATH:$PWD/_build/usd-deps/python:$PWD/_build/usd-deps/nv-usd/$CONFIG/bin:$PWD/_build/usd-deps/nv-usd/$CONFIG/lib:$PWD/_build/target-deps/zlib/lib/rt_dynamic/release:$PWD/_install/windows-x86_64/$CONFIG/edfFileFormat/lib:$PWD/_install/windows-x86_64/$CONFIG/omniMetProvider/lib:$PWD/_build/target-deps/omni-geospatial/bin:$PWD/_install/windows-x86_64/$CONFIG/omniWarpSceneIndex/lib
+export PXR_PLUGINPATH_NAME=$PWD/_install/windows-x86_64/$CONFIG/omniMetSchema/resources:$PWD/_install/windows-x86_64/$CONFIG/edfFileFormat/resources:$PWD/_install/windows-x86_64/$CONFIG/omniMetProvider/resources:$PWD/_build/target-deps/omni-geospatial/plugins/OmniGeospatial/resources:$PWD/_install/windows-x86_64/$CONFIG/omniGeoSceneIndex/resources:$PWD/_install/windows-x86_64/$CONFIG/omniMetricsAssembler/resources:$PWD/_install/windows-x86_64/$CONFIG/omniWarpSceneIndex/resources
+export USDIMAGINGGL_ENGINE_ENABLE_SCENE_INDEX=true

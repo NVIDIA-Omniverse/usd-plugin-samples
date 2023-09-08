@@ -122,7 +122,7 @@ if "%GENERATE%" == "true" (
     REM generate the schema code and plug-in information
     REM NOTE: this will pull the NVIDIA repo_usd package to do this work
 
-    call "%~dp0tools\packman\python.bat" bootstrap.py usd --configuration=%CONFIG%
+    call "%~dp0tools\packman\python.bat" bootstrap.py usd --configuration %CONFIG%
 
     if !errorlevel! neq 0 ( goto Error )
 )
@@ -145,7 +145,7 @@ if "%BUILD%" == "true" (
 
 REM is this a configure only?  This will configure the plugInfo.json files
 if "%CONFIGURE%" == "true" (
-    call "%~dp0tools\packman\python.bat" bootstrap.py usd --configure-pluginfo --configuration=%CONFIG%
+    call "%~dp0tools\packman\python.bat" bootstrap.py usd --configure-pluginfo --configuration %CONFIG%
 
     if !errorlevel! neq 0 (goto Error)
 )
