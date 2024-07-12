@@ -180,7 +180,7 @@ Note that at least in the case of computed dependent prims, it is important that
 You can verify that the information attached to the Hydra prim is accurate using the scene index browser of `usdview`.  Here you can inspect the Hydra prims in the scene, look at their datasources and verify the values for their attributes.
 
 ![usdview Of Dynamically Resolved Geospatial Data](images/usdview.png)
-![usdview Hydra Scene Browser](resources/images.png)
+![usdview Hydra Scene Browser](images/hydra_scene_browser.png)
 
 In the scene browser, you can see that for the `CurveXform1Geo` prim, which has had the `OmniGeospatialWGS84PositionAPI` applied API schema attached to it, that our geospatial scene index has added container data sources for `positionApi`, `targetFrameApi`, and `geospatialPreservedXform`.  Additionally, the value shown in the `matrix` attribute of the `xform` container data source displays a dynamically resolved value that incorporates the geodetic local position from the geodetic reference point.
 
