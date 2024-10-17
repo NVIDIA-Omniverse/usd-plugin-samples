@@ -40,11 +40,6 @@ _*/
 # PACKAGE-LICENSES/
 PACKAGE-DEPS.yaml
 
-# generated files under usd-plugins/schema
-src/usd-plugins/schema/omniExampleSchema/generated
-src/usd-plugins/schema/omniExampleCodelessSchema/generated
-src/usd-plugins/schema/omniMetSchema/generated
-
 # generated files for hydra-plugins/omniWarpSceneIndex
 src/hydra-plugins/omniWarpSceneIndex/__init__.py
 src/hydra-plugins/omniWarpSceneIndex/api.h
@@ -57,6 +52,3 @@ src/hydra-plugins/omniWarpSceneIndex/warpComputationAPI.cpp
 src/hydra-plugins/omniWarpSceneIndex/warpComputationAPI.h
 src/hydra-plugins/omniWarpSceneIndex/wrapWarpComputationAPI.cpp
 src/hydra-plugins/omniWarpSceneIndex/wrapTokens.cpp
-
-# all generated CMakeLists.txt files
-**/CMakeLists.txt
