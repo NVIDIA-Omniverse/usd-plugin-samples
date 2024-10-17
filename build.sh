@@ -82,7 +82,7 @@ fi
 
 # perform a simple build seqeuence (customize as needed for your environment)
 # pull OpenUSD and python dependencies as well as some helper cmake scripts
-$CWD/tools/packman/python scripts/setup.py --usd-flavor=$USD_FLAVOR --usd-ver=$USD_VER --python-ver=$PYTHON_VER --config=$CONFIG
+$CWD/tools/packman/python.sh scripts/setup.py --usd-flavor=$USD_FLAVOR --usd-ver=$USD_VER --python-ver=$PYTHON_VER --config=$CONFIG
 
 if [[ "$USD_FLAVOR" == "nv-usd" ]]
 then
