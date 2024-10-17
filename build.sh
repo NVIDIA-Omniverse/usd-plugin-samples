@@ -65,7 +65,7 @@ then
     echo "--debug: Performs the steps with a debug configuration instead of release"
     echo "    (default = release)"
     echo "--relwithdebinfo: Performs the steps with a relwithdebinfo configuration instead of release"
-    echo "    (default = release)
+    echo "    (default = release)"
     echo "--help: Display this help message"
     exit $HELP_EXIT_CODE
 fi
