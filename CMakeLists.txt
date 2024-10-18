@@ -5,6 +5,12 @@ cmake_minimum_required(VERSION 3.23.1)
 
 project(usd-plugins CXX)
 
+if (NV_USD)
+    set(CMAKE_CXX_STANDARD 14)
+else()
+    set(CMAKE_CXX_STANDARD 17)
+endif()
+
 # include our packman dependencies
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR})
 include(PackmanDeps)
