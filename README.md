@@ -258,7 +258,7 @@ Once the application and extension are built, it's time to make sure our extensi
 ./repo.sh launch -d (Linux)
 ```
 
-Open the extension manager, find the extension you created, and enable it.  Open the extension's properties and select the `Autoload` box at the top.  Then close and restart your `kit` application.  Once restarted, the schemas should be loaded inside of `kit`.  To test this, you can open up the scripting window and use the following script:
+Open the extension manager, find the extension you created, and enable it.  Open the extension's properties and select the `Autoload` box at the top.  Then close and restart your `kit` application.  (Alternatively, you can add your extension to the `[dependencies]`section of the `app` configuration.  Once restarted, the schemas should be loaded inside of `kit`.  To test this, you can open up the scripting window and use the following script:
 
 ```
 import OmniExampleSchema
