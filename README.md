@@ -170,6 +170,113 @@ If you would like to integrate your own build of OpenUSD and Python, you must:
 - Edit the value of `PXR_OPENUSD_PYTHON_DIR` in `PackmanDeps.cmake` to point to the directory hosting the Python installation you want to use
 - Edit the line in `PackmanDeps.cmake` that appends to the `CMAKE_PREFIX_PATH` - the value should point to your local OpenUSD build.  Editing this will direct `cmake` to look for `pxrConfig.cmake` in your local directory rather than the directory of the pulled OpenUSD package from NVIDIA.
 
+### Using your Built Schemas in Kit 106
+
+If you would like to use the example schemas here inside of `kit 106.x` (or use the examples to build your own schemas and use those in `kit`), you must:
+
+- Clone the `kit-app-template` from https://github.com/NVIDIA-Omniverse/kit-app-template
+- Follow the instructions to create a sample extension and a sample app in which that extension can be hosted
+
+Once you have an extension created, it's time to host the built schemas in that extension.  The easiest way to do this is to source link in the built schemas from this repo into the `target-deps` directory of your app template.  This can be done by creating a `usd-plugins.packman.xml` file in the `tools/deps` folder of your app template and placing the following content in:
+
+```
+<project toolsVersion="5.0">
+  <dependency name="usd_plugins" linkPath="../../_build/target-deps/usd_plugins" tags="${config} non-redist">
+    <source path="../../../../github_updates/usd-plugin-samples/_install" />
+  </dependency>
+</project>
+```
+
+This tells `packman` to create a symbolic link at `_build/target-deps/usd_plugins` at the root of the `kit-app-template` folder that links to the `_install` directory of this repo (replace the relative source path as needed for your setup as well as the target install folder if you changed `CMAKE_INSTALL_PREFIX`).  We also need to tell `kit` to make sure this file is processed when processing the other `packman` files.  To do this, open the `repo.toml` file at the root of your `kit-app-template` and add the following under the `repo_build` section:
+
+```
+fetch.packman_target_files_to_pull = [
+    "${root}/tools/deps/host-deps.packman.xml",
+    "${root}/tools/deps/kit-sdk.packman.xml",
+    "${root}/tools/deps/kit-sdk-deps.packman.xml",
+    "${root}/tools/deps/usd-plugins.packman.xml"
+]
+```
+
+We then need to copy the output of our `_install` folder into the `kit` extension directory.  We can do this by opening up the `premake5.lua` file for our extension and adding the following:
+
+```
+-- Copy in the schema output libraries and resources
+repo_build.prebuild_copy
+{
+    { target_deps.."/usd_plugins/**", ext.target_dir }
+}
+```
+
+Since we source linked in our `_install` directory to `_build/target-deps/usd_plugins`, this copy command copies all of that content into the extension's build target directory.
+
+Next, we have to modify the `extension.toml` file of our sample extension so that it loads the schema libraries.  To do that, add the following at the top:
+
+```
+[core]
+# Load at the start, load all schemas with order -100 (with order -1000 the USD libs are loaded)
+order = -100
+```
+
+This ensures the extension, when set to load with the application,  will load early, which is necessary to make sure our schema libraries are loaded by OpenUSD prior to the `UsdSchemaRegistry` being created.  Next, we add the native libraries to load and the python module for the codeful schema:
+
+```
+[[native.library]]
+"filter:platform"."linux-x86_64"."path" = "lib/${lib_prefix}omniExampleSchema${lib_ext}"
+"filter:platform"."windows-x86_64"."path" = "bin/${lib_prefix}omniExampleSchema${lib_ext}"
+
+[[python.module]]
+name = "OmniExampleSchema"
+```
+
+Finally, we add a dependency to `omni.usd.libs`, which is the extension in `kit` that hosts the OpenUSD libraries:
+
+```
+[dependencies]
+"omni.usd.libs" = {}
+```
+
+Now we need to make sure the schemas are registered as plug-ins with OpenUSD.  To do this, we will perform explicit registration via the `__init__.py` file parallel to your `extension.py` file in your `kit` extension by adding the following content:
+
+```
+from pxr import Plug
+
+pluginsRoot = os.path.join(os.path.dirname(__file__), '../../plugins')
+omniExampleSchemaPath = os.path.join(pluginsRoot, "omniExampleSchema", "resources")
+omniExampleCodelessSchemaPath = os.path.join(pluginsRoot, "omniExampleCodelessSchema", "resources")
+
+Plug.Registry().RegisterPlugins(omniExampleSchemaPath)
+Plug.Registry().RegisterPlugins(omniExampleCodelessSchemaPath)
+```
+
+Now build your extension and app using the `kit-app-template` instructions (usually `.\repo.bat build` or `./repo.sh build`).
+
+Once the application and extension are built, it's time to make sure our extension gets autoloaded into the application.  This is necessary because plug-ins need to be registered with OpenUSD as early as possible to ensure the relevant singleton manager picks them up.  Launch your application with developer extensions enabled:
+
+```
+.\repo.bat launch -d (Windows)
+./repo.sh launch -d (Linux)
+```
+
+Open the extension manager, find the extension you created, and enable it.  Open the extension's properties and select the `Autoload` box at the top.  Then close and restart your `kit` application.  Once restarted, the schemas should be loaded inside of `kit`.  To test this, you can open up the scripting window and use the following script:
+
+```
+import OmniExampleSchema
+import omni.usd
+
+from pxr import UsdGeom
+
+# create new mesh prim and apply one of the API schemas to it
+stage = omni.usd.get_context().get_stage()
+prim = UsdGeom.Mesh.Define(stage, "/World/MyMesh")
+OmniExampleSchema.OmniTemperatureDataAPI.Apply(prim.GetPrim())
+
+# now apply the example codeless schema
+prim.GetPrim().ApplyAPI("OmniExampleCodelessOmniSourceFormatMetadataAPI")
+```
+
+To verify that the relevant schema properties have been applied to the prim, select the `/World/MyMesh` prim and examine the `Raw USD` properties in the property window.  If you'd like these properties to show up in their own respective groups, you would need to add a property window extension to achieve that behavior.
+
 ## Contributing
 
 The source code for this repository is provided as-is and we are not accepting outside contributions at this time.
