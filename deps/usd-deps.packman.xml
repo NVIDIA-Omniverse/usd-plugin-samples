@@ -1,8 +1,0 @@
-<project toolsVersion="5.6">
-  <dependency name="nv-usd" linkPath="../_build/usd-deps/nv-usd/${config}">
-    <package name="usd.py310.${platform}.usdview.${config}" version="0.23.05-tc.47+v23.05.b53573ea" />
-  </dependency>
-  <dependency name="python" linkPath="../_build/usd-deps/python">
-    <package name="python" version="3.10.13+nv1-${platform}" />
-  </dependency>
-</project>
