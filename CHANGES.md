@@ -1,5 +1,10 @@
 # Changelog
 
+## 5.0.0
+
+- Build streamlined through cmake and options provided for
+  using NVIDIA prebuilt OpenUSD binaries or your own OpenUSD builds
+
 ## 4.0.0
 
 - Simplified build infrastructure such that standard tooling is used

@@ -35,20 +35,15 @@ _*/
 
 # Visual Studio files
 /.vs
+.vscode
 **/.vscode/ipch
-
-# PACKAGE-LICENSES/
-PACKAGE-DEPS.yaml
-
-# All generated CMakeLists.txt files, other than reference sample schema plugins
-**/CMakeLists.txt
-!src/usd-plugins/schema/**/CMakeLists.txt
-!CMakeLists.txt
 
 # Generated files under usd-plugins/schema
 src/usd-plugins/schema/omniExampleSchema/generated
 src/usd-plugins/schema/omniExampleCodelessSchema/generated
 src/usd-plugins/schema/omniMetSchema/generated
+src/usd-plugins/fileFormat/edfFileFormat/plugInfo.json.configured
+src/usd-plugins/dynamicPayload/omniMetProvider/plugInfo.json.configured
 
 # Generated files for hydra-plugins/omniWarpSceneIndex
 src/hydra-plugins/omniWarpSceneIndex/__init__.py

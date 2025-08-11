@@ -9,6 +9,7 @@ import argparse
 import json
 import os
 import pathlib
+import platform
 import subprocess
 import sys
 
@@ -165,7 +166,7 @@ def generate_module_wrap_statements(plug_info_path: pathlib.Path, library_prefix
             if base_type in type_nodes:
                 # base type is not a known USD type and exists
                 # within the current schema, so set the parent appropriately
-                type_node.parent = type_nodes[base_type]
+                node.parent = type_nodes[base_type]
 
     # now we have a dependency tree, we can process them
     processed = []
@@ -222,9 +223,42 @@ if __name__ == "__main__":
     usd_gen_schema_path = os.path.join(args.usd_root, "bin", "usdGenSchema")
     process_env = os.environ.copy()
     process_env["PYTHONPATH"] = os.path.join(args.usd_root, "lib", "python")
-    process_env["PATH"] = os.path.join(args.usd_root, "lib") + os.pathsep + process_env["PATH"]
-    process_env["PATH"] = os.path.join(args.usd_root, "bin") + os.pathsep + process_env["PATH"]
-    process_env["PATH"] = os.path.join(args.python_root) + os.pathsep + process_env["PATH"]
+    if platform.system() == "Windows":
+        process_env["PATH"] = os.path.join(args.usd_root, "lib") + os.pathsep + process_env["PATH"]
+        process_env["PATH"] = os.path.join(args.usd_root, "bin") + os.pathsep + process_env["PATH"]
+        process_env["PATH"] = os.path.join(args.python_root) + os.pathsep + process_env["PATH"]
+
+        os.add_dll_directory(os.path.join(args.usd_root, "lib"))
+        os.add_dll_directory(os.path.join(args.usd_root, "bin"))
+        os.add_dll_directory(os.path.join(args.python_root))
+    else:
+        current_ld_library_path = process_env.get("LD_LIBRARY_PATH", None)
+        if current_ld_library_path is None:
+            process_env["LD_LIBRARY_PATH"] = os.path.join(args.usd_root, "lib")
+        else:
+            process_env["LD_LIBRARY_PATH"] = os.path.join(args.usd_root, "lib") + os.pathsep + process_env["LD_LIBRARY_PATH"]
+        process_env["LD_LIBRARY_PATH"] = os.path.join(args.usd_root, "bin") + os.pathsep + process_env["LD_LIBRARY_PATH"]
+        process_env["LD_LIBRARY_PATH"] = os.path.join(args.python_root) + os.pathsep + process_env["LD_LIBRARY_PATH"]
+
+    # if TBB isn't vendored with openusd, we need to know the location
+    # so we can add it to the path - right now we rely on an environment variable
+    # TBB_ROOT to do so
+    tbb_root = process_env.get("TBB_ROOT", None)
+    if tbb_root is not None:
+        print(f"  -- TBB_ROOT: {tbb_root}")
+        if platform.system() == "Windows":
+            process_env["PATH"] = os.path.join(tbb_root, "bin") + os.pathsep + process_env["PATH"]
+        else:
+            process_env["LD_LIBRARY_PATH"] = os.path.join(tbb_root, "lib") + os.pathsep + process_env["LD_LIBRARY_PATH"]
+
+    boost_root = process_env.get("BOOST_ROOT", None)
+    if boost_root is not None:
+        print(f"  -- BOOST_ROOT: {boost_root}")
+        if platform.system() == "Windows":
+            process_env["PATH"] = os.path.join(boost_root, "bin") + os.pathsep + process_env["PATH"]
+        else:
+            process_env["LD_LIBRARY_PATH"] = os.path.join(boost_root, "lib") + os.pathsep + process_env["LD_LIBRARY_PATH"]
+
     process_args = [
         sys.executable,
         usd_gen_schema_path,
@@ -235,7 +269,12 @@ if __name__ == "__main__":
     try:
         process = subprocess.run(process_args, check=True, env=process_env, capture_output=True)
     except subprocess.CalledProcessError as e:
-        print(e.output.decode("utf-8"))
+        if e.output is not None:
+            print(e.output.decode("utf-8"))
+
+        if e.stderr is not None:
+            print(e.stderr.decode("utf-8"))
+
         raise e
 
     # parse the output to find out what files were written
@@ -274,8 +313,17 @@ if __name__ == "__main__":
     schema_library_prefix = None
     schema_library_name = None
     is_codeless = "false"
+    looking_for_sub_layers = True
+    sub_layer_content = ""
     with open(args.schema_file, "r") as sf:
         for line in sf:
+            if "subLayers" in line and looking_for_sub_layers:
+                sub_layer_content = sub_layer_content + line
+            if "]" in line and looking_for_sub_layers:
+                sub_layer_content = sub_layer_content + line
+                looking_for_sub_layers = False
+            if looking_for_sub_layers:
+                sub_layer_content = sub_layer_content + line
             if "string libraryName" in line:
                 equal_index = line.find("=")
                 if equal_index != -1:
@@ -296,6 +344,30 @@ if __name__ == "__main__":
 
         schema_library_prefix = schema_library_name[0].upper() + schema_library_name[1:]
 
+    # parse the sublayer content to see if we need to include additional modules
+    dependencies = ["tf", "sdf", "usd"]
+    if sub_layer_content != "":
+        lines = sub_layer_content.splitlines()
+        for line in lines:
+            start_index = line.find("@")
+            while start_index != -1:
+                end_index = line.find("@", start_index + 1)
+                sublayer = line[start_index + 1:end_index]
+                slash_index = sublayer.find("/")
+                if slash_index != -1:
+                    dependencies.append(sublayer[0:slash_index])
+                
+                line = line[end_index+1:]
+                start_index = line.find("@")
+
+    dependency_set = "\"\t\t"
+    for index in range(len(dependencies)):
+        dependency_set = dependency_set + f"TfToken(\\\"{dependencies[index]}\\\")"
+        if index != (len(dependencies) - 1):
+            dependency_set = dependency_set + ",\n\t\t\t\t\t\t"
+
+    dependency_set = dependency_set + "\""
+
     # now generate the information required for the module.cpp file
     # this is a little complicated, because we have to find all TF_WRAP
     # statements that are generated and sort them in base class -> derived class order
@@ -310,4 +382,5 @@ if __name__ == "__main__":
         f.write(f"set(PXR_GENERATED_PYTHON_CPP_FILES {' '.join(python_source_files)})\n")
         f.write(f"set(PXR_GENERATED_PYTHON_FILES {' '.join(python_files)})\n")
         f.write(f"set(PXR_PYTHON_PLUGIN_WRAP_CLASSES {module_wrap_statements})\n")
-        f.write(f"set(PXR_SCHEMA_IS_CODELESS {str(is_codeless).upper()})")
+        f.write(f"set(PXR_SCHEMA_IS_CODELESS {str(is_codeless).upper()})\n")
+        f.write(f"set(PXR_PLUGIN_DEPENDENCIES {dependency_set})")

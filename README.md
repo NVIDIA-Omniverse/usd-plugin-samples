@@ -11,9 +11,11 @@ This repository contains a set of samples that illustrate authoring of different
 
 The sections below introduce these samples with the hope of helping you get started on your OpenUSD plugin journey. Feel free to fork this repository, delete the portions you don't need, and customize the remaining in whatever way suits your OpenUSD environment.
 
-While the repository is set up in such a way that you can quickly get started using pre-created builds of OpenUSD (in this case, either `23.05` or NVIDIA's custom OpenUSD build for `22.11` which is currently used in `kit` 106), the intent is to enable you to "bring your own" OpenUSD builds by specifying where it resides in configuration for the included tooling. This is described in further detail below.
+This repository is set up in such a way that you can either:
+- quickly get started using prebuilt OpenUSD binaries from NVIDIA (22.11)
+- "bring your own" OpenUSD build to build the samples against
 
-This repository contains a set of samples that illustrate authoring of different kinds of plug-ins for USD.  In particular, this repository contains plug-in samples for:
+Details on selecting a version or bringing your own build can be found in << TODO >>.
 
 ## Quick Start
 
@@ -27,11 +29,11 @@ If you want to directly build and try out the samples in `usdview`, you can use 
 <summary>On Linux</summary>
 
 ```bash
-# Builds the release build of the samples into "_install".
+# Builds the release build of the samples into "_install" using prebuilt NVIDIA OpenUSD 22.11 binaries.
 ./build.sh
 
 # Sets up a Python virtual environment (_venv), installs PySide and PyOpenGL, and sets the LD_LIBRARY_PATH/PYTHONPATH
-# to the built sample libraries and the OpenUSD 23.05 distribution, sets the PXR_PLUGINPATH_NAME to include 
+# to the built sample libraries and the OpenUSD 22.11 distribution, sets the PXR_PLUGINPATH_NAME to include 
 # paths to the sample "plugInfo.json" files.
 source setenvlinux
 
@@ -44,22 +46,25 @@ usdview resources/scene.usda --unloaded
 <summary>On Windows</summary>
 
 ```bat
-REM Builds the release build of the samples into "_install".
+REM Builds the release build of the samples into "_install" using prebuilt NVIDIA OpenUSD 22.11 binaries.
 .\build.bat
 
 REM Sets up a Python virtual environment (_venv), installs PySide and PyOpenGL, and sets the PATH/PYTHONPATH
-REM to the built sample libraries and the OpenUSD 23.05 distribution, sets the PXR_PLUGINPATH_NAME to include 
+REM to the built sample libraries and the OpenUSD 22.11 distribution, sets the PXR_PLUGINPATH_NAME to include 
 REM paths to the sample "plugInfo.json" files.
 source setenvwindows
 
 REM Opens usdview on the provided sample scene with a dynamic payload in an unloaded state.
 usdview resources/scene.usda --unloaded
 ```
+
+> If you use `cmd` or Powershell, you can run the `setenvwindows.bat` file to setup the environment.
+
 </details>
 
-### Building Custom Schemas
+### Advanced Build Instructions
 
-For additional notes regarding building custom OpenUSD schemas, and how to package them with NVIDIA Omniverse Extensions, refer to [this guide](./docs/build-instructions.md).
+For additional notes regarding building against different prebuilt NVIDIA OpenUSD binaries or your own OpenUSD build as well as using built schemas with NVIDIA Omniverse Extensions, refer to [this guide](./docs/build-instructions.md).
 
 ## Sample Scenes
 
@@ -91,13 +96,11 @@ Several examples are provided to illustrate the use of NVIDIA's warp in conjunct
 
 The repository is structured as follows:
 ```
-/deps
 /src
 ├─/hydra-plugins
 │ ├─/omniGeoSceneIndex
 │ ├─/omniMetricsAssembler
 │ └─/omniWarpSceneIndex
-├─/kit-extension
 └─/usd-plugins
   ├─/dynamicPayload
   ├─/fileFormat
@@ -112,10 +115,7 @@ setenvwindows.bat
 
 All example source code is kept in the `src` directory, with each sub folder demonstrating a different type of OpenUSD plugin. The remaining files are there to support the build and execution infrastructure necessary to create the plugin libraries. This infrastructure uses an NVIDIA tool called `packman` to pull pre-built packages for use in these samples. These include the following:
 
-- NVIDIA's customized OpenUSD 22.11 build for use in `kit`
-- Stock OpenUSD 23.05 builds
-- Python distributions used to build the above OpenUSD packages (Python 3.10/3.11)
-- A set of build support files for `cmake` for schema generation and plugin building (`nvopenusdbuildtools`)
+- NVIDIA's prebuilt OpenUSD binaries that are used in Omniverse `kit` (and their Python versions)
 - The installation of PyOpenGL, PySide, and warp-lang to a virtual environment to support running the provided examples easily
 
 By convention, all folders starting with `_` are derived artifacts and can be safely deleted when cleaning the repository. In particular, three of these folders are used:
@@ -126,6 +126,7 @@ By convention, all folders starting with `_` are derived artifacts and can be sa
 
 Each set of samples is accompanied by a `README` containing additional information about the relevant part of OpenUSD being explored and how the sample is constructed. These can be found here:
 
+- [General Overview of OpenUSD Plugins](./docs/about-openusd-plugins.md)
 - [Schemas, File Format Plugins, and Dynamic Payloads](./src/usd-plugins/README.md)
 - [Hydra 2 Scene Indices](./src/hydra-plugins/README.md)
 

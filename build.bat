@@ -17,84 +17,34 @@ setlocal enabledelayedexpansion
 
 pushd %~dp0
 
-REM options defining what the script runs
-set HELP=false
-set CLEAN=false
-set USD_FLAVOR=nv-usd
-set USD_VER=22.11
-set PYTHON_VER=3.10
-set CONFIG=release
-set HELP_EXIT_CODE=0
-
-set DIRECTORIES_TO_CLEAN=_install _build
-
-REM default arguments for script
-:parseargs
-if not "%1"=="" (
-    if "%1" == "--clean" (
-        set CLEAN=true
-    )
-    if "%1" == "--debug" (
-        set CONFIG=debug
-    )
-    if "%1" == "--relwithdebinfo" (
-        set CONFIG=relwithdebinfo
-    )
-    if "%1" == "--help" (
-        set HELP=true
-    )
-    shift
-    goto :parseargs
-)
-
-REM requesting how to run the script
-if "%HELP%" == "true" (
-    echo build.bat [--clean] [--usd-flavor] [--usd-ver] [--python-ver][--debug | --relwithdebinfo] [--help]
-    echo --clean: Removes the following directories ^(customize as needed^):
-    for %%a in (%DIRECTORIES_TO_CLEAN%) DO (
-        echo       %%a
-    )
-    echo --usd-flavor: The flavor of OpenUSD to use to build ^(options=[nv-usd, openusd], default=nv-usd^)
-    echo --usd-ver: The version of OpenUSD to use to build ^(options=[22.11, 24.05], default=22.11^)
-    echo --python-ver: The version of Python to use to build ^(options=[3.10, 3.11], default=3.10^)
-    echo   note that the three options above must have an availble configuration to pull down
-    echo --debug: Performs the steps with a debug configuration instead of release
-    echo       ^(default = release^)
-    echo --relwithdebinfo: Performs the steps with a relwithdebinfo configuration instead of release
-    echo       ^(default = release^)
-    echo --help: Display this help message
-    exit %HELP_EXIT_CODE%
-)
-
-REM should we clean the target directory?
-if "%CLEAN%" == "true" (
-    for %%a in (%DIRECTORIES_TO_CLEAN%) DO (
-        if exist "%~dp0%%a/" (
-            rmdir /s /q "%~dp0%%a"
-        )
-    )
-
-    if !errorlevel! neq 0 (goto :Error)
+:: customize this as needed
+:: the _install directory matches what is set for CMAKE_INSTALL_PREFIX
+:: and the _build directory matches what we send to cmake below to store the build files
+if "%~1" == "--clean" (
+    rmdir /s /q _build
+    rmdir /s /q _install
 
     goto :Success
 )
 
-REM perform a simple build sequence (customize as needed for your environment)
+:: configure cmake
+:: this setup uses the NVIDIA prebuilt OpenUSD binaries that match
+:: versions kit was released with as well as the latest OpenUSD release
+:: kit 106 - 22.11
+:: kit 107 - 24.05
+:: kit 108 - 25.02
+:: OpenUSD 25.08
+:: by default, this setup will use OpenUSD 25.02
+:: you can select a different prebuilt binary by passing the version
+:: to the cmake variable NV_OPENUSD_BINARY_VERSION
+:: you may also use your own OpenUSD build by doing the following:
+:: set NV_USE_PREBUILT_OPENUSD_BINARIES to OFF
+:: set PXR_OPENUSD_PYTHON_DIR to the path of your Python build
+:: add the path to your OpenUSD build to CMAKE_PREFIX_PATH
+cmake -B ./_build/cmake -G "Visual Studio 16 2019" -DNV_OPENUSD_BINARY_VERSION=22.11
 
-REM pull OpenUSD and Python dependencies as well as some helper cmake scripts
-call "%~dp0tools\packman\python.bat" scripts\setup.py --usd-flavor=%USD_FLAVOR% --usd-ver=%USD_VER% --python-ver=%PYTHON_VER% --config=%CONFIG%
-if !errorlevel! neq 0 (goto :Error)
-
-REM configure and build using cmake
-if "%USD_FLAVOR%" == "nv-usd" (
-    cmake -B ./_build/cmake -DNV_USD=ON -T v142
-    cmake --build ./_build/cmake --config=%CONFIG% --target=install
-)
-
-if NOT "%USD_FLAVOR%" == "nv-usd" (
-    cmake -B ./_build/cmake -T v142
-    cmake --build ./_build/cmake --config=%CONFIG% --target=install
-)
+:: invoke cmake build
+cmake --build ./_build/cmake --config=Release --target=install
 
 :Success
 exit /b 0

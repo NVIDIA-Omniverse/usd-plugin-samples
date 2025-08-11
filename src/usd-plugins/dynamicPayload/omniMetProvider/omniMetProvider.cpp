@@ -516,7 +516,7 @@ void OmniMetProvider::_ParseObject(const std::string& objectData, const std::str
     }
     else
     {
-        TF_CODING_ERROR("Data returned '%s' was not JSON or was empty!", objectData.c_str());
+        TF_WARN("Data returned '%s' was not JSON or was empty!", objectData.c_str());
     }
 }
 

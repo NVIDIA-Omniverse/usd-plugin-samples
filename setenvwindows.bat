@@ -8,30 +8,30 @@
 
 @echo off
 
-set CONFIG=release
-
-:parseargs
-if not "%1" == "" (
-    if "%1" == "debug" (
-        set CONFIG=debug
-    )
-    shift
-    goto parseargs
-)
-
-echo Setting environment for %CONFIG% configuration...
-
+:: if we are using NVIDIA pre-built binaries, use the prebuilt
+:: python to create a virtual environment we can install dependencies
+:: to - otherwise it's the devs responsibility to set it up
 if not exist %~dp0_venv (
-    %~dp0_build\usd-deps\python\python.exe -m venv %~dp0_venv
-    call "%~dp0_venv\Scripts\activate.bat"
-    pip install PySide2
-    pip install PyOpenGL
-    pip install warp-lang
+    if exist %~dp0_build\usd-deps\python (
+        %~dp0_build\usd-deps\python\python.exe -m venv %~dp0_venv
+        call "%~dp0_venv\Scripts\activate.bat"
+        pip install PySide2
+        pip install PyOpenGL
+        pip install warp-lang
+    )
 ) else (
     call "%~dp0_venv\Scripts\activate.bat"
 )
 
-set PYTHONPATH=%~dp0_build\usd-deps\nv-usd\%CONFIG%\lib\python;%~dp0_build\target-deps\omni-geospatial;%~dp0_install\windows-x86_64\%CONFIG%\omniWarpSceneIndex
-set PATH=%PATH%;%~dp0_build\usd-deps\python;%~dp0_build\usd-deps\nv-usd\%CONFIG%\bin;%~dp0_build\usd-deps\nv-usd\%CONFIG%\lib;%~dp0_build\target-deps\zlib\lib\rt_dynamic\release;%~dp0_install\windows-x86_64\%CONFIG%\edfFileFormat\lib;%~dp0_install\windows-x86_64\%CONFIG%\omniMetProvider\lib;%~dp0_build\target-deps\omni-geospatial\bin;$~dp0_install\windows-x86_64\$CONFIG\omniWarpSceneIndex\lib
-set PXR_PLUGINPATH_NAME=%~dp0_install\windows-x86_64\%CONFIG%\omniMetSchema\resources;%~dp0_install\windows-x86_64\%CONFIG%\edfFileFormat\resources;%~dp0_install\windows-x86_64\%CONFIG%\omniMetProvider\resources;%~dp0_build\target-deps\omni-geospatial\plugins\OmniGeospatial\resources;%~dp0_install\windows-x86_64\%CONFIG%\omniGeoSceneIndex\resources;%~dp0_install\windows-x86_64\%CONFIG%\omniMetricsAssembler\resources;%~dp0_install\windows-x86_64\%CONFIG%\omniWarpSceneIndex\resources
-set USDIMAGINGGL_ENGINE_ENABLE_SCENE_INDEX=true
+:: if we are using NVIDIA pre-built binaries, use the prebuilt
+:: OpenUSD to set up the paths
+:: otherwise its the devs responsibility to add those here
+if exist %~dp0_build\usd-deps\usd (
+    set PYTHONPATH=%PYTHONPATH%;%~dp0_build\usd-deps\usd\lib\python
+    set "PATH=%PATH%;%~dp0_build\usd-deps\usd\bin;%~dp0_build\usd-deps\usd\lib;%~dp0_build\usd-deps\python"
+)
+
+:: setup pythonpath and path to the build artifacts to run the samples
+set PYTHONPATH=%PYTHONPATH%;%~dp0_install
+set "PATH=%PATH%;%~dp0_install\bin;%~dp0_build\target-deps\zlib\lib\rt_dynamic\release"
+set PXR_PLUGINPATH_NAME=%~dp0_install\plugins\omniMetSchema\resources;%~dp0_install\plugins\edfFileFormat\resources;%~dp0_install\plugins\omniMetProvider\resources;%~dp0_install\plugins\omniExampleSchema\resources;%~dp0_install\plugins\omniExampleCodelessSchema\resources
