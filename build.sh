@@ -15,80 +15,29 @@
 set -e
 CWD="$( cd "$( dirname "$0" )" && pwd )"
 
-# options defining what the script runs
-HELP=false
-CLEAN=false
-USD_FLAVOR=nv-usd
-USD_VER=22.11
-PYTHON_VER=3.10
-CONFIG=release
-HELP_EXIT_CODE=0
-
-DIRECTORIES_TO_CLEAN=(
-    _install
-    _build
-)
-
-while [ $# -gt 0 ]
-do
-    if [[ "$1" == "--clean" ]]
-    then
-        CLEAN=true
-    fi
-    if [[ "$1" == "--debug" ]]
-    then
-        CONFIG=debug
-    fi
-    if [[ "$1" == "--relwithdebinfo" ]]
-    then
-        CONFIG=relwithdebinfo
-    fi
-    if [[ "$1" == "--help" ]]
-    then
-        HELP=true
-    fi
-    shift
-done
-
-# requesting how to run the script
-if [[ "$HELP" == "true" ]]
+if [[ "$1" == "--clean" ]]
 then
-    echo "build.sh [--clean] [--usd-flavor] [--usd-ver] [--python-ver] [--debug | --relwithdebinfo] [--help]"
-    echo "--clean: Removes the following directories (customize as needed):"
-    for dir_to_clean in "${DIRECTORIES_TO_CLEAN[@]}" ; do
-        echo "      $dir_to_clean"
-    done
-    echo "--usd-flavor: The flavor of OpenUSD to use to build (options=[nv-usd, openusd], default=nv-usd)"
-    echo "--usd-ver: The version of OpenUSD to use to build (options=[22.11, 24.05], default=22.11)"
-    echo "--python-ver: The version of Python to use to build (options=[3.10, 3.11], default=3.10)"
-    echo "    note that the three options above must have an available configuration to pull down"
-    echo "--debug: Performs the steps with a debug configuration instead of release"
-    echo "    (default = release)"
-    echo "--relwithdebinfo: Performs the steps with a relwithdebinfo configuration instead of release"
-    echo "    (default = release)"
-    echo "--help: Display this help message"
-    exit $HELP_EXIT_CODE
-fi
-
-# do we need to clean?
-if [[ "$CLEAN" == "true" ]]
-then
-    for dir_to_clean in "${DIRECTORIES_TO_CLEAN[@]}" ; do
-        rm -rf "$CWD/$dir_to_clean"
-    done
+    rm -rf _build
+    rm -rf _install
 
     exit 0
 fi
 
-# perform a simple build seqeuence (customize as needed for your environment)
-# pull OpenUSD and python dependencies as well as some helper cmake scripts
-$CWD/tools/packman/python.sh scripts/setup.py --usd-flavor=$USD_FLAVOR --usd-ver=$USD_VER --python-ver=$PYTHON_VER --config=$CONFIG
+# configure cmake
+# this setup uses the NVIDIA prebuilt OpenUSD binaries that match
+# versions kit was released with as well as the latest OpenUSD release
+# kit 106 - 22.11
+# kit 107 - 24.05
+# kit 108 - 25.02
+# OpenUSD 25.08
+# by default, this setup will use OpenUSD 25.02
+# you can select a different prebuilt binary by passing the version
+# to the cmake variable NV_OPENUSD_BINARY_VERSION
+# you may also use your own OpenUSD build by doing the following:
+# set NV_USE_PREBUILT_OPENUSD_BINARIES to OFF
+# set PXR_OPENUSD_PYTHON_DIR to the path of your Python build
+# add the path to your OpenUSD build to CMAKE_PREFIX_PATH
+cmake -B ./_build/cmake -DNV_OPENUSD_BINARY_VERSION=22.11
 
-if [[ "$USD_FLAVOR" == "nv-usd" ]]
-then
-    cmake -B ./_build/cmake -DNV_USD=ON -DCMAKE_BUILD_TYPE=$CONFIG -D_GLIBCXX_USE_CXX11_ABI=0 -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
-    cmake --build ./_build/cmake --config $CONFIG --target install
-else
-    cmake -B ./_build/cmake -DCMAKE_BUILD_TYPE=$CONFIG -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
-    cmake --build ./_build/cmake --config $CONFIG --target install
-fi
+:: invoke cmake build
+cmake --build ./_build/cmake --config=Release --target=install

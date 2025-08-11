@@ -17,7 +17,6 @@ if not exist %~dp0_venv (
         call "%~dp0_venv\Scripts\activate.bat"
         pip install PySide2
         pip install PyOpenGL
-        pip install warp-lang
     )
 ) else (
     call "%~dp0_venv\Scripts\activate.bat"

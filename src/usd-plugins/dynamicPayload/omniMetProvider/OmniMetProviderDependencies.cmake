@@ -6,6 +6,8 @@ set (LIBCURL_PACKAGE_NAME "libcurl")
 set (LIBCURL_VER "8.1.2-3")
 set (ZLIB_PACKAGE_NAME "zlib")
 set (ZLIB_VER "1.2.13+nv1")
+set (OPENSSL_PACKAGE_NAME "openssl")
+set (OPENSSL_VER "3.0.10-3")
 
 # get full package name
 if (WIN32)
@@ -15,9 +17,11 @@ else()
     if(CMAKE_SYSTEM_PROCESSOR MATCHES "arm|aarch64")
         set (LIBCURL_PACKAGE_VERSION ${LIBCURL_VER}-linux-aarch64-static-release)
         set (ZLIB_PACKAGE_VERSION ${ZLIB_VER}-linux-aarch64)
+        set (OPENSSL_PACKAGE_VERSION ${OPENSSL_VER}-linux-aarch64-static-release)
     else()
         set (LIBCURL_PACKAGE_VERSION ${LIBCURL_VER}-linux-x86_64-static-release)
         set (ZLIB_PACKAGE_VERSION ${ZLIB_VER}-linux-x86_64)
+        set (OPENSSL_PACKAGE_VERSION ${OPENSSL_VER}-linux-x86_64-static-release)
     endif()
 endif()
 
@@ -43,6 +47,19 @@ execute_process(COMMAND
     ${ZLIB_PACKAGE_VERSION}
     WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../../../..
     COMMAND_ERROR_IS_FATAL ANY)
+
+if (NOT WIN32)
+    execute_process(COMMAND
+        ${NV_PACKMAN_EXE}
+        "install"
+        "-q"
+        "-l"
+        "_build/target-deps/openssl"
+        ${OPENSSL_PACKAGE_NAME}
+        ${OPENSSL_PACKAGE_VERSION}
+        WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../../../..
+        COMMAND_ERROR_IS_FATAL ANY)
+endif()
 
 function (setup_libcurl_targets)
     if (NOT TARGET libcurl::libcurl)
@@ -76,12 +93,12 @@ function (setup_libcurl_targets)
                 IMPORTED_LOCATION_RELWITHDEBINFO "${CMAKE_CURRENT_LIST_DIR}/../../../../_build/target-deps/libcurl/lib/libcurl.a")
             set_target_properties(libcurl::libcurl PROPERTIES
                 INTERFACE_LINK_LIBRARIES
-                    crypto)
+                    openssl::crypto)
         endif()
     endif()
 endfunction()
 
-function(setup_zlib_targets)
+function (setup_zlib_targets)
     if (NOT TARGET zlib::zlib)
         add_library(zlib::zlib SHARED IMPORTED)
         set_property(TARGET zlib::zlib APPEND PROPERTY IMPORTED_CONFIGURATIONS DEBUG RELEASE RELWITHDEBINFO)
@@ -108,6 +125,26 @@ function(setup_zlib_targets)
         endif()
     endif()
 endfunction()
+
+function (setup_openssl_targets)
+    if (NOT TARGET openssl::crypto)
+        add_library(openssl::crypto STATIC IMPORTED)
+        set_target_properties(openssl::crypto PROPERTIES
+                INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_CURRENT_LIST_DIR}/../../../../_build/target-deps/openssl/include"
+                INTERFACE_SYSTEM_INCLUDE_DIRECTORIES "${CMAKE_CURRENT_LIST_DIR}/../../../../_build/target-deps/openssl/include"
+                IMPORTED_IMPLIB_DEBUG "${CMAKE_CURRENT_LIST_DIR}/../../../../_build/target-deps/openssl/lib/libcrypto.a"
+                IMPORTED_LOCATION ${CMAKE_CURRENT_LIST_DIR}/../../../../_build/target-deps/openssl/lib/libcrypto.a"
+                IMPORTED_LOCATION_DEBUG "${CMAKE_CURRENT_LIST_DIR}/../../../../_build/target-deps/openssl/lib/libcrypto.a"
+                IMPORTED_IMPLIB_RELEASE "${CMAKE_CURRENT_LIST_DIR}/../../../../_build/target-deps/openssl/lib/libcrypto.a"
+                IMPORTED_LOCATION_RELEASE "${CMAKE_CURRENT_LIST_DIR}/../../../../_build/target-deps/openssl/lib/libcrypto.a"
+                IMPORTED_IMPLIB_RELWITHDEBINFO "${CMAKE_CURRENT_LIST_DIR}/../../../../_build/target-deps/openssl/lib/libcrypto.a"
+                IMPORTED_LOCATION_RELWITHDEBINFO "${CMAKE_CURRENT_LIST_DIR}/../../../../_build/target-deps/openssl/lib/libcrypto.a")
+    endif()
+endfunction()
+
+if (NOT WIN32)
+    setup_openssl_targets()
+endif()
 
 setup_libcurl_targets()
 setup_zlib_targets()
