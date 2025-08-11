@@ -16,26 +16,17 @@ will find pxrConfig.cmake from the prebuilt binaries.
 This module is currently dependent on NVIDIA's packman tool to be
 present in the tools/packman directory of a repository.
 
-<< TODO >>
+Options
+^^^^^^^
 
-Imported Targets
-^^^^^^^^^^^^^^^^
+This module provides the following options to build with NVIDIA prebuilt
+OpenUSD binaries:
 
-This module will import targets from `pxrConfig.cmake` using find_package.
-Ensure that your CMAKE_PREFIX_PATH includes the location of the `pxrConfig.cmake`
-file from your OpenUSD dependency.
+``NV_USE_PREBUILT_OPENUSD_BINARIES``
+  ON (default) to use NVIDIA prebuilt OpenUSD binaries.
 
-This module will find Python given the path provided in PXR_OPENUSD_PYTHON_DIR
-and will set all of the targets and variables expected from find_package(Python3).
-
-Cache Variables
-^^^^^^^^^^^^^^^
-
-The following cache variables my be set if schema generation is invoked:
-
-``PXR_${NAME}_SCHEMA_INPUT_TIMESTAMP``
-  The timestamp of the schema input file associated with the plugin
-  with the given NAME.
+``NV_OPENUSD_BINARY_VERSION``
+  A string denoting the version of OpenUSD to build against.
 
 #]===============================================================]
 

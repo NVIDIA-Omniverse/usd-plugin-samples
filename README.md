@@ -15,7 +15,7 @@ This repository is set up in such a way that you can either:
 - quickly get started using prebuilt OpenUSD binaries from NVIDIA (22.11)
 - "bring your own" OpenUSD build to build the samples against
 
-Details on selecting a version or bringing your own build can be found in << TODO >>.
+Details on selecting a version or bringing your own build can be found [here](./docs/build-instructions.md).
 
 ## Quick Start
 
