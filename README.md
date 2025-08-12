@@ -106,7 +106,6 @@ The repository is structured as follows:
 /tools
 build.bat
 build.sh
-setenvwindows
 setenvlinux
 setenvwindows.bat
 ```
