@@ -23,7 +23,7 @@ All samples included here use `cmake` to build the OpenUSD plugins.
 
 > **Prerequisite:** You must have CMake 3.23.1+ installed on your system and available through the `PATH`.
 
-If you want to directly build and try out the samples in `usdview`, you can use the provided tools to build the libraries and configure the environment to enable you to load the sample scenes in `usdview`. The commands below assume either a Linux environment or `git-bash` on Windows.
+If you want to directly build and try out the samples in `usdview`, you can use the provided tools to build the libraries and configure the environment to enable you to load the sample scenes in `usdview`. The commands below assume either a Linux environment or `x64 Visual Studio Native Command Prompt` on Windows.
 
 <details>
 <summary>On Linux</summary>
@@ -47,18 +47,16 @@ usdview resources/scene.usda --unloaded
 
 ```bat
 REM Builds the release build of the samples into "_install" using prebuilt NVIDIA OpenUSD 22.11 binaries.
-.\build.bat
+build.bat
 
 REM Sets up a Python virtual environment (_venv), installs PySide and PyOpenGL, and sets the PATH/PYTHONPATH
 REM to the built sample libraries and the OpenUSD 22.11 distribution, sets the PXR_PLUGINPATH_NAME to include 
 REM paths to the sample "plugInfo.json" files.
-source setenvwindows
+setenvwindows.bat
 
 REM Opens usdview on the provided sample scene with a dynamic payload in an unloaded state.
 usdview resources/scene.usda --unloaded
 ```
-
-> If you use `cmd` or Powershell, you can run the `setenvwindows.bat` file to setup the environment.
 
 </details>
 
