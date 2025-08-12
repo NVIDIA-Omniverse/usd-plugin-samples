@@ -133,7 +133,7 @@ function (setup_openssl_targets)
                 INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_CURRENT_LIST_DIR}/../../../../_build/target-deps/openssl/include"
                 INTERFACE_SYSTEM_INCLUDE_DIRECTORIES "${CMAKE_CURRENT_LIST_DIR}/../../../../_build/target-deps/openssl/include"
                 IMPORTED_IMPLIB_DEBUG "${CMAKE_CURRENT_LIST_DIR}/../../../../_build/target-deps/openssl/lib/libcrypto.a"
-                IMPORTED_LOCATION ${CMAKE_CURRENT_LIST_DIR}/../../../../_build/target-deps/openssl/lib/libcrypto.a"
+                IMPORTED_LOCATION "${CMAKE_CURRENT_LIST_DIR}/../../../../_build/target-deps/openssl/lib/libcrypto.a"
                 IMPORTED_LOCATION_DEBUG "${CMAKE_CURRENT_LIST_DIR}/../../../../_build/target-deps/openssl/lib/libcrypto.a"
                 IMPORTED_IMPLIB_RELEASE "${CMAKE_CURRENT_LIST_DIR}/../../../../_build/target-deps/openssl/lib/libcrypto.a"
                 IMPORTED_LOCATION_RELEASE "${CMAKE_CURRENT_LIST_DIR}/../../../../_build/target-deps/openssl/lib/libcrypto.a"
