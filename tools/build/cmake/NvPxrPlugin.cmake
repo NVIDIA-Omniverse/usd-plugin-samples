@@ -44,11 +44,6 @@ The following cache variables my be set if schema generation is invoked:
 
 set(USD_PLUGIN_CMAKE_UTILS_ROOT ${CMAKE_CURRENT_LIST_DIR}/..)
 
-# the pxrConfig.cmake file generated from OpenUSD will require
-# policy CMP0012 to be set to properly recognize boolean constants
-cmake_policy(SET CMP0012 NEW)
-find_package(pxr REQUIRED)
-
 if(NOT PXR_OPENUSD_PYTHON_DIR)
     message(FATAL_ERROR "Must provide value for PXR_OPENUSD_PYTHON_DIR!")
 endif()
@@ -62,52 +57,21 @@ endif()
 # include directory if we don't specify it because
 # of cmake paths and the fact that using modules
 # we have no control over limitation of NO_CMAKE_PATH
-
-# Step 1: Get the root of the env
+set(Python3_ROOT_DIR "${PXR_OPENUSD_PYTHON_DIR}")
 if (WIN32)
-	# Windows Python package has python.exe in its root folder
-    set(Python3_ROOT_DIR "${PXR_OPENUSD_PYTHON_DIR}")
+    set(Python3_INCLUDE_DIR "${PXR_OPENUSD_PYTHON_DIR}/include")
 else()
-	# Linux Python package has python in its bin folder
-    get_filename_component(Python3_ROOT_DIR "${PXR_OPENUSD_PYTHON_DIR}" DIRECTORY)
-endif()
-
-# Step 2: Try to locate include directories
-if (WIN32)
-    set(Python3_INCLUDE_DIR "${Python3_ROOT_DIR}/include")
-else()
-    # On Linux/macOS
-    set(_candidate_include_dir "${Python3_ROOT_DIR}/include")
-
-    if(EXISTS "${_candidate_include_dir}")
-        # Check for direct include/pythonX.Y/
-        file(GLOB python_include_dirs "${_candidate_include_dir}/python*")
-
-        list(LENGTH python_include_dirs _num_python_include_dirs)
-        if (_num_python_include_dirs EQUAL 1)
-            list(GET python_include_dirs 0 Python3_INCLUDE_DIR)
-        elseif(_num_python_include_dirs GREATER 1)
-            message(FATAL_ERROR "Multiple python include directories found in ${_candidate_include_dir}: ${python_include_dirs}")
-        else()
-            # Fall back if no python*/ subdir exists (maybe on an unconventional system install)
-            set(Python3_INCLUDE_DIR "${_candidate_include_dir}")
-        endif()
+    # linux python packages have an extra level of indirection
+    # on the include directory with the python version
+    file(GLOB python_include_location "${PXR_OPENUSD_PYTHON_DIR}/include/python*")
+    if (python_include_location)
+        set(Python3_INCLUDE_DIR "${python_include_location}")
     else()
-        message(FATAL_ERROR "Expected include directory does not exist: ${_candidate_include_dir}")
+        message(FATAL_ERROR "Unable to determine python include directory under ${PXR_OPENUSD_PYTHON_DIR}")
     endif()
 endif()
-
-message(STATUS "Python3_ROOT_DIR resolved to: ${Python3_ROOT_DIR}")
-message(STATUS "Python3_INCLUDE_DIR resolved to: ${Python3_INCLUDE_DIR}")
-
 set(Python3_FIND_STRATEGY "LOCATION")
-
-# The original script incorrectly used "NEVER" for "Python3_FIND_VIRTUALENV", while CMake expects "FIRST", "ONLY", or "STANDARD".
-# We choose "STANDARD" here because conda is not a virtualenv, and standard lookup is appropriate.
-if (NOT DEFINED Python3_FIND_VIRTUALENV)
-    set(Python3_FIND_VIRTUALENV "STANDARD")
-endif()
-
+set(Python3_FIND_VIRTUALENV "NEVER")
 set(Python3_FIND_FRAMEWORK "LAST")
 set(Python3_FIND_REGISTRY "NEVER")
 find_package(Python3
@@ -143,6 +107,23 @@ if(result EQUAL -1)
 endif()
 string(SUBSTRING ${PYTHON_TAG_SUFFIX_EXTENSION} 0 ${result} PYTHON_TAG_SUFFIX)
 string(SUBSTRING ${PYTHON_TAG_SUFFIX_EXTENSION} ${result} -1 PYTHON_MODULE_EXTENSION)
+
+# when importing pxrConfig.cmake, it will attempt to find python again
+# since this doesn't seem to be completely reentrant, we also make sure
+# to set the Python3_LIBRARY variable such that it should find everything
+# we already found because everything is set appropriately
+set(Python3_LIBRARY ${Python3_LIBRARIES})
+
+# the pxrConfig.cmake file generated from OpenUSD will require
+# policy CMP0012 to be set to properly recognize boolean constants
+# we also set CMP0074 to NEW such that the user can specify search
+# paths for the config files as <PackageName>_ROOT, which will
+# be searched first in the new policy, prior to the cmake prefix path
+# (unfortunately the cmake prefix path is searched before <PackageName>_DIR)
+# so to give the user a chance to override we need to turn on CMP00074
+cmake_policy(SET CMP0012 NEW)
+cmake_policy(SET CMP0074 NEW)
+find_package(pxr REQUIRED)
 
 function (get_openusd_info)
     #[============================================================[.rst:
@@ -200,98 +181,6 @@ function (get_openusd_info)
     endif()
 
 endfunction()
-
-function (setup_tbb_info)
-#[============================================================[.rst:
-    setup_tbb_info
-    ---------------
-    Determines if the TBB targets required for OpenUSD
-    are defined and if not, defines those targets using some
-    hueristics based on the location of the OpenUSD build being used.
-
-    Inputs
-    ^^^^^^
-    If TBB targets are required to be defined, this method requires
-    the following cmake variables to be defined:
-    * PXR_CMAKE_DIR: The root directory of the OpenUSD build being used
-      This is typically defined by OpenUSD itself and comes from
-      pxrConfig.cmake via a find(pxr REQUIRED) invocation
-    
-    Targets
-    ^^^^^^^
-    This method will define the following imported library and
-    associated target definitions:
-    * TBB:tbb
-    *   INTERFACE_COMPILE_DEFINITIONS
-    *   INTERFACE_INCLUDE_DIRECTORIES
-    *   INTERFACE_SYSTEM_INCLUDE_DIRECTORIES
-    *   IMPORTED_IMPLIB_RELEASE
-    *   IMPORTED_LOCATION_RELEASE
-    *   IMPORTED_IMPLIB_DEBUG
-    *   IMPORTED_LOCATION_DEBUG
-    *   MAP_IMPORTED_CONFIG_RELWITHDEBUGINFO
-
-    If the TBB:* targets required are already defined (e.g., by a cmake toolchain,
-    by performing a find(TBB required), etc.) this method will not redefine them.
-    #]============================================================]
-
-    # attempt to import TBB using standard CMake scripts if one is available
-    find_package(TBB QUIET CONFIG)
-
-    # check if TBB was found by looking at the target we require
-    if(NOT TARGET TBB::tbb)
-        # define the TBB::tbb target which is required as
-        # a dependency of the OpenUSD imported targets
-        # NOTE: Some OpenUSD builds will output tbb include / lib
-        # paths as absolute paths on the machine and some will output
-        # a link to the target, so we define the target here always
-        # just in case we need it referenced
-        add_library(TBB::tbb SHARED IMPORTED)
-        set_property(TARGET TBB::tbb APPEND PROPERTY IMPORTED_CONFIGURATIONS DEBUG RELEASE RELWITHDEBINFO)
-
-        # the include directory will be the same for any platform
-        set(TBB_INCLUDE_DIR "${PXR_CMAKE_DIR}/include")
-
-        # now search for the libraries
-        find_library(TBB_LIBRARY_RELEASE "tbb"
-            HINTS "${PXR_CMAKE_DIR}/lib" "${PXR_CMAKE_DIR}/bin")
-
-        if(NOT TBB_LIBRARY_RELEASE)
-            # unfortunately we can't find the the tbb libraries so we can't
-            # set the imported properties correctly
-            message(FATAL_ERROR "Unable to determine location of TBB libraries!")
-        endif()
-
-        if(WIN32)
-            find_file(TBB_IMPLIB_LIBRARY "tbb.lib"
-                HINTS "${PXR_CMAKE_DIR}/lib" "{PXR_CMAKE_DIR}/bin")
-            if (NOT TBB_IMPLIB_LIBRARY)
-                message(FATAL_ERROR "Unable to determine location of TBB imported libraries!")
-            endif()
-            set(TBB_IMPLIB_FILE ${TBB_IMPLIB_LIBRARY})
-        else()
-            set(TBB_IMPLIB_FILE ${TBB_LIBRARY_RELEASE})
-        endif()
-
-        # the TBB debug libraries should be in the same location as the release
-        cmake_path(GET TBB_LIBRARY_RELEASE PARENT_PATH TBB_LIBRARY_DIR)
-        set(TBB_LIBRARY_DEBUG "${TBB_LIBRARY_DIR}/${CMAKE_SHARED_LIBRARY_PREFIX}tbb_debug${CMAKE_SHARED_LIBRARY_SUFFIX}")
-
-        set_target_propertieS(TBB::tbb PROPERTIES
-                INTERFACE_COMPILE_DEFINITIONS "$<$<CONFIG:Debug>:TBB_USE_DEBUG=1>"
-                INTERFACE_INCLUDE_DIRECTORIES ${TBB_INCLUDE_DIR}
-                INTERFACE_SYSTEM_INCLUDE_DIRECTORIES ${TBB_INCLUDE_DIR}
-                IMPORTED_IMPLIB_RELEASE ${TBB_IMPLIB_FILE}
-                IMPORTED_IMPLIB_DEBUG ${TBB_IMPLIB_FILE}
-                IMPORTED_LOCATION_RELEASE ${TBB_LIBRARY_RELEASE}
-                IMPORTED_LOATION_DEBUG ${TBB_LIBRARY_DEBUG}
-                MAP_IMPORTED_CONFIG_RELWITHDEBINFO Release)
-    endif()
-
-endfunction()
-
-# make sure we can locate and define targets for TBB
-setup_tbb_info()
 
 function (setup_boost_python_info)
 
@@ -396,12 +285,19 @@ function (setup_boost_python_info)
                 set(lib_prefix "")
                 set(lib_suffix ".dll")
                 set(import_lib_suffix ".lib")
-                set(debug_abi_tag "gd")
+                set(debug_abi_tag "-gd")
                 set(runtime "-mt")
                 set(boost_tag "-${Boost_LIB_VERSION}")
             else()
                 set(lib_prefix "lib")
-                set(debug_abi_tag "d")
+                
+                # NOTE: The vendored linux OpenUSD libraries never have
+                # the compiler or debug abi tags, for now we just assume
+                # they always don't, but in more complex cases, like if it
+                # finds certain targets on the user's machine, we may have
+                # to be a little more sophisticated in how we handle this
+                #set(debug_abi_tag "-d")
+                set(debug_abi_tag "")
                 set(lib_suffix ".so")
                 set(import_lib_suffix ".so")
                 set(runtime "")
@@ -472,8 +368,10 @@ function (setup_boost_python_info)
                 
                 set(component_release_library_name "${lib_prefix}boost_${component}${compiler}${runtime}${architecture}${boost_tag}${lib_suffix}")
                 set(component_release_import_library_name "${lib_prefix}boost_${component}${compiler}${runtime}${architecture}${boost_tag}${import_lib_suffix}")
-                set(component_debug_library_name "${lib_prefix}boost_${component}${compiler}${runtime}-${debug_abi_tag}${architecture}${boost_tag}${lib_suffix}")
-                set(component_debug_import_library_name "${lib_prefix}boost_${component}${compiler}${runtime}-${debug_abi_tag}${architecture}${boost_tag}${import_lib_suffix}")
+                set(component_debug_library_name "${lib_prefix}boost_${component}${compiler}${runtime}${debug_abi_tag}${architecture}${boost_tag}${lib_suffix}")
+                set(component_debug_import_library_name "${lib_prefix}boost_${component}${compiler}${runtime}${debug_abi_tag}${architecture}${boost_tag}${import_lib_suffix}")
+                set_target_properties(${component_name} PROPERTIES
+                    IMPORTED_CONFIGURATIONS "Debug;Release")
                 set_target_properties(${component_name} PROPERTIES
                     IMPORTED_LINK_INTERFACE_LANGUAGES "CXX"
                     IMPORTED_IMPLIB ${BOOST_LIBRARY_DIRS}/${component_release_import_library_name}
@@ -483,7 +381,7 @@ function (setup_boost_python_info)
                     IMPORTED_IMPLIB_RELEASE ${BOOST_LIBRARY_DIRS}/${component_release_import_library_name}
                     IMPORTED_LOCATION_RELEASE ${BOOST_LIBRARY_DIRS}/${component_release_library_name})
                 set_target_properties(${component_name} PROPERTIES
-                    IMPORTED_LINK_INTERFACE_LANGUAGES_debug "CXX"
+                    IMPORTED_LINK_INTERFACE_LANGUAGES_DEBUG "CXX"
                     IMPORTED_IMPLIB_DEBUG ${BOOST_LIBRARY_DIRS}/${component_debug_import_library_name}
                     IMPORTED_LOCATION_DEBUG ${BOOST_LIBRARY_DIRS}/${component_debug_library_name})
 
@@ -574,6 +472,13 @@ function (add_standard_openusd_options NAME)
                 "-Wno-deprecated-declarations"
                 "-Wall"
                 "-Wformat-security")
+
+        get_target_property(target_type ${NAME} TYPE)
+        if (target_type STREQUAL SHARED_LIBRARY)
+            target_compile_options(${NAME}
+                PRIVATE
+                    "-fPIC")
+        endif()
     endif()
 
     # if we are <= than 24.08
@@ -607,38 +512,44 @@ function (openusd_link_with_python NAME)
 
     #]============================================================]
 
-    # python may be required even for the C++ library if the USD build was built with
-    # python support - this is because base tf types include python objects and the data
-    # layouts need to be consistent for ABI compatibility
-    # so if it looks like the OpenUSD libraries were built with Python enabled, we need
-    # to locate the Python3::Python target which should be set up for us above if
-    # Python is being used
-    message(DEBUG "Checking if Python is required to compile plugin...")
-    if(TARGET tf)
-        get_target_property(TF_COMPILE_DEFINITIONS tf INTERFACE_COMPILE_DEFINITIONS)
-        foreach(compile_definition ${TF_COMPILE_DEFINITIONS})
-            string(FIND "${compile_definition}" "PXR_PYTHON_ENABLED=1" result)
-            if(NOT result EQUAL -1)
-                set(PXR_PYTHON_ENABLED TRUE)
-                break()
-            else()
-                set(PXR_PYTHON_ENABLED FALSE)
-            endif()
-        endforeach()
-    elseif(TARGET usd_ms)
-        get_target_property(TF_COMPILE_DEFINITIONS usd_ms INTERFACE_COMPILE_DEFINITIONS)
-        foreach(compile_definition ${TF_COMPILE_DEFINITIONS})
-            string(FIND "${compile_definition}" "PXR_PYTHON_ENABLED=1" result)
-            if(NOT result EQUAL -1)
-                set(PXR_PYTHON_ENABLED TRUE)
-                break()
-            else()
-                set(PXR_PYTHON_ENABLED FALSE)
-            endif()
-        endforeach()
+    # prior to OpenUSD 23.02, it was possible to check if OpenUSD had built
+    # with python enabled by looking at the INTERFACE_COMPILE_DEFINITIONS
+    # of the tf target.  These were removed in OpenUSD 23.02+, so we use
+    # a heuristic to determine if python was used to build (because if it was
+    # python may be required even for the C++ library when using tf) by
+    # checking for the presence of the lib/python directory, since that's where
+    # the OpenUSD python modules would be deployed to
+    if (EXISTS ${PXR_CMAKE_DIR}/lib/python)
+        set(PXR_PYTHON_ENABLED TRUE)
     else()
-        message(FATAL_ERROR "OpenUSD installation misconfigured - the pxr module was found, but the tf / usd_ms target was not found.")
+        set(PXR_PYTHON_ENABLED FALSE)
     endif()
+
+    # if(TARGET tf)
+    #     get_target_property(TF_COMPILE_DEFINITIONS tf INTERFACE_COMPILE_DEFINITIONS)
+    #     foreach(compile_definition ${TF_COMPILE_DEFINITIONS})
+    #         string(FIND "${compile_definition}" "PXR_PYTHON_ENABLED=1" result)
+    #         if(NOT result EQUAL -1)
+    #             set(PXR_PYTHON_ENABLED TRUE)
+    #             break()
+    #         else()
+    #             set(PXR_PYTHON_ENABLED FALSE)
+    #         endif()
+    #     endforeach()
+    # elseif(TARGET usd_ms)
+    #     get_target_property(TF_COMPILE_DEFINITIONS usd_ms INTERFACE_COMPILE_DEFINITIONS)
+    #     foreach(compile_definition ${TF_COMPILE_DEFINITIONS})
+    #         string(FIND "${compile_definition}" "PXR_PYTHON_ENABLED=1" result)
+    #         if(NOT result EQUAL -1)
+    #             set(PXR_PYTHON_ENABLED TRUE)
+    #             break()
+    #         else()
+    #             set(PXR_PYTHON_ENABLED FALSE)
+    #         endif()
+    #     endforeach()
+    # else()
+    #     message(FATAL_ERROR "OpenUSD installation misconfigured - the pxr module was found, but the tf / usd_ms target was not found.")
+    # endif()
 
     message(DEBUG "PXR_PYTHON_ENABLED=${PXR_PYTHON_ENABLED}")
 
@@ -652,6 +563,64 @@ function (openusd_link_with_python NAME)
         endif()
     endif()
 
+endfunction()
+
+function (set_alias_target_properties ALIAS_NAME)
+    #[============================================================[.rst:
+    set_alias_target_properties
+    ---------------
+    Sets properties on the target for which the given ALIAS_NAME
+    is an alias target for.  Since alias targets are immutable,
+    this allows the caller to set properties on that underlying
+    alias target using an alias name.
+
+    Inputs
+    ^^^^^^
+    * ALIAS_NAME: The name of an alias target that has previously
+      been defined.
+    * PROPERTIES: A list of items representing property name and
+      property value in consecutive list positions.
+    #]============================================================]
+
+    set(options )
+    set(oneValueArgs )
+    set(multiValueArgs
+        PROPERTIES)
+
+    cmake_parse_arguments(set_alias_target_properties_args
+        "${options}"
+        "${oneValueArgs}"
+        "${multiValueArgs}"
+        ${ARGN})
+
+    get_target_property(aliased_target ${ALIAS_NAME} ALIASED_TARGET)
+    if (NOT aliased_target)
+        message(FATAL_ERROR "No underlying target could be found for alias target ${ALAIS_NAME}")
+    endif()
+
+    foreach (value in LISTS ${set_alias_target_properties_args_PROPERTIES})
+
+        if (NOT property_key)
+            # this item is a property key, hold it
+            # and look at the next item
+            set(property_key ${value})
+        else()
+            # we had a key last time
+            # so this is the corresponding value
+            set_target_properties(${aliased_target}
+                PROPERTIES
+                    ${property_key}
+                    ${value})
+
+            unset(property_key)
+        endif()
+
+    endforeach()
+
+    if (property_key)
+        message(WARNING "PROPERTIES argument passed key ${property_key} with no value...")
+    endif()
+    
 endfunction()
 
 function (openusd_python_plugin NAME)
@@ -668,9 +637,17 @@ function (openusd_python_plugin NAME)
       passed to build the C++ library plugin.  The python module
       will always have the same name as the C++ library with the
       addition of an `_` character in the beginning.
-    * PXR_PLUGIN_DIR (optional): The directory considered the root
-      of the plugin source.  If not provided this will default
-      to the CMAKE_PARENT_LIST_DIR directory.
+    * ADDITIONAL_ROOT_DIR (optional): A directory considered as an
+      additional root when copying files to preserve relative structure.
+      If provided, files included in this directory will install
+      to the target module root rather than relative to the module
+      root.
+    * TARGET_ALIAS (optional): If specified, an alias with the name
+      ${TARGET_ALIAS) will be created for the shared library target
+      created by this method.
+    * MODULE_SUBDIR (optional): If specified, a subdirectory structure
+      will be created under the target output directory for the module
+      and the compiled python module will be placed in this subdirectory.
     * PYTHON_CPP_FILES: The set of cpp files that will be used to
       compile the Python module.
     * PYTHON_FILES: The set of python files (.py files) that should
@@ -689,6 +666,9 @@ function (openusd_python_plugin NAME)
     ^^^^^^^
     This method will add a shared library target with the name _${NAME}
     with a dependency on the C++ shared library target with the name ${NAME}.
+
+    If a value for TARGET_ALIAS was provided, an alias target with the name
+    ${TARGET_ALIAS} will be created.
     
     Note, the module built by this target will have the extension
     .pyd on Windows and .so on Linux, and will also have no prefix
@@ -703,7 +683,9 @@ function (openusd_python_plugin NAME)
 
     set(options )
     set(oneValueArgs
-        PXR_PLUGIN_DIR)
+        ADDITIONAL_ROOT_DIR
+        TARGET_ALIAS
+        MODULE_SUBDIR)
     set(multiValueArgs
         PYTHON_CPP_FILES
         PYTHON_FILES)
@@ -730,6 +712,11 @@ function (openusd_python_plugin NAME)
         "${openusd_python_plugin_args_PYTHON_CPP_FILES}")
     add_dependencies(${PXR_PLUGIN_PYTHON_TARGET_NAME}
         ${NAME})
+
+    # add an alias target if desired
+    if (openusd_python_plugin_args_TARGET_ALIAS)
+        add_library(${openusd_python_plugin_args_TARGET_ALIAS} ALIAS ${PXR_PLUGIN_PYTHON_TARGET_NAME})
+    endif()
 
     add_standard_openusd_options(${PXR_PLUGIN_PYTHON_TARGET_NAME})
 
@@ -767,10 +754,25 @@ function (openusd_python_plugin NAME)
     # at build time so we link the library explicitly
     target_link_libraries(${PXR_PLUGIN_PYTHON_TARGET_NAME} PUBLIC $<TARGET_LINKER_FILE:${NAME}>)
 
-    set(CMAKE_INSTALL_BINDIR ${PXR_PLUGIN_PYTHON_MODULE_NAME})
-    install(TARGETS ${PXR_PLUGIN_PYTHON_TARGET_NAME}
-        RUNTIME
-            DESTINATION ${CMAKE_INSTALL_BINDIR})
+    if(WIN32)
+        if (openusd_python_plugin_args_MODULE_SUBDIR)
+            set(CMAKE_INSTALL_BINDIR ${openusd_python_plugin_args_MODULE_SUBDIR})
+        else()
+            set(CMAKE_INSTALL_BINDIR ${PXR_PLUGIN_PYTHON_MODULE_NAME})
+        endif()
+        install(TARGETS ${PXR_PLUGIN_PYTHON_TARGET_NAME}
+            RUNTIME
+                DESTINATION ${CMAKE_INSTALL_BINDIR})
+    else()
+        if (openusd_python_plugin_args_MODULE_SUBDIR)
+            set(CMAKE_INSTALL_LIBDIR ${openusd_python_plugin_args_MODULE_SUBDIR})
+        else()
+            set(CMAKE_INSTALL_LIBDIR ${PXR_PLUGIN_PYTHON_MODULE_NAME})
+        endif()
+        install(TARGETS ${PXR_PLUGIN_PYTHON_TARGET_NAME}
+            RUNTIME
+                DESTINATION ${CMAKE_INSTALL_BINDIR})
+    endif()
 
     if(NOT DEFINED PXR_PLUGIN_ROOT)
         get_filename_component(PXR_PLUGIN_ROOT ${CMAKE_PARENT_LIST_FILE} DIRECTORY)
@@ -779,7 +781,11 @@ function (openusd_python_plugin NAME)
 
     # install all python files, but keep relative paths
     if (openusd_python_plugin_args_PYTHON_FILES)
-        set(PXR_PLUGIN_PYTHON_${NAME}_MODULE_DIR ${PXR_PLUGIN_PYTHON_MODULE_NAME})
+        if (openusd_python_plugin_args_MODULE_SUBDIR)
+            set(PXR_PLUGIN_PYTHON_${NAME}_MODULE_DIR ${openusd_python_plugin_args_MODULE_SUBDIR})
+        else()
+            set(PXR_PLUGIN_PYTHON_${NAME}_MODULE_DIR ${PXR_PLUGIN_PYTHON_MODULE_NAME})
+        endif()
         cmake_path(GET CMAKE_PARENT_LIST_FILE PARENT_PATH PXR_PLUGIN_ROOT)
         foreach(python_file ${openusd_python_plugin_args_PYTHON_FILES})
             cmake_path(IS_RELATIVE python_file is_file_relative)
@@ -788,16 +794,28 @@ function (openusd_python_plugin NAME)
                 # by concatenating it with the root target dir
                 # otherwise it's relative outside the source tree (e.g. generated __init__.py)
                 # and needs to be fully resolved and treated as an absolute path
+                # unless it was an additional root, in which case we don't preserve
+                # interior structure for this file
                 set(absolute_python_file ${PXR_PLUGIN_ROOT}/${python_file})
                 cmake_path(NORMAL_PATH absolute_python_file OUTPUT_VARIABLE normalized_python_file)
                 string(FIND ${normalized_python_file} ${PXR_PLUGIN_ROOT} root_relative)
                 if(NOT root_relative EQUAL -1)
+                    # it's relative to the root, so check whether the path includes
+                    # is the additional root dir path
                     set(source_python_file_path ${PXR_PLUGIN_ROOT}/${python_file})
+                    cmake_path(GET source_python_file_path PARENT_PATH parent_source_python_file_path)
                     cmake_path(GET python_file PARENT_PATH python_file_path)
                     cmake_path(GET python_file FILENAME python_file_name)
-                    install(FILES ${source_python_file_path}
-                        DESTINATION ${PXR_PLUGIN_PYTHON_${NAME}_MODULE_DIR}/${python_file_path}
-                        RENAME ${python_file_name})
+                    if (openusd_python_plugin_args_ADDITIONAL_ROOT_DIR AND (parent_source_python_file_path STREQUAL openusd_python_plugin_args_ADDITIONAL_ROOT_DIR))
+                        # this one should be absolute rooted
+                        install(FILES ${source_python_file_path}
+                            DESTINATION ${PXR_PLUGIN_PYTHON_${NAME}_MODULE_DIR}
+                            RENAME ${python_file_name})
+                    else()
+                        install(FILES ${source_python_file_path}
+                            DESTINATION ${PXR_PLUGIN_PYTHON_${NAME}_MODULE_DIR}/${python_file_path}
+                            RENAME ${python_file_name})
+                    endif()
                 else()
                     cmake_path(GET python_file FILENAME python_file_name)
                     install(FILES ${python_file}
@@ -811,7 +829,7 @@ function (openusd_python_plugin NAME)
                 # in either of these cases, the file will go directly to the module install root
                 cmake_path(GET python_file FILENAME python_file_name)
                 install(FILES ${python_file}
-                    DESTINATION $PXR_PLUGIN_PYTHON_${NAME}_MODULE_DIR}
+                    DESTINATION ${PXR_PLUGIN_PYTHON_${NAME}_MODULE_DIR}
                     RENAME ${python_file_name})
             endif()
         endforeach()
@@ -829,9 +847,14 @@ function (openusd_plugin NAME)
     Inputs
     ^^^^^^
     * NAME: The name of the plugin.
-    * PXR_PLUGIN_DIR (optional): The directory considered the root
-      of the plugin source.  If not provided this will default
-      to the CMAKE_PARENT_LIST_DIR directory.
+    * EXPORT_NAMESPACE (optional): The namespace that will
+      be prepended to all targets in the exported targets file.
+      If not provided, this will be the lowercase version of the
+      target name (NAME).  A trailing "::" will be added to the namespace
+      name.
+    * TARGET_ALIAS (optional): If provided, an alias target with the
+      name ${TARGET_ALIAS} will be created referring to the shared
+      library target created by this method.
     * PUBLIC_HEADER_FILES: The set of header files that will be
       used to compile the C++ library.  These headers will also be
       included in the interface definition of the generated cmake
@@ -853,6 +876,9 @@ function (openusd_plugin NAME)
     in non-monolithic builds and usd_ms in monolithic builds.  Additional
     target dependencies may be added at higher levels using the `${NAME}` target.
 
+    Alternatively, if TARGET_ALIAS is provided, an alias target with the name
+    ${TARGET_ALIAS} will be created.
+
     This method also defines an export target with the name ${NAME}Targets
     with a directive to install it to the `cmake` target directory (relative
     to CMAKE_INSTALL_PREFIX).
@@ -863,7 +889,9 @@ function (openusd_plugin NAME)
     #]============================================================]
 
     set(options )
-    set(oneValueArgs )
+    set(oneValueArgs
+        EXPORT_NAMESPACE
+        TARGET_ALIAS)
     set(multiValueArgs
         PUBLIC_HEADER_FILES
         PRIVATE_HEADER_FILES
@@ -880,12 +908,23 @@ function (openusd_plugin NAME)
         message(FATAL_ERROR "OpenUSD installation misconfigured - the pxr module was found, but PXR_CMAKE_DIR was not defined.")
     endif()
 
+    if (NOT openusd_plugin_args_EXPORT_NAMESPACE)
+        string(TOLOWER ${NAME} export_namespace)
+        set(export_namespace "${export_namespace}::")
+    else()
+        set(export_namespace "${openusd_plugin_args_EXPORT_NAMESPACE}::")
+    endif()
+
     add_library(${NAME}
         SHARED
         "${openusd_plugin_args_CPP_FILES}"
         "${openusd_plugin_args_PUBLIC_HEADER_FILES}"
         "${openusd_plugin_args_PRIVATE_HEADER_FILES}"
     )
+
+    if (openusd_plugin_args_TARGET_ALIAS)
+        add_library(${openusd_plugin_args_TARGET_ALIAS} ALIAS ${NAME})
+    endif()
 
     add_standard_openusd_options(${NAME})
 
@@ -931,6 +970,7 @@ function (openusd_plugin NAME)
 
     # Define the export target for the library
     install(EXPORT ${NAME}Targets
+        NAMESPACE ${export_namespace}
         DESTINATION "cmake")
 
     # install plugin resource files to default location unless overridden
@@ -951,7 +991,7 @@ function (openusd_plugin NAME)
             endif()
             set(PLUG_INFO_ROOT .)
             set(PLUG_INFO_RESOURCE_PATH .)
-            set(PLUG_INFO_LIBRARY_PATH ${lib_relative_dir}/${NAME}${CMAKE_SHARED_LIBRARY_SUFFIX})
+            set(PLUG_INFO_LIBRARY_PATH ${lib_relative_dir}/${CMAKE_SHARED_LIBRARY_PREFIX}${NAME}${CMAKE_SHARED_LIBRARY_SUFFIX})
             if (IS_ABSOLUTE ${resource_file})
                 configure_file(${resource_file}
                     ${resource_file}.configured)
@@ -1027,6 +1067,18 @@ function (openusd_schema NAME)
     * PXR_PLUGIN_DIR (optional): The directory considered the root
       of the plugin source.  If not provided this will default
       to the CMAKE_PARENT_LIST_FILE directory.
+    * EXPORT_NAMESPACE (optional): The name of the namespace that will be prepended
+      to the export target generated for the C++ plugin.  If nothing is explicitly
+      specified, this will default to the lowercase version of NAME.  A trailing "::"
+      will be added to the specified name.
+    * CPP_TARGET_ALIAS (optional): If provided, an alias target for the C++
+      shared library created for codeful schemas will be created.
+    * PYTHON_TARGET_ALIAS (optional): If provided, an alias target for the Python
+      module created for codeful schemas will be created.
+    * MODULE_SUBDIR (optional): If provided, a subdirectory structure will be created
+      under the default python module output directory and the python module will
+      be placed in this subdirectory.  This option is ignored if SUPPRESS_PYTHON_MODULE
+      is set to TRUE.  This value must use / to deliniate directories.
     * PUBLIC_HEADER_FILES: The set of header files that will be
       used to compile the C++ library.  These headers will also be
       included in the interface definition of the generated cmake
@@ -1059,7 +1111,11 @@ function (openusd_schema NAME)
     set (oneValueArgs
         SCHEMA_FILE
         GENERATE_DIR
-        PXR_PLUGIN_DIR)    
+        PXR_PLUGIN_DIR
+        EXPORT_NAMESPACE
+        CPP_TARGET_ALIAS
+        PYTHON_TARGET_ALIAS
+        MODULE_SUBDIR)
     set (multiValueArgs
         PUBLIC_HEADER_FILES
         PRIVATE_HEADER_FILES
@@ -1074,6 +1130,12 @@ function (openusd_schema NAME)
         "${multiValueArgs}"
         ${ARGN})
 
+    if (openusd_schema_args_MODULE_SUBDIR)
+        set(PXR_PYTHON_MODULE_SUBDIR ${openusd_schema_args_MODULE_SUBDIR})
+    else()
+        set(PXR_PYTHON_MODULE_SUBDIR)
+    endif()
+
     if (openusd_schema_args_GENERATE_SCHEMA)
         if (NOT PXR_CMAKE_DIR)
             message(FATAL_ERROR "OpenUSD installation misconfigured - the pxr module was found, but PXR_CMAKE_DIR was not defined.")
@@ -1087,9 +1149,51 @@ function (openusd_schema NAME)
             message(FATAL_ERROR "Schema generation requested but no value for SCHEMA_FILE was provided.")
         endif()
 
-        if (NOT GENERATE_DIR)
+        if (NOT openusd_schema_args_GENERATE_DIR)
             message(STATUS "No generate directory provided, defaulting to ${CMAKE_CURRENT_BINARY_DIR}/generated")
             set(PXR_GENSCHEMA_GENERATE_DIR ${CMAKE_CURRENT_BINARY_DIR}/generated)
+        else()
+            set(PXR_GENSCHEMA_GENERATE_DIR ${openusd_schema_args_GENERATE_DIR})
+        endif()
+
+        # read the libraryPath from the schema.usda file
+        file(STRINGS ${openusd_schema_args_SCHEMA_FILE} SCHEMA_FILE_LINES)
+        foreach(line ${SCHEMA_FILE_LINES})
+            string(FIND "${line}" "libraryPath" result)
+            if (NOT result EQUAL -1)
+                # found it, parse out the right hand side of the assignment for the directory
+                math(EXPR result "${result} + 12")
+                string(SUBSTRING ${line} ${result} -1 line)
+                
+                # now find the first instance of a "
+                string(FIND "${line}" "\"" result)
+                if (NOT result EQUAL -1)
+                    math(EXPR result "${result} + 1")
+                    string(SUBSTRING ${line} ${result} -1 line)
+
+                    # find the right quote
+                    string(FIND "${line}" "\"" result)
+                    if (NOT result EQUAL -1)
+                        string(SUBSTRING ${line} 0 ${result} line)
+                        string(COMPARE NOTEQUAL ${line} "." dot_result)
+                        string(COMPARE NOTEQUAL ${line} "./" dot_slash_result)
+                        if (dot_result AND dot_slash_result)
+                            set(SCHEMA_LIBRARY_PATH ${line})
+                        endif()
+                    endif()
+                endif()
+
+                break()
+            endif()
+        endforeach()
+
+        # users of this method may set PXR_PLUGIN_ROOT to be the
+        # directory containing the CMakeLists.txt file for the plugin
+        # if this is not set, this method assumes that the calling
+        # list file is the one at the root
+        if(NOT openusd_schema_args_PXR_PLUGIN_ROOT)
+            get_filename_component(PXR_PLUGIN_ROOT ${CMAKE_PARENT_LIST_FILE} DIRECTORY)
+            message(STATUS "Plugin root not assigned, defaulting to: ${PXR_PLUGIN_ROOT}")
         endif()
 
         # cache the schema such that it won't run if the schema input doesn't change
@@ -1129,6 +1233,12 @@ function (openusd_schema NAME)
 
             # run the schema generation process and create a file we can include
             # such that the generated artifacts get included in the target
+            if (TBB_ROOT)
+                set(ENV{TBB_ROOT} ${TBB_ROOT})
+            endif()
+            if (BOOST_ROOT)
+                set(ENV{BOOST_ROOT} ${BOOST_ROOT})
+            endif()
             execute_process(
                 COMMAND ${PXR_GENSCHEMA_PYTHON_EXE} ${PXR_GENSCHEMA_RUN_SCRIPT} ${openusd_schema_args_SCHEMA_FILE} --generate-dir=${PXR_GENSCHEMA_GENERATE_DIR} --usd-root=${PXR_CMAKE_DIR} --python-root=${PXR_OPENUSD_PYTHON_DIR}
                 RESULT_VARIABLE result
@@ -1137,31 +1247,39 @@ function (openusd_schema NAME)
                 message(FATAL_ERROR "Schema generation failed!")
             endif()
 
+            include(${PXR_GENSCHEMA_GENERATE_DIR}/gen_schema_output.cmake)
+            if (SCHEMA_LIBRARY_PATH)
+                make_directory(${PXR_GENSCHEMA_GENERATE_DIR}/${SCHEMA_LIBRARY_PATH})
+                foreach(header_file ${PXR_GENERATED_PUBLIC_HEADERS})
+                    file(RENAME ${PXR_GENSCHEMA_GENERATE_DIR}/${header_file} ${PXR_GENSCHEMA_GENERATE_DIR}/${SCHEMA_LIBRARY_PATH}/${header_file})
+                endforeach()
+            endif()
+
             # remove the virtual environment
             file(REMOVE_RECURSE ${PXR_GENSCHEMA_VENV_PATH})
 
             # set the cache variable so that it doesn't run again
             set(PXR_${NAME}_SCHEMA_INPUT_INTERNAL_TIMESTAMP ${PXR_${NAME}_SCHEMA_INPUT_TIMESTAMP} CACHE INTERNAL "for internal use only; do not modify")
+        else()
+            # include the generated output variables and compose them with what was passed in
+            include(${PXR_GENSCHEMA_GENERATE_DIR}/gen_schema_output.cmake)
         endif()
 
-        # users of this method may set PXR_PLUGIN_ROOT to be the
-        # directory containing the CMakeLists.txt file for the plugin
-        # if this is not set, this method assumes that the calling
-        # list file is the one at the root
-        if(NOT PXR_PLUGIN_ROOT)
-            get_filename_component(PXR_PLUGIN_ROOT ${CMAKE_PARENT_LIST_FILE} DIRECTORY)
-            message(STATUS "Plugin root not assigned, defaulting to: ${PXR_PLUGIN_ROOT}")
+        if (SCHEMA_LIBRARY_PATH)
+            foreach(header_file ${PXR_GENERATED_PUBLIC_HEADERS})
+                list(APPEND PXR_GENERATED_PUBLIC_HEADERS_SOURCE ${SCHEMA_LIBRARY_PATH}/${header_file})
+            endforeach()
+        else()
+            set(PXR_GENERATED_PUBLIC_HEADERS_SOURCE ${PXR_GENERATED_PUBLIC_HEADERS})
         endif()
 
-        # include the generated output variables and compose them with what was passed in
-        include(${PXR_GENSCHEMA_GENERATE_DIR}/gen_schema_output.cmake)
-        list(TRANSFORM PXR_GENERATED_PUBLIC_HEADERS PREPEND ${PXR_GENSCHEMA_GENERATE_DIR}/)
+        list(TRANSFORM PXR_GENERATED_PUBLIC_HEADERS_SOURCE PREPEND ${PXR_GENSCHEMA_GENERATE_DIR}/)
         list(TRANSFORM PXR_GENERATED_CPP_FILES PREPEND ${PXR_GENSCHEMA_GENERATE_DIR}/)
         list(TRANSFORM PXR_GENERATED_RESOURCE_FILES PREPEND ${PXR_GENSCHEMA_GENERATE_DIR}/)
         list(TRANSFORM PXR_GENERATED_PYTHON_CPP_FILES PREPEND ${PXR_GENSCHEMA_GENERATE_DIR}/)
         list(TRANSFORM PXR_GENERATED_PYTHON_FILES PREPEND ${PXR_GENSCHEMA_GENERATE_DIR}/)
         set(PXR_PLUGIN_PRIVATE_HEADER_FILES ${openusd_schema_args_PRIVATE_HEADER_FILES})
-        foreach (file ${PXR_GENERATED_PUBLIC_HEADERS})
+        foreach (file ${PXR_GENERATED_PUBLIC_HEADERS_SOURCE})
             cmake_path(RELATIVE_PATH file BASE_DIRECTORY ${PXR_PLUGIN_ROOT} OUTPUT_VARIABLE file_relative)
             list(APPEND PXR_GENERATED_RELATIVE_PUBLIC_HEADERS ${file_relative})
         endforeach()
@@ -1184,13 +1302,17 @@ function (openusd_schema NAME)
 
         # configure the moduleDeps.cpp file
         if((NOT ${PXR_SCHEMA_IS_CODELESS}) AND (NOT ${openusd_schema_args_SUPPRESS_GENERATE_MODULE_DEPS_CPP}))
-            # TODO: dependencies need to be configurable
             string(SUBSTRING ${NAME} 0 1 namePrefix)
             string(SUBSTRING ${NAME} 1 -1 nameSuffix)
             string(TOUPPER ${namePrefix} namePrefix)
             set(PXR_PLUGIN_NAME ${NAME})
-            set(PXR_PLUGIN_PYTHON_MODULE_NAME ${namePrefix}${nameSuffix})
-            set(PXR_PLUGIN_DEPENDENCIES "\t\tTfToken(\"tf\"),\n\t\t\t\t\t\tTfToken(\"sdf\"),\n\t\t\t\t\t\tTfToken(\"usd\")")
+            if (PXR_PYTHON_MODULE_SUBDIR)
+                # convert subdir to dot structure
+                string(REPLACE "/" "." module_dot_structure ${PXR_PYTHON_MODULE_SUBDIR})
+                set(PXR_PLUGIN_PYTHON_MODULE_NAME ${module_dot_structure})
+            else()
+                set(PXR_PLUGIN_PYTHON_MODULE_NAME ${namePrefix}${nameSuffix})
+            endif()
             set(module_deps_template ${USD_PLUGIN_CMAKE_UTILS_ROOT}/templates/moduleDeps.cpp.in)
             set(module_deps_configured ${PXR_GENSCHEMA_GENERATE_DIR}/moduleDeps.cpp)
             configure_file(${module_deps_template}
@@ -1211,6 +1333,7 @@ function (openusd_schema NAME)
 
         # configure the __init__.py file
         if((NOT ${PXR_SCHEMA_IS_CODELESS}) AND (NOT ${openusd_schema_args_SUPPRESS_GENERATE_MODULE_INIT_PY}) AND (NOT ${openusd_schema_args_SUPPRESS_PYTHON_MODULE}))
+            set(PXR_PLUGIN_PYTHON_TARGET_NAME _${NAME})
             set(module_init_template ${USD_PLUGIN_CMAKE_UTILS_ROOT}/templates/__init__.py.in)
             set(module_init_configured ${PXR_GENSCHEMA_GENERATE_DIR}/__init__.py)
             configure_file(${module_init_template}
@@ -1233,20 +1356,36 @@ function (openusd_schema NAME)
         set(PXR_PLUGIN_PYTHON_FILES ${openusd_schema_args_PYTHON_FILES})
     endif()
 
+    # add the schema to the set of resource files
+    list(APPEND PXR_PLUGIN_RESOURCE_FILES ${openusd_schema_args_SCHEMA_FILE})
+
     # build the schema as a plugin now that the schema generation is complete
     if(NOT ${PXR_SCHEMA_IS_CODELESS})
         openusd_plugin(${NAME}
+            EXPORT_NAMESPACE ${openusd_schema_args_EXPORT_NAMESPACE}
             PUBLIC_HEADER_FILES ${PXR_PLUGIN_PUBLIC_HEADER_FILES}
             PRIVATE_HEADER_FILES ${PXR_PLUGIN_PRIVATE_HEADER_FILES}
             CPP_FILES ${PXR_PLUGIN_CPP_FILES}
-            RESOURCE_FILES ${PXR_PLUGIN_RESOURCE_FILES})
+            RESOURCE_FILES ${PXR_PLUGIN_RESOURCE_FILES}
+            TARGET_ALIAS ${openusd_schema_args_CPP_TARGET_ALIAS})
+
+        target_include_directories(${NAME}
+            PRIVATE
+            ${PXR_GENSCHEMA_GENERATE_DIR})
+        set(${NAME}_IncludeDirs ${PXR_GENSCHEMA_GENERATE_DIR} CACHE INTERNAL "") 
 
         # build the python plugin by default, unless the caller wants to suppress its creation
         if(NOT ${openusd_schema_args_SUPPRESS_PYTHON_MODULE})
             openusd_python_plugin(${NAME}
-                PXR_PLUGIN_DIR ${PXR_PLUGIN_DIR}
+                ADDITIONAL_ROOT_DIR ${PXR_GENSCHEMA_GENERATE_DIR}
                 PYTHON_CPP_FILES ${PXR_PLUGIN_PYTHON_CPP_FILES}
-                PYTHON_FILES ${PXR_PLUGIN_PYTHON_FILES})
+                PYTHON_FILES ${PXR_PLUGIN_PYTHON_FILES}
+                TARGET_ALIAS ${openusd_schema_args_PYTHON_TARGET_ALIAS}
+                MODULE_SUBDIR ${PXR_PYTHON_MODULE_SUBDIR})
+
+            target_include_directories(_${NAME}
+                PRIVATE
+                ${PXR_GENSCHEMA_GENERATE_DIR})
         endif()
     else()
         set(PXR_PLUGIN_RESOURCES_DIRECTORY plugins/${NAME}/resources)

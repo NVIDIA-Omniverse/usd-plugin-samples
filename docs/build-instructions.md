@@ -1,36 +1,50 @@
-## Additional Build Instructions
+# Additional Build Instructions
 
-## Using CMake to Generate Schema Code and Build Files
+## Overview
 
-These samples use `cmake` to drive generation of schema code (for codeful schemas) and building of OpenUSD plugins. The `cmake` infrastructure included here is setup to use pre-packaged OpenUSD builds (as well as some additional dependencies required by some of the plugins). The use of `packman` has been enabled in this repository to pull the relevant OpenUSD and Python packages (22.11 and 3.10 respectively) for a turnkey type solution that builds plugins compatible with NVIDIA Omniverse (106+).
+These samples use `cmake` as the build system to generate project files for the native compilers to build the OpenUSD plugins.  The `cmake` build uses a number of supporting `cmake` files located in the tools/build/cmake folder:
 
-The `cmake` build files are structured in the following way:
+* `NvPxrPlugin.cmake`: Supplies helpful functions for building OpenUSD schemas and general plugins, for both the C++ based project and the Python based project.
+* `NvOpenUSDPrebuilt.cmake`: Supplies options for building against NVIDIA prebuilt OpenUSD binaries, selecting the version, and importing those binaries into the project as dependencies via the `packman` tool.
+* `xConfig.cmake`: `cmake` configuration files set up to use the vendored TBB, OpenSubDiv, and Imath dependencies included in NVIDIA's prebuilt OpenUSD binary packages.
 
-- The root `CMakeLists.txt` file, responsible for importing NVIDIA's OpenUSD plugin `cmake` helper, setting up the link between the pulled `packman` packages and the rest of the build commands, and the inclusion of the sub-directories containing OpenUSD plugin code.
-- The `PackmanDeps.cmake` file, which setups paths to find `cmake` files to include from the `packman` packages that were pulled down.
-- The `NvPxrPlugin.cmake` file from `nvopenusdbuildtools`, which contains helper functions for declaring OpenUSD schemas, plugin targets, and Python plugin targets.
-- The individual `CMakeLists.txt` files for the OpenUSD plugins, which use the helper functions provided to build the individual plugins.
+## Selecting the OpenUSD Version to Build Against
 
-This works out of the box for both NVIDIA's customized OpenUSD 22.11 Python 3.10 build (i.e., `nv-usd`) and for stock OpenUSD 24.05 Python 3.10 by running the `build.bat`/`build.sh` files. To see all of the options available, run with the `--help` option. These files will:
+By default, the project will use NVIDIA's prebuilt OpenUSD 22.11 binaries.  Two `cmake` options control the usage of these prebuilt binaries:
 
-- pull down the required `packman` packages from NVIDIA's package repositories (via `scripts/setup.py`)
-- configure and build using `cmake`
+* `NV_USE_PREBUILT_OPENUSD_BINARIES` (default `On`)
+* `NV_OPENUSD_BINARY_VERSION` (default `22.11`)
 
-Feel free to customize this sequence as well as the arguments passed to `cmake` as best suits your organization.
+To change the version of the prebuilt binaries used, supply a different value for `NV_OPENUSD_BINARY_VERSION` to your `cmake` configure command, e.g.:
 
+```
+cmake -B ./_build/cmake -G "Visual Studio 16 2019" -DNV_OPENUSD_BINARY_VERSION=22.11
+```
+Supported versions are listed as `cmake` string properties on the `NV_OPENUSD_BINARY_VERSION` option.  Selecting the OpenUSD version will automatically select the appropriate pre-built Python package to go with that selected version.  These prebuilt binaries are supplied such that they are binary compatible with the version that the different versions of Omniverse `kit` uses.
 
-### Integrating your own OpenUSD/Python builds
+If you would like to use your own OpenUSD build:
 
-If you would like to integrate your own build of OpenUSD and Python, you must:
+* set `NV_USE_PREBUILT_OPENUSD_BINARIES` to `Off`
+* set `PXR_OPENUSD_PYTHON_DIR` to the directory containing your Python build you used to build your OpenUSD binaries
+* add the directory containing your OpenUSD build to `CMAKE_PREFIX_PATH` such that it can find `pxrConfig.cmake`
 
-- Change the `build.bat`/`build.sh` file such that the `--build-tools-only` option is passed to `scripts/setup.py` (This will ensure no package for OpenUSD or Python is pulled from the NVIDIA package repository, only the build support tools package)
-- Edit the value of `PXR_OPENUSD_PYTHON_DIR` in `PackmanDeps.cmake` to point to the directory hosting the Python installation you want to use
-- Edit the line in `PackmanDeps.cmake` that appends to the `CMAKE_PREFIX_PATH` – the value should point to your local OpenUSD build. Editing this will direct `cmake` to look for `pxrConfig.cmake` in your local directory rather than the directory of the pulled OpenUSD package from NVIDIA.
+For example, you may modify `CMakeLists.txt` at the root of the repo to include:
+```
+set (NV_USE_PREBUILT_OPENUSD_BINARIES OFF)
+set (PXR_OPENUSD_PYTHON_DIR ${CMAKE_CURRENT_LIST_DIR}/../path/to/my/python)
 
+list(APPEND CMAKE_PREFIX_PATH ${CMAKE_CURRENT_LIST_DIR}/../path/to/my/OpenUSD/build)
 
-### Using your Built Schemas in Omniverse Kit 106
+# include NVIDIA Pixar Plugin build tools that simplify building OpenUSD plugins
+# by default we have the option set to ON to use the prebuilt binaries
+# this can be turned off by setting NV_USE_PREBUILT_OPENUSD_BINARIES to off
+include(NvOpenUSDPrebuilt)
+include(NvPxrPlugin)
+```
 
-If you would like to use the example schemas here inside of `kit 106.x` (or use the examples to build your own schemas and use those in `kit`), you must:
+### Using your Built Schemas in Omniverse Kit
+
+If you would like to use the example schemas here inside of `kit` (or use the examples to build your own schemas and use those in `kit`), you must:
 
 - Clone the `kit-app-template` from https://github.com/NVIDIA-Omniverse/kit-app-template
 - Follow the instructions to create a sample extension and a sample app in which that extension can be hosted
