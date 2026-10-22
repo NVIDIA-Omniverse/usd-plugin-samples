@@ -19,7 +19,7 @@ builds require the python interpreter, python headers, and python libraries
 to be present.  This module is informed where the compatible version of
 Python is for the OpenUSD library you are using by setting the following
 cmake variables:
-* PXR_OPENUSD_PYTHON_DIR: The directory where the python executable resides
+* PXR_OPENUSD_PYTHON_DIR: The root directory of the python installation
 
 Imported Targets
 ^^^^^^^^^^^^^^^^
@@ -64,13 +64,12 @@ endif()
 # we have no control over limitation of NO_CMAKE_PATH
 
 # Step 1: Get the root of the env
-if (WIN32)
-	# Windows Python package has python.exe in its root folder
-    set(Python3_ROOT_DIR "${PXR_OPENUSD_PYTHON_DIR}")
-else()
-	# Linux Python package has python in its bin folder
-    get_filename_component(Python3_ROOT_DIR "${PXR_OPENUSD_PYTHON_DIR}" DIRECTORY)
-endif()
+# PXR_OPENUSD_PYTHON_DIR is the root of the python installation on all platforms
+# (see the --python-root argument passed to genSchema below, and the instructions
+# in docs/build-instructions.md).  Previously this took the parent directory on
+# non-Windows, which assumed the variable pointed at the bin/ folder and left
+# Python3_ROOT_DIR one level too high.
+set(Python3_ROOT_DIR "${PXR_OPENUSD_PYTHON_DIR}")
 
 # Step 2: Try to locate include directories
 if (WIN32)
@@ -770,6 +769,8 @@ function (openusd_python_plugin NAME)
     set(CMAKE_INSTALL_BINDIR ${PXR_PLUGIN_PYTHON_MODULE_NAME})
     install(TARGETS ${PXR_PLUGIN_PYTHON_TARGET_NAME}
         RUNTIME
+            DESTINATION ${CMAKE_INSTALL_BINDIR}
+        LIBRARY
             DESTINATION ${CMAKE_INSTALL_BINDIR})
 
     if(NOT DEFINED PXR_PLUGIN_ROOT)
@@ -1046,7 +1047,7 @@ function (openusd_schema NAME)
       the python module target (if python is not suppressed).
 
     This method requires the following cmake variables to be defined:
-    * PXR_OPENUSD_PYTHON_DIR: The directory where the python executable resides
+    * PXR_OPENUSD_PYTHON_DIR: The root directory of the python installation
 
     #]============================================================]
 
@@ -1096,7 +1097,12 @@ function (openusd_schema NAME)
         file(TIMESTAMP ${openusd_schema_args_SCHEMA_FILE} PXR_${NAME}_SCHEMA_INPUT)
         set(PXR_${NAME}_SCHEMA_INPUT_TIMESTAMP ${PXR_${NAME}_SCHEMA_INPUT} CACHE STRING "Timestamp of input to schema generator" FORCE)
         if (NOT PXR_${NAME}_SCHEMA_INPUT_TIMESTAMP STREQUAL PXR_${NAME}_SCHEMA_INPUT_INTERNAL_TIMESTAMP)
-            set(PXR_OPENUSD_PYTHON_EXE ${PXR_OPENUSD_PYTHON_DIR}/python${CMAKE_EXECUTABLE_SUFFIX})
+            if (WIN32)
+                set(PXR_OPENUSD_PYTHON_EXE ${PXR_OPENUSD_PYTHON_DIR}/python${CMAKE_EXECUTABLE_SUFFIX})
+            else()
+                # the linux python package ships python3/python3.x in bin/, with no bare "python"
+                set(PXR_OPENUSD_PYTHON_EXE ${PXR_OPENUSD_PYTHON_DIR}/bin/python3)
+            endif()
             set(PXR_GENSCHEMA_VENV_PATH ${CMAKE_CURRENT_BINARY_DIR}/_schemagen_venv)
             if (WIN32)
                 set(PXR_GENSCHEMA_PYTHON_EXE ${PXR_GENSCHEMA_VENV_PATH}/Scripts/python${CMAKE_EXECUTABLE_SUFFIX})

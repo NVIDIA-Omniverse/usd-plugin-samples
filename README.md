@@ -1,19 +1,52 @@
 # OpenUSD Plugin Samples
 
+> ## ⚠️ No longer actively maintained
+>
+> These samples are proofs of concept, preserved as-is. They build against the
+> specific OpenUSD and Python versions pinned here and are **not guaranteed to
+> build or run against any other**, and we are not maintaining them against a
+> moving toolchain.
+> That's deliberate: their value is in the **data models and system
+> architecture** they explore, not the implementation — so it doesn't depend on
+> the code still building.
+>
+> Several of these concepts have informed, and continue to inform, OpenUSD
+> design work:
+>
+> - **Geospatial scene index** (`src/hydra-plugins/omniGeoSceneIndex`) —
+>   informed AOUSD AECO IG and Summit discussions, from which a geospatial
+>   proposal is now being drafted.
+> - **Dynamic payloads** (`src/usd-plugins/dynamicPayload/omniMetProvider`) —
+>   informed [Composable Bindings](https://aka.ms/ComposableBindings)
+>   (Microsoft/NVIDIA), which in turn informed the [Separation of Concerns for
+>   Identifiers in USD](https://github.com/PixarAnimationStudios/OpenUSD-proposals/pull/105)
+>   proposal.
+> - **Metrics assembler** (`src/hydra-plugins/omniMetricsAssembler`) — a useful
+>   datapoint as the community works toward a units solution.
+>
+> We expect further OpenUSD workstreams to build on this work.
+>
+> The **Kit extension** sample has been removed (it targeted an outdated version
+> of Kit). The remaining samples are here for reference — fork and adapt as you
+> like, but expect to do your own porting. We are not accepting contributions.
+>
+> Much of the build and dependency friction here is not specific to these
+> samples: consuming OpenUSD from cmake portably is an ecosystem-wide problem.
+> Work toward a portable, target-based OpenUSD cmake config is happening in the
+> open at the [AOUSD Build Interest Group](https://github.com/aousd/build-ig-initiatives)
+> (e.g. its effort to make `pxrConfig.cmake` fully portable) — the vendor-neutral
+> venue where such fixes belong, rather than a bespoke build maintained here.
+>
+> Specific build problems people have reported are written up in the issue
+> tracker. Some are fixed here; where the cause is upstream of this repository,
+> the write-up says so and gives a local workaround where one exists. They're
+> there for reference, not as an open support channel.
+
 ## Introduction
 
-This repository contains a set of samples that illustrate authoring of different kinds of plugins for OpenUSD. In particular, this repository contains plugin samples for:
+This repository contains working explorations of OpenUSD extensibility mechanisms — schemas, file format plugins, dynamic payloads, and Hydra 2 scene indices. The samples were developed as proofs of concept for specific technical problems and are documented in depth. Some have since informed proposals and discussions in the broader OpenUSD community.
 
-- OpenUSD schemas (both codeful and codeless)
-- File Format plugins
-- Dynamic Payloads
-- Hydra 2 Scene Indices
-
-The sections below introduce these samples with the hope of helping you get started on your OpenUSD plugin journey. Feel free to fork this repository, delete the portions you don't need, and customize the remaining in whatever way suits your OpenUSD environment.
-
-While the repository is set up in such a way that you can quickly get started using pre-created builds of OpenUSD (in this case, either `23.05` or NVIDIA's custom OpenUSD build for `22.11` which is currently used in `kit` 106), the intent is to enable you to "bring your own" OpenUSD builds by specifying where it resides in configuration for the included tooling. This is described in further detail below.
-
-This repository contains a set of samples that illustrate authoring of different kinds of plug-ins for USD.  In particular, this repository contains plug-in samples for:
+The build infrastructure supports bringing your own OpenUSD build; see the [build instructions](./docs/build-instructions.md) for details.
 
 ## Quick Start
 
@@ -59,7 +92,7 @@ usdview resources/scene.usda --unloaded
 
 ### Building Custom Schemas
 
-For additional notes regarding building custom OpenUSD schemas, and how to package them with NVIDIA Omniverse Extensions, refer to [this guide](./docs/build-instructions.md).
+For additional notes regarding building custom OpenUSD schemas, refer to [this guide](./docs/build-instructions.md).
 
 ## Sample Scenes
 
@@ -97,7 +130,6 @@ The repository is structured as follows:
 │ ├─/omniGeoSceneIndex
 │ ├─/omniMetricsAssembler
 │ └─/omniWarpSceneIndex
-├─/kit-extension
 └─/usd-plugins
   ├─/dynamicPayload
   ├─/fileFormat
